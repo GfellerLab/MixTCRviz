@@ -72,7 +72,7 @@ MixTCRviz <- function(input1, output.path,
       comp.baseline <- 0
       baseline.name <- "Reference"
     }
-  } else if(is.data.frame(input2)){
+  } else if(is.data.frame(input2)==T){
     comp.baseline <- 0
     baseline.name <- "Reference"
   }
@@ -252,9 +252,9 @@ MixTCRviz <- function(input1, output.path,
         # Still need to implement a few check that the data are available.
         #####
         
-        if(as.character(input2)==T){
+        if(is.character(input2)==T){
           es2.all <- read.csv(input2)
-        } else if (as.data.frame(input2)){
+        } else if (is.data.frame(input2)==T){
           es2.all <- input2
         }
         es2.all <- check_input(es2.all)

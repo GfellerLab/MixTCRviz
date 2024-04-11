@@ -1,6 +1,6 @@
 
 ###############
-# MixTCRviz is a tool to visualise important properties of a set of TCRs (e.g., epitope-specific TCRs).
+# MixTCRviz is a tool to visualize important properties of a set of TCRs (e.g., epitope-specific TCRs).
 #
 # MixTCRviz can be used freely by academic groups for non-commercial purposes (see license).
 # The product is provided free of charge, and, therefore, on an "as is"
@@ -83,7 +83,9 @@ Optional parameters:
 - baseline.file (default=""): .rds file containing information about baseline repertoire.
     If empty, the default baseline repertoires are used.
 
-- use.allele (default=0): 0: All V/J alleles are merged at the gene level (recommanded). 1: Alleles are kept.
+- use.allele (default=0): 0: All V/J alleles are merged at the gene level (recommended).
+    In this case, mouse TRAV genes corresponding to different strains are merged (TRAV10D and TRAVN10 become all TRAV10).
+    1: Alleles are kept, including mouse TRAV genes from different strains.
 
 - renormVJ (default=1): 1: When comparing to the baseline TCR repertoire,
     build CDR3 length distributions and CDR3 motifs corresponding to the V-J usage observed in the input TCRs.
@@ -107,7 +109,7 @@ Optional parameters:
 
 - chain.list.output (default=AB); A: Only the alpha chain is plotted in output; B: only the beta chain is plotted in output; AB both chains are plotted in output
 
-- es.name (defalut="Epitope Specific"); Provide a generic name for the input TCRs in the plots (e.g., Epitope Specific)
+- es.name (default="Epitope Specific"); Provide a generic name for the input TCRs in the plots (e.g., Epitope Specific)
 
 #############
 OUTPUT
@@ -131,27 +133,27 @@ will be redundant with the differences observed in V/J usage.
 ** For a given model, MixTCRviz requires at least 10 TCR (V-J-CDR3) for at least one chain. Missing data (e.g., only one chain) will result in empty plots.
 
 ** By default, the minimum number of sequences (i.e. V-J-CDR3) for at least one chain is 10.
-Using less data is possible by changing the N.min parameter. However the plots of MixTCRviz will not longer be much meaningful with too little data to perform the statistics.
+Using less data is possible by changing the N.min parameter. However the plots of MixTCRviz will no longer be much meaningful with too little data to perform meanigful statistics.
 
 ** Although we have compiled several frequent issues with V/J gene names, as well as a way to correct some of them,
-we strongly recommand using V/J genes from IMGT. If other V/J gene names are used, it is likely that several entries will not be considered by MixTCRviz.
+we strongly recommend using V/J genes from IMGT. If other V/J gene names are used, it is likely that several entries will not be considered by MixTCRviz.
 
 ** The information about the species is important to choose an appropriate baseline.
-In case you are using the same model (e.g.,MHC_peptide) with both human and mouse TCRs, we recommand distinguishing both cases in the model column
+In case you are using the same model (e.g.,MHC_peptide) with both human and mouse TCRs, we recommend distinguishing both cases in the model column
 (e.g., A0201_LLWNGPMAV_HomoSapiens and A0201_LLWNGPMAV_MusMusculus) and indicating the species in the appropriate column.
 
 ** When chosing plot.logo.length=1, the baseline/reference V and J usage (x-axis) correspond to those of TCRs with the given lengths.
 Hence the exact values change for different lengths.
 
-** When usinge use.allele=1, it is important to realize that presence/absence of specific alleles in a given patient also reflects the genetic background of this patient.
-For these reasons, some alleles may appear to be enriched in the input TCRs vesus default baseline repertoires, but this enrichment is not linked to any signal of specificity (e.g., epitope specificity).
-In addition, determining the correct alleles from TCR-Seq data can be challeging, and sequencing errors can easily result in wrong allele calls.
-We therefore recommand analysing data at the gene level to avoid confounding factors related to genetic background/TCR reconstruction issues.
+** When usinge use.allele=1, it is important to realize that presence/absence of specific alleles in a given sample also reflects the genetic background of the donor.
+For these reasons, some alleles may appear to be enriched in the input TCRs versus default baseline repertoires, but this enrichment may not be linked to any signal of specificity (e.g., epitope specificity).
+In addition, determining the correct allele from TCR-Seq data can be challenging, and sequencing errors can easily result in wrong allele calls.
+We therefore recommend analyzing data at the gene level (use.allele=0) to avoid confounding factors related to genetic background/TCR reconstruction issues.
 Alternatively, the baseline TCR repertoire can also be sequenced in each patient, and used as input for MixTCRviz (baseline.file parameter).
 
 ** The .rds objects in the output.path/stats/ directory contain a summary of the statistics for each model for each chain.
 This is provided as a list with the following entries:
-- "L": list of CDR3 lenght
+- "L": list of CDR3 length
 - "countL": Number of TCRs for each CDR3 length
 - "countV": Number of TCRs with each V segment
 - "countJ": Number of TCRs with each J segment
