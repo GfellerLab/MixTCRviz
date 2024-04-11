@@ -31,6 +31,11 @@ for(tsp in species.list){
   }
 }
 
+#For mouse TRAV, take the merging between different strains
+m <- read.csv(paste(imgt.path,"/CDR123/MusMusculus/TRAV_merge.csv", sep=""))
+merge.mouse.TRAV <- m[,2]
+names(merge.mouse.TRAV) <- m[,1]
+
 mp.TRAV <- read.csv(paste(imgt.path,"TidyVJ/mapping_TRAV.csv", sep=""), header=F, skip=1)
 mp.TRBV <- read.csv(paste(imgt.path,"TidyVJ/mapping_TRBV.csv", sep=""), header=F, skip=1)
 mp.TRAJ <- read.csv(paste(imgt.path,"TidyVJ/mapping_TRAJ.csv", sep=""), header=F, skip=1)
@@ -99,8 +104,10 @@ clean.name.allele <- function(g, a, sp){
   return(ga)  
 }
 
+
+
 #We check the first aa is compatible with the V gene and the last two with the J gene.
-#Cases where one aa is mssing due to a differetn definition of CDR3 are corrected when the first/last 3 aa are compatible with the V/J gene
+#Cases where one aa is missing due to a different definition of CDR3 are corrected when the first/last 3 aa are compatible with the V/J gene
 #Cases where the V/J genes are not given are only kept if starting with C and ending with F/W
 #Cases of CDR3 incompatible with V/J are put to "".
 clean.cdr3 <- function(v,j,cdr3,sp,chain){

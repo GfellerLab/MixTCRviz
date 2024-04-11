@@ -142,7 +142,7 @@ weighted_VJcount <- function(x,y){
 
 # Compute the weighted average of motifs for different V/J usage
 # This is important since the choice of V/J has huge influence on the CDR3 motif.
-# By considering V/J usage in baseline, it helps identifying what is epitope-specific
+# By considering V/J usage in baseline, it helps identifying what is specific to the input TCR
 weighted_countCDR3 <- function(x,y){
   
   countCDR3 <- list()
@@ -263,7 +263,7 @@ plotVJ <- function(count.es, count.rep, info){
     ylab <- type1
   } else{ylab=""}
   
-  #Plot the comparison between epitope specific and repertoires
+  #Plot the comparison between input and repertoires
   count.plot <- list()
   if(length(count.es)>0){
     count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) + 
@@ -390,4 +390,55 @@ plotCDR3 <- function(lc.es, lc.rep, countCDR3.es, countCDR3.rep, info, comp.base
   names(ls) <- c("ES", "Baseline", "length", "lmax")
   return(ls)
 }
+
+
+check_input <- function(x){
+  
+  col.TCR <- c("TRAV", "TRAJ", "cdr3_TRA", "TRBV", "TRBJ", "cdr3_TRB")
+  
+  #Check missing input
+  for(cl in c(col.TCR)){
+    if(cl %in% colnames(x) == F){
+      cn <- colnames(x)
+      x <- cbind(x,"")
+      colnames(x) <- c(cn, cl)
+      print(paste("Missing",cl,"information"))
+    }
+  }
+  if("species" %in% colnames(x) == F){
+    cn <- colnames(x)
+    x <- cbind(x,"HomoSapiens")
+    colnames(x) <- c(cn, "species")
+    print("Missing host species, using HomoSapiens as default")
+  }
+  if("model" %in% colnames(x) == F){
+    cn <- colnames(x)
+    x <- cbind(x,"Model_default")
+    colnames(x) <- c(cn, "model")
+    print("Missing model information, using the same model (Model_default)")
+    
+  }
+  return(x)
+}
+
+merge_mouse_TRAV <- function(x){
+  
+  #This has to be run after alleles have been removed and genes have been corrected
+  
+  if("TRAV" %in% colnames(x)){
+    ind <- which(x[,"species"]=="MusMusculus")
+    v.cor <- as.character(unlist(lapply(x[ind,"TRAV"], function(y){
+      if(y %in% names(merge.mouse.TRAV) == T){
+        y <- merge.mouse.TRAV[y]
+      }
+      return(y)
+    })))
+    x[ind,"TRAV"] <- v.cor 
+  }
+  
+  return(x)
+}
+
+
+
 
