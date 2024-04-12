@@ -21,7 +21,7 @@ source(paste(MixTCRviz.path,"/R/functions.R", sep=""))
 
 MixTCRviz <- function(input1, output.path, 
                       input2="", baseline.file="",
-                      use.allele=0, correct.gene.names=1, 
+                      use.allele=0, correct.gene.names=1, use.mouse.strain=0,
                       renormVJ=1, N.min=10,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0,
                       chain.list.output="AB", es.name="Epitope specific"){
@@ -29,6 +29,7 @@ MixTCRviz <- function(input1, output.path,
   # Mandatory Parameters:
   # - input1: Required: Input TCRs. Can be a filename or a data.frame
   # - output.path: Required: path for output
+  
   # Optional parameters
   # - input2: Reference TCRs. Can be a filename or a data.frame
   # - correct.gene.names <- 1 # Attempt to correct V/J names not in IMGT
@@ -36,9 +37,10 @@ MixTCRviz <- function(input1, output.path,
   # - plot.cdr12.motif <- 0 #Build the plots for the CDR12 motifs 
   # - plot.logo.length <- 1 #Plot the logos of different lengths
   # - plot.oneline <- 0
-  # - N.min
-  # - renormVJ
+  # - N.min <- 10
+  # - renormVJ <- 1
   # - use.allele <- 0 #0: The allele are removed or absent in the input file; 1: the allele are present or added (not recommanded)
+  # - use.mouse.strain <- 0 #0: Merge the TRAV segments in mouse corresponding to different strains (TRAV10/TRAV10D/TRAAV10N)
   # - chain.list.output="AB": Decide which chains to plot 
   # - es.name="Epitope specific": Decide the name for the input TCRs (e.g., "Epitope specific") 
   
@@ -113,7 +115,7 @@ MixTCRviz <- function(input1, output.path,
   if(correct.gene.names==1){
     es.all <- correct.VJnames(es.all, name.list)
     #Merge the TRAV genes in mouse across different strains
-    if(use.allele==0){
+    if(use.mouse.strain==0){
       es.all <- merge_mouse_TRAV(es.all)
     }
   }
@@ -225,7 +227,11 @@ MixTCRviz <- function(input1, output.path,
             }
           }
           if(sp=="MusMusculus"){
-            all.baseline <- readRDS(file=paste(MixTCRviz.path,"/Rdata/summary_",sp,"_noallele_SEQTR.rds", sep=""))
+            if(use.mouse.strain==1){
+              all.baseline <- readRDS(file=paste(MixTCRviz.path,"/Rdata/summary_",sp,"_noallele_SEQTR.rds", sep=""))
+            } else {
+              all.baseline <- readRDS(file=paste(MixTCRviz.path,"/Rdata/summary_",sp,"_noallele_noStrain_SEQTR.rds", sep=""))
+            }
           }
         } else {
           all.baseline <- readRDS(file=baseline.file)
