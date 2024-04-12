@@ -308,6 +308,10 @@ MixTCRviz <- function(input1, output.path,
           es2 <- correct.VJnames(es2, name.list)
         }
         
+        if(sp=="MusMusculus" & use.mouse.strain==0 & use.allele.es==0){
+          es2 <- merge_mouse_TRAV(es2)
+        }
+        
         for(s in segment.list){
           #Put to NA the V/J segments for which we do not have sequences (this should not be the case if the repertoire is good.
           ind <- which(es2[,s] %in% name.list[[sp]] == F & !is.na(es2[,s]))
