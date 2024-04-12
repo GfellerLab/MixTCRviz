@@ -85,10 +85,11 @@ Optional parameters:
 
 - use.allele (default=0): 0: All V/J alleles are merged at the gene level (recommended).
     1: Alleles are kept, including mouse TRAV genes from different strains.
+    Currently, use.allele is fixed to 0 for mouse TCRs.
 
-- use.mouse.strain (default=0): 0: Merge the different TRAV genes corresponding to different mouse strains (TRAV10D, TRAVN10 and TRAV10 become all TRAV10).
+- use.mouse.strain (default=0): 0: Merge the different TRAV genes corresponding to different mouse strains (e.g., TRAV10D, TRAVN10 and TRAV10 become all TRAV10).
     This is recommended since differences between input TCRs and baseline TCRs may result from the use of different mouse strains, and not be related to specificity in input TCRs.
-    In addition different TCR reconstruction tools use different approaches to call these variants
+    In addition different TCR reconstruction tools use different approaches to call these genes, which can create artificial enrichment in one of them versus the baseline.
     1: The different TRAV segments (e.g., TRAV10D, TRAVN10 and TRAV10) are treated separately.
 
 - renormVJ (default=1): 1: When comparing to the baseline TCR repertoire,

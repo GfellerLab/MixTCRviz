@@ -114,10 +114,6 @@ MixTCRviz <- function(input1, output.path,
   
   if(correct.gene.names==1){
     es.all <- correct.VJnames(es.all, name.list)
-    #Merge the TRAV genes in mouse across different strains
-    if(use.mouse.strain==0){
-      es.all <- merge_mouse_TRAV(es.all)
-    }
   }
   
   #Replace empty values by NA
@@ -137,7 +133,7 @@ MixTCRviz <- function(input1, output.path,
     i <- which(es.all[,"model"]==x);
     nA <- length(which(!is.na(es.all[i,"TRAV"]) & !is.na(es.all[i,"TRAJ"]) & !is.na(es.all[i,"cdr3_TRA"]) )) 
     nB <- length(which(!is.na(es.all[i,"TRBV"]) & !is.na(es.all[i,"TRBJ"]) & !is.na(es.all[i,"cdr3_TRB"]) )) 
-    if(nA>N.min | nB>N.min){
+    if(nA>=N.min | nB>=N.min){
       return(1)
     } else {
       return(0)
@@ -156,6 +152,8 @@ MixTCRviz <- function(input1, output.path,
   
   for(model in model.list){
     
+    use.allele.es <- use.allele
+    
     print (model)
     
     pg.all <- list()
@@ -169,11 +167,29 @@ MixTCRviz <- function(input1, output.path,
     es <- es.all[which(es.all[,"model"]==model),]
     sp <- unique(es[1,"species"])
     if(length(sp)>1){
-      stop("Multiple species provided for the same model")
+      stop("Multiple species provided for the same model. Use a different model name for each species")
     } else {
       if(sp %in% species.list==F){
         stop("Unknown species. MixTCRviz supports only \"HomoSapiens\" or \"MusMusculus\"")
       }
+    }
+    if(sp=="MusMusculus" & use.allele.es==1){
+      print("Alleles currently not supported in mouse. The data will be treated at the gene level")
+      use.allele.es <- 0
+      for(s in segment.list){
+        es[,s] <- unlist(lapply(es[,s], function(x){unlist(strsplit(x,split="*", fixed=T))[1]}))
+      }  
+    }
+    #This is to handle cases where use.allele was forced to 0 (mouse)
+    if(use.allele.es==1){
+      name.list <- gene.allele.list
+    } else {
+      name.list <- gene.list
+    }
+    
+    #Merge the TRAV genes in mouse across different strains
+    if(sp=="MusMusculus" & use.mouse.strain==0 & use.allele.es==0){
+      es <- merge_mouse_TRAV(es)  #WARNING: This only works if use.allele.es==0 (so far always the case in mouse)
     }
     
     #Do a check of the gene names missing from IMGT
@@ -187,6 +203,9 @@ MixTCRviz <- function(input1, output.path,
       }
     }
     es <- es[,col.TCR]
+    for(i in col.TCR){
+      es[which(es[,i] == ''),i] <- NA
+    }
     
     count <- build_stat(es)
     L.es <- count$L
@@ -220,17 +239,19 @@ MixTCRviz <- function(input1, output.path,
         
         if(baseline.file==""){
           if(sp=="HomoSapiens"){
-            if(use.allele==1){
+            if(use.allele.es==1){
               all.baseline <- readRDS(file=paste(MixTCRviz.path,"/Rdata/summary_",sp,".rds", sep=""))
             } else {
               all.baseline <- readRDS(file=paste(MixTCRviz.path,"/Rdata/summary_",sp,"_noallele.rds", sep=""))
             }
           }
           if(sp=="MusMusculus"){
-            if(use.mouse.strain==1){
-              all.baseline <- readRDS(file=paste(MixTCRviz.path,"/Rdata/summary_",sp,"_noallele_SEQTR.rds", sep=""))
-            } else {
-              all.baseline <- readRDS(file=paste(MixTCRviz.path,"/Rdata/summary_",sp,"_noallele_noStrain_SEQTR.rds", sep=""))
+            if(use.allele.es==0){  #N.B. Currently always the case in mouse
+              if(use.mouse.strain==1){
+                all.baseline <- readRDS(file=paste(MixTCRviz.path,"/Rdata/summary_",sp,"_noallele_SEQTR.rds", sep=""))
+              } else {
+                all.baseline <- readRDS(file=paste(MixTCRviz.path,"/Rdata/summary_",sp,"_noallele_noStrain_SEQTR.rds", sep=""))
+              }
             }
           }
         } else {
@@ -278,7 +299,7 @@ MixTCRviz <- function(input1, output.path,
         }    
         
         #Remove alleles
-        if(use.allele==0){
+        if(use.allele.es==0){
           for(s in segment.list){
             es2[,s] <- unlist(lapply(es2[,s], function(x){unlist(strsplit(x,split="*", fixed=T))[1]}))
           }
