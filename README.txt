@@ -25,19 +25,17 @@ INTRODUCTION
 ############
 
 MixTCRviz is a tool to visualize important properties of a set of TCRs (e.g., epitope-specific TCRs).
-It focuses on V usage, J usage, CDR3 length distribution and CDR3 motif of the most frequent CDR3 length, for both alpha and beta chain.
+It focuses on V usage, J usage, CDR3 length distribution and CDR3 motifs, for both alpha and beta chain.
 
 By default, properties of the input TCRs are compared to those of a "baseline" TCR repertoire (mouse or human).
 Alternatively, users can choose to compare with another set of TCRs ("reference").
-
 
 ############
 INSTALLATION
 ############
 
 - Download and open MixTCRviz.zip
-- In MixTCRpred.R, provide the path to MixTCRviz: MixTCRviz.path <- "PATH_TO_MixTCRviz"
-
+- In MixTCRviz.R, provide the path to MixTCRviz: MixTCRviz.path <- "PATH_TO_MixTCRviz"
 
 Testing the INSTALLATION:
 
@@ -45,7 +43,9 @@ In the MixTCRviz directory run:
 
 Rscript test_MixTCRviz.R
 
-The output in test/out_compare should be the same as in test/out
+Alternatively, you can run the code test_MixTCRviz.R in Rstudio (or any R interface)
+
+The output in test/out should be the same as in test/out_compare
 
 ############
 RUNNING
