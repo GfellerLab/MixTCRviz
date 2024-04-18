@@ -3,8 +3,7 @@
 # Define some function
 #####
 
-build_stat <- function(es){
-  
+build_stat <- function(es, chain.list){
   
   L <- list()
   countL <- list()
@@ -25,13 +24,13 @@ build_stat <- function(es){
     
     countV[[chain]] <- table(es[,seg[1]])
     countJ[[chain]] <- table(es[,seg[2]])
-
+    
     countL[[chain]] <- table(nchar(es[,cdr3]))
     
     L[[chain]] <- as.numeric(names(countL[[chain]]))
 
     countVJ[[chain]] <- table(es[,seg[1]], es[,seg[2]])
-        
+    
     countV.L[[chain]] <- list()
     countJ.L[[chain]] <- list()
     countVJ.L[[chain]] <- list()
@@ -130,8 +129,6 @@ weighted_VJcount <- function(x,y){
   for(i in names(y)){
     v <- x[[as.numeric(i)]]
     v <- v/sum(v)  #This is the normalized distribution of V or J for a given length
-    
-    #print(v[1:10])
     
     for(j in 1:length(v)){
       ct[names(v)[j]] <- ct[names(v)[j]] + v[j]*y[i]
@@ -242,8 +239,8 @@ plotVJ <- function(count.es, count.rep, info){
   count.df <- data.frame(count)
   colnames(count.df) <- c("Y","X")
   
-  lim.y <- max(count[,c(type1)] )*1.2
-  lim.x <- max(count[,c(type2)] )*1.2
+  lim.y <- max(count[,c(type1)] )*1.25
+  lim.x <- max(count[,c(type2)] )*1.25
   
   #lim.y <- round(min( max(count[,c(type1)] )+0.1, max( count[,c(type1)] )*1.4),1)
   #lim.x <- min(max(count[,c(type2)])+0.1, max(count[,c(type2)])*1.4)
@@ -279,9 +276,8 @@ plotVJ <- function(count.es, count.rep, info){
 }
 
 
-correct.VJnames <- function(es.all, name.list){
+correct.VJnames <- function(es.all, name.list, segment.list){
   
-  segment.list <- c("TRAV", "TRAJ", "TRBV", "TRBJ")
   
   for(sp in species.list){
     for(s in segment.list){
@@ -392,10 +388,9 @@ plotCDR3 <- function(lc.es, lc.rep, countCDR3.es, countCDR3.rep, info, comp.base
 }
 
 
-check_input <- function(x){
+check_input <- function(x, col.TCR){
   
-  col.TCR <- c("TRAV", "TRAJ", "cdr3_TRA", "TRBV", "TRBJ", "cdr3_TRB")
-  
+
   #Check missing input
   for(cl in c(col.TCR)){
     if(cl %in% colnames(x) == F){

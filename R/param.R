@@ -15,13 +15,9 @@ gap <- c("-", "X", ".", "*","_")  # "x" is kept for 'real' gaps in CDR1/2, while
 th <- theme(plot.title = element_text(size = 8, hjust=0.5), axis.title=element_text(size=8))
 yl <- ylim(0,2)
 
-segment.list <- c("TRAV", "TRBV", "TRAJ", "TRBJ")
 chain.list <- c("TRA", "TRB")
 chain.small <- c("a","b")
 names(chain.small) <- chain.list
-segment <- list()
-segment[["TRA"]] <- c("TRAV","TRAJ")
-segment[["TRB"]] <- c("TRBV","TRBJ")
 
 species.list <- c("HomoSapiens", "MusMusculus")
 

@@ -54,11 +54,11 @@ map[["MusMusculus"]] <- mp[pos.m,2]
 names(map[["MusMusculus"]]) <- mp[pos.m,1]
 
 
-#Take the gene + allele.
-#If allele, try to correct the gene*allele and return it. 
+# Take the gene + allele.
+# If allele, try to correct the gene*allele and return it. 
 # If not possible, try to correct only the gene, and return only the gene
 # If no allele, try to correct the gene if needed
-#Cases that could not be corrected are returned as NA
+# Cases that could not be corrected are returned as NA
 clean.name.allele <- function(g, a, sp){
   
   if(sp != "HomoSapiens" & sp != "MusMusculus"){

@@ -48,12 +48,26 @@ MixTCRviz <- function(input1, output.path,
   # Choose some parameters
   #######
   
+  if(chain.list.output=="A"){    chain.list <- c("TRA");
+  }else if(chain.list.output=="B"){  chain.list <- c("TRB");
+  }else if(chain.list.output=="AB"){    chain.list <- c("TRA","TRB");
+  } else { stop(paste("chain.list.output ", chain.list.output, " not supported by mixTCRviz", sep=""))
+  }
+  
+  col.TCR <- c(); segment.list <- c()
+  for(chain in chain.list){
+    col.TCR <- c(col.TCR, paste(chain,"V",sep=""), paste(chain,"J",sep=""), paste("cdr3_",chain,sep=""))
+    segment.list <- c(segment.list, paste(chain,"V",sep=""), paste(chain,"J",sep=""))
+  }
+  
+
   keep.gap.pwm <- 0 # 1: means that 'g' (gaps in CDR1/2) are treated as an additional aa in the logos. 0: means that 'g' are treated as unspecific (i.e., 0.05) in the logos
   if(keep.gap.pwm==1){taa.list <- c(aa.list,"g"); additionalAA <- "g"} else {taa.list <- aa.list; additionalAA <- ""}
   
   min.logo <- 10 #Minimum number of sequences to plot the logos (when plotting different lengths)
   
-  col.TCR <- c("TRAV", "TRAJ", "cdr3_TRA", "TRBV", "TRBJ", "cdr3_TRB")
+  
+  
   
   if(plot.cdr12.motif==1){plot.oneline=0}
   if(plot.oneline==1){
@@ -96,7 +110,7 @@ MixTCRviz <- function(input1, output.path,
   }
   
   #Check if some columns are missing
-  es.all <- check_input(es.all)
+  es.all <- check_input(x=es.all, col=col.TCR)
   
   #Remove alleles
   if(use.allele==0){
@@ -113,7 +127,7 @@ MixTCRviz <- function(input1, output.path,
   ###################
   
   if(correct.gene.names==1){
-    es.all <- correct.VJnames(es.all, name.list)
+    es.all <- correct.VJnames(es.all, name.list, segment.list)
   }
   
   #Replace empty values by NA
@@ -133,7 +147,7 @@ MixTCRviz <- function(input1, output.path,
     i <- which(es.all[,"model"]==x);
     nA <- length(which(!is.na(es.all[i,"TRAV"]) & !is.na(es.all[i,"TRAJ"]) & !is.na(es.all[i,"cdr3_TRA"]) )) 
     nB <- length(which(!is.na(es.all[i,"TRBV"]) & !is.na(es.all[i,"TRBJ"]) & !is.na(es.all[i,"cdr3_TRB"]) )) 
-    if(nA>=N.min | nB>=N.min){
+    if( (nA>=N.min & chain.list.output=="A") |(nB>=N.min & chain.list.output=="B") | ((nA>=N.min | nB>=N.min) & chain.list.output=="AB")){
       return(1)
     } else {
       return(0)
@@ -188,7 +202,7 @@ MixTCRviz <- function(input1, output.path,
     }
     
     #Merge the TRAV genes in mouse across different strains
-    if(sp=="MusMusculus" & use.mouse.strain==0 & use.allele.es==0){
+    if(sp=="MusMusculus" & use.mouse.strain==0 & use.allele.es==0 & chain.list.output != "B"){
       es <- merge_mouse_TRAV(es)  #WARNING: This only works if use.allele.es==0 (so far always the case in mouse)
     }
     
@@ -206,8 +220,8 @@ MixTCRviz <- function(input1, output.path,
     for(i in col.TCR){
       es[which(es[,i] == ''),i] <- NA
     }
-    
-    count <- build_stat(es)
+
+    count <- build_stat(es, chain.list)
     L.es <- count$L
     countL.es <- count$countL
     countV.es <- count$countV
@@ -227,7 +241,6 @@ MixTCRviz <- function(input1, output.path,
       dir.create(dir);
     }
     saveRDS(summary, file=paste(output.path,"/stats/",model,".rds", sep=""))
-    
     
     if(plot==1){
       
@@ -284,7 +297,7 @@ MixTCRviz <- function(input1, output.path,
         } else if (is.data.frame(input2)==T){
           es2.all <- input2
         }
-        es2.all <- check_input(es2.all)
+        es2.all <- check_input(x=es2.all, col=col.TCR)
         
         for(i in col.TCR){
           es2.all[which(es2.all[,i] == ''),i] <- NA
@@ -305,10 +318,10 @@ MixTCRviz <- function(input1, output.path,
           }
         }
         if(correct.gene.names==1){
-          es2 <- correct.VJnames(es2, name.list)
+          es2 <- correct.VJnames(es2, name.list, segment.list)
         }
         
-        if(sp=="MusMusculus" & use.mouse.strain==0 & use.allele.es==0){
+        if(sp=="MusMusculus" & use.mouse.strain==0 & use.allele.es==0 & chain.list.output != "B"){
           es2 <- merge_mouse_TRAV(es2)
         }
         
@@ -321,7 +334,7 @@ MixTCRviz <- function(input1, output.path,
           es2[ind,s] <- NA
         }
         
-        count <- build_stat(es2)
+        count <- build_stat(es2, chain.list)
         L.baseline <- count$L
         countL.baseline <- count$countL
         countV.baseline <- count$countV
@@ -334,6 +347,8 @@ MixTCRviz <- function(input1, output.path,
       }
       
       for(chain in chain.list){
+        
+        #print(chain)
         
         if(comp.baseline==1){
           #Check segments that were in the ES, but not in baseline
@@ -528,8 +543,7 @@ MixTCRviz <- function(input1, output.path,
         dir.create(dir);
       }
       
-      if(chain.list.output=="A"){   pg.both <- pg.all[[chain.list[1]]]; div=2   }
-      if(chain.list.output=="B"){   pg.both <- pg.all[[chain.list[2]]]; div=2   }
+      if(chain.list.output=="A" | chain.list.output=="B"){   pg.both <- pg.all[[chain.list[1]]]; div=2   }
       if(chain.list.output=="AB"){  pg.both <- ggarrange(pg.all[[chain.list[1]]], pg.all[[chain.list[2]]], ncol=2); div=1  }
       
       fig <- annotate_figure(pg.both, top = text_grob(model, face = "bold", size = 12))
@@ -557,16 +571,19 @@ MixTCRviz <- function(input1, output.path,
         for(chain in chain.list){
           g.final <- pg.length[[chain]]; 
           mx <- length(tl.logo[[chain]])
-          if(chain == "TRA" & chain.list.output!="B"){
+          #if(chain == "TRA" & chain.list.output!="B"){
             ggsave(g.final, filename=paste(dir, model,"_",chain,".pdf", sep=""), width = 20/div, height = 2.5*mx)
-          }
-          if(chain == "TRB" & chain.list.output!="A"){
-            ggsave(g.final, filename=paste(dir, model,"_",chain,".pdf", sep=""), width = 20/div, height = 2.5*mx)
-          }
+          #}
+          #if(chain == "TRB" & chain.list.output!="A"){
+          #  ggsave(g.final, filename=paste(dir, model,"_",chain,".pdf", sep=""), width = 20/div, height = 2.5*mx)
+          #}
         }
       }
     }
   }
+  
+  #return(summary)
+  
 }
 
 
