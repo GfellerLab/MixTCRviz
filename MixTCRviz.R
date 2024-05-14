@@ -64,7 +64,7 @@ MixTCRviz <- function(input1, output.path,
   keep.gap.pwm <- 0 # 1: means that 'g' (gaps in CDR1/2) are treated as an additional aa in the logos. 0: means that 'g' are treated as unspecific (i.e., 0.05) in the logos
   if(keep.gap.pwm==1){taa.list <- c(aa.list,"g"); additionalAA <- "g"} else {taa.list <- aa.list; additionalAA <- ""}
   
-  min.logo <- 10 #Minimum number of sequences to plot the logos (when plotting different lengths)
+  min.logo <- 5 #Minimum number of sequences to plot the logos (when plotting different lengths)
   
   
   
@@ -151,7 +151,7 @@ MixTCRviz <- function(input1, output.path,
       return(1)
     } else {
       return(0)
-      print(paste("Model",x,"will not be considered (less than N.min data)"))
+      print(paste("Model",x,"will not be considered (less than N.min=",N.min," data)"))
     }
   })
   model.list <- md[st==1]
@@ -485,8 +485,6 @@ MixTCRviz <- function(input1, output.path,
           }
           
           
-          
-          
           if(plot.logo.length==1){
             
             tl.logo[[chain]] <- intersect(as.numeric(names(countL.es[[chain]][countL.es[[chain]]>=min.logo])), L.inter) #Currently the min.logo limitation does not apply to L.inter
@@ -519,7 +517,7 @@ MixTCRviz <- function(input1, output.path,
 
               
             } else {
-              tl.logo[[chain]] <- 1
+              tl.logo[[chain]] <- c()
               pg.length[[chain]] <- ggplot()
             }
             
@@ -531,6 +529,7 @@ MixTCRviz <- function(input1, output.path,
           #This is the case where no CDR3 is given
           pg.all[[chain]] <- ggplot()
           pg.length[[chain]] <- ggplot()
+          tl.logo[[chain]] <- c()
           
           print(paste("WARNING: No CDR3",chain.small[chain]," data", sep=""))
         }
@@ -571,12 +570,9 @@ MixTCRviz <- function(input1, output.path,
         for(chain in chain.list){
           g.final <- pg.length[[chain]]; 
           mx <- length(tl.logo[[chain]])
-          #if(chain == "TRA" & chain.list.output!="B"){
+          if(mx>0){
             ggsave(g.final, filename=paste(dir, model,"_",chain,".pdf", sep=""), width = 20/div, height = 2.5*mx)
-          #}
-          #if(chain == "TRB" & chain.list.output!="A"){
-          #  ggsave(g.final, filename=paste(dir, model,"_",chain,".pdf", sep=""), width = 20/div, height = 2.5*mx)
-          #}
+          }
         }
       }
     }
