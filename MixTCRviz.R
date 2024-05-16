@@ -76,7 +76,7 @@ MixTCRviz <- function(input1, output.path,
   
   if(N.min < 1){N.min <- 1}
   
-  if(!file.exists(output.path)){
+  if(!dir.exists(output.path)){
     dir.create(output.path, recursive = TRUE);
   }
   
