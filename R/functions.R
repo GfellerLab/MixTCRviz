@@ -239,8 +239,8 @@ plotVJ <- function(count.es, count.rep, info){
   count.df <- data.frame(count)
   colnames(count.df) <- c("Y","X")
   
-  lim.y <- max(count[,c(type1)] )*1.25
-  lim.x <- max(count[,c(type2)] )*1.25
+  lim.y <- max(count[,c(type1)] )*1.3
+  lim.x <- max(count[,c(type2)] )*1.3
   
   #lim.y <- round(min( max(count[,c(type1)] )+0.1, max( count[,c(type1)] )*1.4),1)
   #lim.x <- min(max(count[,c(type2)])+0.1, max(count[,c(type2)])*1.4)
@@ -375,7 +375,7 @@ plotCDR3 <- function(lc.es, lc.rep, countCDR3.es, countCDR3.rep, info, comp.base
     
     title <- paste("CDR3", info[1]," ",info[3], sep="")
     ylab <- ""
-    if(comp.baseline==0){title <- paste(title, "\n(",lc.rep[[lc]],")", sep="")}
+    if(comp.baseline==0){title <- paste(title, "\n(",lc.rep[[lc]],")", sep="")} else {title <- paste(title, "\n ", sep="")}
     
     logo.CDR3.L.rep[[l]] <- ggseqlogoMOD(data=pwm.rep[[l]], additionaAA=additionalAA,  axisTextSizeX = 10, axisTextSizeY = 10) +
       labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=12, hjust=0.5))

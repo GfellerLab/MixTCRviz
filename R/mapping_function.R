@@ -17,8 +17,8 @@ for(tsp in species.list){
   gene.allele.list[[tsp]] <- c()
   gene.list[[tsp]] <- c()
   for(s in segment.list){
-    gene.allele.list[[tsp]] <- c(gene.allele.list[[tsp]], rownames(read.csv(file=paste(imgt.path,"CDR123/",tsp,"/",s,"_allele.csv", sep=""), row.names = 1)))
-    gene.list[[tsp]] <- c(gene.list[[tsp]], rownames(read.csv(file=paste(imgt.path,"CDR123/",tsp,"/",s,".csv", sep=""), row.names = 1)))
+    gene.allele.list[[tsp]] <- c(gene.allele.list[[tsp]], rownames(read.csv(file=paste(MixTCRviz.path,"/data/CDR123/",tsp,"/",s,"_allele.csv", sep=""), row.names = 1)))
+    gene.list[[tsp]] <- c(gene.list[[tsp]], rownames(read.csv(file=paste(MixTCRviz.path,"/data/CDR123/",tsp,"/",s,".csv", sep=""), row.names = 1)))
   }
 
   # Build the mapping to the most likely allele (needed when allele names are not given, and we infer them)
@@ -32,14 +32,14 @@ for(tsp in species.list){
 }
 
 #For mouse TRAV, take the merging between different strains
-m <- read.csv(paste(imgt.path,"/CDR123/MusMusculus/TRAV_merge.csv", sep=""))
+m <- read.csv(paste(MixTCRviz.path,"/data/CDR123/MusMusculus/TRAV_merge.csv", sep=""))
 merge.mouse.TRAV <- m[,2]
 names(merge.mouse.TRAV) <- m[,1]
 
-mp.TRAV <- read.csv(paste(imgt.path,"TidyVJ/mapping_TRAV.csv", sep=""), header=F, skip=1)
-mp.TRBV <- read.csv(paste(imgt.path,"TidyVJ/mapping_TRBV.csv", sep=""), header=F, skip=1)
-mp.TRAJ <- read.csv(paste(imgt.path,"TidyVJ/mapping_TRAJ.csv", sep=""), header=F, skip=1)
-mp.TRBJ <- read.csv(paste(imgt.path,"TidyVJ/mapping_TRBJ.csv", sep=""), header=F, skip=1)
+mp.TRAV <- read.csv(paste(MixTCRviz.path,"data/TidyVJ/mapping_TRAV.csv", sep=""), header=F, skip=1)
+mp.TRBV <- read.csv(paste(MixTCRviz.path,"data/TidyVJ/mapping_TRBV.csv", sep=""), header=F, skip=1)
+mp.TRAJ <- read.csv(paste(MixTCRviz.path,"data/TidyVJ/mapping_TRAJ.csv", sep=""), header=F, skip=1)
+mp.TRBJ <- read.csv(paste(MixTCRviz.path,"data/TidyVJ/mapping_TRBJ.csv", sep=""), header=F, skip=1)
 mp <- rbind(mp.TRAV,mp.TRBV,mp.TRAJ,mp.TRBJ)
 # Keep only the entries that could be mapped
 mp <- mp[mp[,5]=="yes",]
@@ -131,7 +131,7 @@ clean.cdr3 <- function(v,j,cdr3,sp,chain){
           if(first2 == ref.next){ # Missing first amino acid
             cdr3.cor <- paste(ref.first,cdr3,sep="")
             #print(c(cdr3,cdr3.cor,v, sp))
-          } else { #First amino acid incompatible AND not due to different CDR3 definition => put both the CDR3 and the V gene to ""
+          } else { #First amino acid incompatible AND not due to different CDR3 definition => put both the CDR3 to ""
             cdr3.cor <- ""
             v.cor <- ""
           }

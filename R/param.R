@@ -32,12 +32,12 @@ for(sp in species.list){
   tJseq <- list()
   
   for(chain in chain.list){
-    tcdr123[[chain]] <- read.csv(file=paste(imgt.path,"CDR123/",sp,"/",chain,"V_allele.csv", sep=""), row.names = 1)
-    tJseq[[chain]] <- read.csv(file=paste(imgt.path,"CDR123/",sp,"/",chain,"J_allele.csv", sep=""), row.names = 1)
+    tcdr123[[chain]] <- read.csv(file=paste(MixTCRviz.path,"data/CDR123/",sp,"/",chain,"V_allele.csv", sep=""), row.names = 1)
+    tJseq[[chain]] <- read.csv(file=paste(MixTCRviz.path,"/data/CDR123/",sp,"/",chain,"J_allele.csv", sep=""), row.names = 1)
     
     #Take the data without allele information
-    tcdr123[[chain]] <- rbind(tcdr123[[chain]],read.csv(file=paste(imgt.path,"CDR123/",sp,"/",chain,"V.csv", sep=""), row.names = 1))
-    tJseq[[chain]] <- rbind(tJseq[[chain]],read.csv(file=paste(imgt.path,"CDR123/",sp,"/",chain,"J.csv", sep=""), row.names = 1))
+    tcdr123[[chain]] <- rbind(tcdr123[[chain]],read.csv(file=paste(MixTCRviz.path,"data/CDR123/",sp,"/",chain,"V.csv", sep=""), row.names = 1))
+    tJseq[[chain]] <- rbind(tJseq[[chain]],read.csv(file=paste(MixTCRviz.path,"data/CDR123/",sp,"/",chain,"J.csv", sep=""), row.names = 1))
     
     #Change the gap ("-") int "x"
     tcdr123[[chain]][] <- data.frame(lapply(tcdr123[[chain]], function(x){gsub(pattern="-", replacement = "g", x)}))
