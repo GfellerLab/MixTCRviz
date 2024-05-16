@@ -237,7 +237,7 @@ MixTCRviz <- function(input1, output.path,
     summary <- list(L.es, countL.es, countV.es, countJ.es, countV.L.es, countJ.L.es, countCDR1.es, countCDR2.es, countCDR3.L.es, countVJ.es, countVJ.L.es)
     names(summary) <- c("L", "countL", "countV", "countJ", "countV.L", "countJ.L", "countCDR1", "countCDR2", "countCDR3.L", "countVJ", "countVJ.L")
     dir <- paste(output.path,"/stats/", sep="")
-    if(!file.exists(dir)){
+    if(!dir.exists(dir)){
       dir.create(dir);
     }
     saveRDS(summary, file=paste(output.path,"/stats/",model,".rds", sep=""))
@@ -538,7 +538,7 @@ MixTCRviz <- function(input1, output.path,
       
       
       dir <- paste(output.path,"/plots/", sep="")
-      if(!file.exists(dir)){
+      if(!dir.exists(dir)){
         dir.create(dir);
       }
       
@@ -563,7 +563,7 @@ MixTCRviz <- function(input1, output.path,
       
       if(plot.logo.length==1){
         dir <- paste(output.path,"/plots/CDR3_length/", sep="")
-        if(!file.exists(dir)){
+        if(!dir.exists(dir)){
           dir.create(dir);
         }
         
