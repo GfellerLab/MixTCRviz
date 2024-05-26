@@ -3,7 +3,7 @@
 # Define some function
 #####
 
-build_stat <- function(es, chain.list){
+build_stat <- function(es, chain.list, sp){
   
   L <- list()
   countL <- list()
@@ -220,11 +220,12 @@ find_mhc <- function(m){
 
 # Plot the comparison between V or J usage. 
 # We should have different criteria for selecting the labels for the ES versus Pred
-plotVJ <- function(count.es, count.rep, info){
+plotVJ <- function(count.es, count.rep, info, comp.baseline){
   
   #count.es is on the Y axis, count.rep on the X
   gene <- info[1]
-  
+  n <- sum(count.es)
+  if(comp.baseline==0){n.rep <- sum(count.rep)}
   v <- c(names(count.rep), names(count.es))
   nm <- unique(v)
   type1 <- info[2]
@@ -256,19 +257,20 @@ plotVJ <- function(count.es, count.rep, info){
     label[which( (ratio < 2) & count.df[,"Y"]<0.1)] <- NA
   }
   
-  if(gene=="TRAV" | gene=="TRBV"){
-    ylab <- type1
-  } else{ylab=""}
+  ylab <- paste(type1," (",n,")", sep="")
+  
+  if(comp.baseline==1){  xlab <- type2 } else {xlab <- paste(type2," (",n.rep,")", sep="")}
   
   #Plot the comparison between input and repertoires
   count.plot <- list()
   if(length(count.es)>0){
     count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) + 
       geom_point() + geom_abline(col="orange",linetype="dashed",linewidth=1) + 
-      ggtitle(gene) + xlim(0, lim.x) + ylim(0,lim.y) + 
-      theme(plot.title = element_text(size = 15, hjust=0.5), axis.text=element_text(size=10), axis.title=element_text(size=15)) +
+      ggtitle(gene) +
+      xlim(0, lim.x) + ylim(0,lim.y) + 
+      theme(plot.title = element_text(size = 14, hjust=0.5), axis.text=element_text(size=10), axis.title=element_text(size=14)) +
       geom_label_repel(size = 3, nudge_y=0.02, box.padding = 0.15) +
-      xlab(type2) + ylab(ylab)
+      xlab(xlab) + ylab(ylab)
   } else {count.plot <- ggplot()}
   
   return(count.plot)
@@ -304,7 +306,7 @@ correct.VJnames <- function(es.all, name.list, segment.list){
 }
 
 
-plotLD <- function(lc.es,lc.rep,info){
+plotLD <- function(lc.es,lc.rep,info, plot.oneline){
   
   l.all <- sort(as.numeric(unique(c(names(lc.es), names(lc.rep)))))
   
@@ -328,24 +330,28 @@ plotLD <- function(lc.es,lc.rep,info){
   v2 <- c(ld.es, ld.rep);
   v3 <- c( rep(info[2], length(l.all)), rep(info[3], length(l.all))) ; 
   ld.df <- data.frame(v1,v2,v3)
- # ld.df$v3 <- factor(ld.df$v3, levels=c("Epitope specific", "Baseline"))
   ld.df$v3 <- factor(ld.df$v3, levels=c(info[2], info[3]))
   
-  ld.plot <-  ggplot(ld.df) + geom_point(aes(x=v1, y=v2, color=v3)) + ggtitle(paste("N =",sum(lc.es))) +
+  legend.size <- 12
+  if(plot.oneline==1){
+    if(nchar(info[2])>23){legend.size=11}
+    if(nchar(info[2])>25){legend.size=10}
+  }
+  ld.plot <-  ggplot(ld.df) + geom_point(aes(x=v1, y=v2, color=v3)) + #ggtitle(paste("N =",sum(lc.es))) +
     geom_line(aes(x=v1, y=v2, color=v3)) +
-    theme(legend.key.size = unit(0.2, 'cm'), legend.position="top", legend.title=element_blank(),  legend.text=element_text(size=12)) +
-    xlab(paste("Length_CDR3",info[1],sep="")) + ylab("Distribution") + 
+    theme(legend.key.size = unit(0.2, 'cm'), legend.position="top", legend.title=element_blank(),  legend.text=element_text(size=legend.size)) +
+    xlab(paste("Length_CDR3",info[1],sep="")) + ylab("") + 
     guides(color = guide_legend(nrow = 2)) +
-    theme(axis.text=element_text(size=12), axis.title=element_text(size=15), plot.title = element_text(size=15,hjust = 0.5))
-  
+    theme(axis.text=element_text(size=12), axis.title=element_text(size=14), plot.title = element_text(size=15,hjust = 0.5))
+    
   return(ld.plot)
-  
   
 }
 
 
-plotCDR3 <- function(lc.es, lc.rep, countCDR3.es, countCDR3.rep, info, comp.baseline){
+plotCDR3 <- function(lc.es, lc.rep, countCDR3.es, countCDR3.rep, info, comp.baseline, plot.oneline=0, plot.logo.length=0){
   
+ 
   L.TR <- as.numeric(intersect(names(lc.es), names(lc.rep)))
   
   pwm.rep <- list()
@@ -358,6 +364,23 @@ plotCDR3 <- function(lc.es, lc.rep, countCDR3.es, countCDR3.rep, info, comp.base
   lmax.es <- as.numeric(names(tl[which.max(tl)]))
   lmax <- lmax.es
   
+  if(plot.oneline==1){
+    if(lmax<15){
+      axis.size.max <- 8
+    } else {
+      axis.size.max <- 7
+    }
+    title.size <- 11
+  } else {
+    axis.size.max <- 10
+    title.size <- 12
+  }
+  ylab <- ""
+  
+
+  if(plot.logo.length==0){
+    L.TR <- c(lmax)
+  }
   
   for(l in L.TR){
     
@@ -366,24 +389,41 @@ plotCDR3 <- function(lc.es, lc.rep, countCDR3.es, countCDR3.rep, info, comp.base
     pwm.es[[l]] <- scale(countCDR3.es[[l]], center=F, scale=colSums(countCDR3.es[[l]]))
     pwm.rep[[l]] <- scale(countCDR3.rep[[l]], center=F, scale=colSums(countCDR3.rep[[l]]))
     
-    title <- paste("CDR3", info[1]," ",info[2],"\n(",lc.es[[lc]],")", sep="")
-    ylab <- ""
-    
-    logo.CDR3.L.es[[l]] <- ggseqlogoMOD(data=pwm.es[[l]], additionaAA=additionalAA,  axisTextSizeX = 10, axisTextSizeY = 10) + 
-      labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=12, hjust=0.5))
+    title <- paste("CDR3", info[1]," ",info[2], " (",lc.es[[lc]],")", sep="")
+    logo.CDR3.L.es[[l]] <- ggseqlogoMOD(data=pwm.es[[l]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8) + 
+      labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
  
+    title.baseline <- paste("CDR3", info[1]," ",info[3], sep="")
+    if(comp.baseline==0){title.baseline <- paste(title.baseline, " (",lc.rep[[lc]],")", sep="")} else {title.baseline <- title.baseline}
     
-    title <- paste("CDR3", info[1]," ",info[3], sep="")
-    ylab <- ""
-    if(comp.baseline==0){title <- paste(title, "\n(",lc.rep[[lc]],")", sep="")} else {title <- paste(title, "\n ", sep="")}
+    logo.CDR3.L.rep[[l]] <- ggseqlogoMOD(data=pwm.rep[[l]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8) +
+      labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
     
-    logo.CDR3.L.rep[[l]] <- ggseqlogoMOD(data=pwm.rep[[l]], additionaAA=additionalAA,  axisTextSizeX = 10, axisTextSizeY = 10) +
-      labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=12, hjust=0.5))
+    #For the special case where l==lmax, build the logo with different graphical parameters, depending on the plot.online
+    if(l==lmax){
+      title <- paste("CDR3", info[1]," ",info[2], " (",lc.es[[lc]],")", sep="")
+      title.baseline <- paste("CDR3", info[1]," ",info[3], sep="")
+      if(comp.baseline==0){title.baseline <- paste(title.baseline, " (",lc.rep[[lc]],")", sep="")}
+      
+      if(plot.oneline==1 & (nchar(title)>29 | nchar(title.baseline)>29)){
+        title <- paste("CDR3", info[1]," ",info[2], "\n(",lc.es[[lc]],")", sep="")
+        title.baseline <- paste("CDR3", info[1]," ",info[3],"\n", sep="")
+        if(comp.baseline==0){title.baseline <- paste(title.baseline, "(",lc.rep[[lc]],")", sep="")}
+      }
+      
+      logo.CDR3.L.es.max <- ggseqlogoMOD(data=pwm.es[[l]], additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8) + 
+        labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=title.size, hjust=0.5))
+      
+        
+      logo.CDR3.L.rep.max <- ggseqlogoMOD(data=pwm.rep[[l]], additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8) +
+        labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=title.size, hjust=0.5))
+    }
+    
     
   }
   
-  ls <- list(logo.CDR3.L.es, logo.CDR3.L.rep, L.TR, lmax)
-  names(ls) <- c("ES", "Baseline", "length", "lmax")
+  ls <- list(logo.CDR3.L.es, logo.CDR3.L.rep, L.TR, lmax, logo.CDR3.L.es.max, logo.CDR3.L.rep.max)
+  names(ls) <- c("ES", "Baseline", "length", "lmax", "ES_max", "Baseline_Max")
   return(ls)
 }
 

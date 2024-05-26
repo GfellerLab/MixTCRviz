@@ -112,9 +112,14 @@ Optional parameters:
 - plot.logo.length (default=0): 0: Show only the CDR3 motifs for the most frequent CDR3 length.
     1: Show in a separate plot the V usage, J usage and CDR3 motifs for all CDR3 length, for both alpha and beta chains.
 
-- chain.list.output (default=AB); A: Only the alpha chain is plotted in output; B: only the beta chain is plotted in output; AB both chains are plotted in output
+- chain.list.output (default="AB"); A: Only the alpha chain is plotted in output; B: only the beta chain is plotted in output; AB both chains are plotted in output
 
-- es.name (default="Epitope Specific"); Provide a generic name for the input TCRs in the plots (e.g., Epitope Specific)
+- output.format (default="pdf"); Choose the format for the output plots.
+
+- input1.name (default="Epitope Specific"); Provide a generic name for the input TCRs in the plots (e.g., Epitope Specific).
+     Avoid names with more than 20 characters
+ - input2.name (default="Reference"); If a second set of TCRs is provided (i.e., input2 != ""), Provide a generic name for the input2 TCRs in the plots.
+     Avoid names with more than 20 characters
 
 #############
 OUTPUT
