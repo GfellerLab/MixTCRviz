@@ -9,7 +9,6 @@ species.list <- c("HomoSapiens", "MusMusculus")
 # We need to do it for mouse
 # Alternatively, we could take the fasta files.
 
-
 gene.allele.list <- list()
 gene.list <- list()
 allele.default <- list()
