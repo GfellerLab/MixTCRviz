@@ -1,70 +1,19 @@
+# Defining functions to handle cases where the mapping does not work.
 
-#This loads the mapping of the gene names, and the function to handle cases where the mapping does not work
-
-segment.list <- c("TRAV", "TRBV", "TRAJ", "TRBJ")
-species.list <- c("HomoSapiens", "MusMusculus")
-
-# Take the list of alleles
-# This is only done for human
-# We need to do it for mouse
-# Alternatively, we could take the fasta files.
-
-
-gene.allele.list <- list()
-gene.list <- list()
-allele.default <- list()
-for(tsp in species.list){
-  gene.allele.list[[tsp]] <- c()
-  gene.list[[tsp]] <- c()
-  for(s in segment.list){
-    gene.allele.list[[tsp]] <- c(gene.allele.list[[tsp]], rownames(read.csv(file=paste(MixTCRviz.path,"/data/CDR123/",tsp,"/",s,"_allele.csv", sep=""), row.names = 1)))
-    gene.list[[tsp]] <- c(gene.list[[tsp]], rownames(read.csv(file=paste(MixTCRviz.path,"/data/CDR123/",tsp,"/",s,".csv", sep=""), row.names = 1)))
-  }
-
-  # Build the mapping to the most likely allele (needed when allele names are not given, and we infer them)
-  allele.default[[tsp]] <- rep("01", length(gene.list[[tsp]]))
-  names(allele.default[[tsp]]) <- gene.list[[tsp]]
-  # Do some manual correction
-  if(tsp=="HomoSapiens"){
-    allele.default[[tsp]]["TRAV14/DV4"] <- "02"
-    allele.default[[tsp]]["TRAV36/DV7"] <- "02"
-  }
-}
-
-#For mouse TRAV, take the merging between different strains
-m <- read.csv(paste(MixTCRviz.path,"/data/CDR123/MusMusculus/TRAV_merge.csv", sep=""))
-merge.mouse.TRAV <- m[,2]
-names(merge.mouse.TRAV) <- m[,1]
-
-mp.TRAV <- read.csv(paste(MixTCRviz.path,"data/TidyVJ/mapping_TRAV.csv", sep=""), header=F, skip=1)
-mp.TRBV <- read.csv(paste(MixTCRviz.path,"data/TidyVJ/mapping_TRBV.csv", sep=""), header=F, skip=1)
-mp.TRAJ <- read.csv(paste(MixTCRviz.path,"data/TidyVJ/mapping_TRAJ.csv", sep=""), header=F, skip=1)
-mp.TRBJ <- read.csv(paste(MixTCRviz.path,"data/TidyVJ/mapping_TRBJ.csv", sep=""), header=F, skip=1)
-mp <- rbind(mp.TRAV,mp.TRBV,mp.TRAJ,mp.TRBJ)
-# Keep only the entries that could be mapped
-mp <- mp[mp[,5]=="yes",]
-
-#Build the mapping separately for human and mouse
-map <- list()
-pos.h <- which(mp[,4]=="Human")
-map[["HomoSapiens"]] <- mp[pos.h,2]
-names(map[["HomoSapiens"]]) <- mp[pos.h,1]
-pos.m <- which(mp[,4]=="Mouse")
-map[["MusMusculus"]] <- mp[pos.m,2]
-names(map[["MusMusculus"]]) <- mp[pos.m,1]
-
-
-# Take the gene + allele.
-# If allele, try to correct the gene*allele and return it. 
-# If not possible, try to correct only the gene, and return only the gene
-# If no allele, try to correct the gene if needed
-# Cases that could not be corrected are returned as NA
+#' Correcting gene / allele names.
+#'
+#' Take the gene + allele.
+#' If allele, try to correct the gene*allele and return it.
+#' If not possible, try to correct only the gene, and return only the gene
+#' If no allele, try to correct the gene if needed
+#' Cases that could not be corrected are returned as NA
+#' @export
 clean.name.allele <- function(g, a, sp){
-  
+
   if(sp != "HomoSapiens" & sp != "MusMusculus"){
     print("Undefined species: ",sp)
   }
-  
+
   if(is.na(g) | g==""){
     ga <- NA
   } else {
@@ -89,7 +38,7 @@ clean.name.allele <- function(g, a, sp){
         }
       }
     } else {  #Allele is not given
-      
+
       if(g %in% gene.list[[sp]] == F ){
         if(!is.na(map[[sp]][g])){
           ga <- map[[sp]][g] #The gene was wrong, but can be corrected
@@ -101,23 +50,24 @@ clean.name.allele <- function(g, a, sp){
       }
     }
   }
-  return(ga)  
+  return(ga)
 }
 
 
 
-#We check the first aa is compatible with the V gene and the last two with the J gene.
-#Cases where one aa is missing due to a different definition of CDR3 are corrected when the first/last 3 aa are compatible with the V/J gene
-#Cases where the V/J genes are not given are only kept if starting with C and ending with F/W
-#Cases of CDR3 incompatible with V/J are put to "".
+#' We check the first aa is compatible with the V gene and the last two with the J gene.
+#' Cases where one aa is missing due to a different definition of CDR3 are corrected when the first/last 3 aa are compatible with the V/J gene
+#' Cases where the V/J genes are not given are only kept if starting with C and ending with F/W
+#' Cases of CDR3 incompatible with V/J are put to "".
+#' @export
 clean.cdr3 <- function(v,j,cdr3,sp,chain){
-  
+
   cdr3.cor <- cdr3
   v.cor <- v
   j.cor <- j
-  
+
   if(cdr3 != ""){
-    
+
     ######
     # Check with the beginning versus the V gene
     ######
@@ -135,7 +85,7 @@ clean.cdr3 <- function(v,j,cdr3,sp,chain){
             cdr3.cor <- ""
             v.cor <- ""
           }
-        } 
+        }
       } else {
         if(first != "C"){
           cdr3.cor <- ""
@@ -147,14 +97,14 @@ clean.cdr3 <- function(v,j,cdr3,sp,chain){
       }
       v.cor <- ""
     }
-    
+
     ######
     # Check with the end versus the J gene
     ######
     if(j != "" & !is.na(Jseq[[sp]][[chain]][j,1])){
       last2 <- str_sub(cdr3,-2,-1)
       ref.last2 <- str_sub(Jseq[[sp]][[chain]][j,1],-2,-1)
-      
+
       #print(c(last2,ref.last2, sp, j))
       if(last2 != ref.last2){ #Check if the last two aa correspond to the J gene
         ref.next <- str_sub(Jseq[[sp]][[chain]][j,1],-4,-2)
@@ -174,7 +124,7 @@ clean.cdr3 <- function(v,j,cdr3,sp,chain){
       }
       j.cor <- ""
     }
-    
-  } 
+
+  }
   return(c(v.cor, j.cor, cdr3.cor))
 }

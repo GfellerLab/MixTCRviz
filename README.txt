@@ -34,8 +34,38 @@ Alternatively, users can choose to compare with another set of TCRs ("reference"
 INSTALLATION
 ############
 
-- Download and open MixTCRviz.zip
-- In MixTCRviz.R, provide the path to MixTCRviz: MixTCRviz.path <- "PATH_TO_MixTCRviz"
+There are different ways of "installing" MixTCRviz:
+  1) It can be directly installed from the GitHub page (you need to have
+    credentials correctly set so that Rstudio can access the private repository):
+    ``` r
+    # install.packages("devtools") # Only needed if you don't already have devtools
+    devtools::install_github("GfellerLab/MixTCRviz")
+    ```
+  2) You can download the MixTCRviz directory from the GitHub page and then open
+    Rstudio setting its working directory as MixTCRviz folder. Then you can
+    compile it and install it:
+    ``` r
+    devtools::build()
+    install.packages("../MixTCRviz_0.0.1.tar.gz", repos=NULL)
+    ```
+
+  3) If you don't need to use it through Rscript and are in process of developing
+    the package, it would be tiring to always build it, install it, reload it,
+    etc. Instead, you can set the working directory to the MixTCRviz folder and
+    then simply:
+    ``` r
+    devtools::load_all()
+    # Could also give the path to MixTCRviz folder if not in the working directory
+    ```
+    You can reuse this command everytime changes are made to the code so that
+    the updates are directly available in the R environment. (You need to reuse
+    this load_all in every new R session to use this in dev code instead of the
+    installed package). And you should of course not do a "library(MixTCRviz)"
+    if using the load_all, this command makes as if you had done such one (the
+    library... would probably load the built+installed package not the
+    development version).
+
+You may be prompted to install several packages.
 
 Testing the INSTALLATION:
 
@@ -51,12 +81,12 @@ The output in test/out should be the same as in test/out_compare
 RUNNING
 ############
 
-MixTCRviz should be primarily run in R, by calling the MixTCRviz function. To this end, in R, you need to:
+MixTCRviz should be primarily run in R, by calling the MixTCRviz function. To
+this end, in R, you need to call the MixTCRviz function with the mandatory
+parameters (e.g., MixTCRviz::MixTCRviz(input1=input, output.path=output)).
+(note that the "MixTCRviz::" isn't needed if using the "load_all"
+version from above or if you used library(MixTCRviz)).
 
-1) Source the MixTCRviz.R (e.g., source("PATH_TO_MixTCRviz/MixTCRviz.R"))
-2) Call the MixTCRviz function with the mandatory parameters (e.g., MixTCRviz(input1=input, output.path=output))
-
-You may be prompted to install several packages.
 
 Input parameters of MixTCRviz:
 
