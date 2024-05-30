@@ -62,7 +62,8 @@
 #'    * A: Only the alpha chain is plotted in output;
 #'    * B: only the beta chain is plotted in output;
 #'    * AB both chains are plotted in output
-#' @param output.format (default="pdf"): Choose the format for the output plots.
+#' @param output.format (default="pdf"): Choose the format for the output
+#'      plots (can be "pdf", "png" or "jpg").
 #' @param input1.name (default="Epitope Specific"): Provide a generic name for
 #'   the input TCRs in the plots (e.g., Epitope Specific). Avoid names with more
 #'   than 20 characters
@@ -97,7 +98,7 @@ MixTCRviz <- function(input1, output.path,
   }
 
   if(output.format != "pdf" & output.format != "png" & output.format != "jpg"){
-    output.format = "pdf"
+    stop("'output.format' should be pdf, png or jpg!")
   }
 
   keep.gap.pwm <- 0 # 1: means that 'g' (gaps in CDR1/2) are treated as an additional aa in the logos. 0: means that 'g' are treated as unspecific (i.e., 0.05) in the logos
@@ -187,8 +188,9 @@ MixTCRviz <- function(input1, output.path,
     if( (nA>=N.min & chain.list.output=="A") |(nB>=N.min & chain.list.output=="B") | ((nA>=N.min | nB>=N.min) & chain.list.output=="AB")){
       return(1)
     } else {
+      warning("Model ",x," will not be considered (less than N.min=",
+        N.min," data)")
       return(0)
-      print(paste("Model",x,"will not be considered (less than N.min=",N.min," data)"))
     }
   })
   model.list <- md[st==1]

@@ -126,7 +126,8 @@ than 20 characters}
 (i.e., input2 != ""), Provide a generic name for the input2 TCRs in the
 plots. Avoid names with more than 20 characters.}
 
-\item{output.format}{(default="pdf"): Choose the format for the output plots.}
+\item{output.format}{(default="pdf"): Choose the format for the output
+plots (can be "pdf", "png" or "jpg").}
 }
 \value{
 Nothing.
