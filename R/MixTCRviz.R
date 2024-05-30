@@ -271,8 +271,15 @@ MixTCRviz <- function(input1, output.path,
     countCDR2.es <- count$countCDR2
     countCDR3.L.es <- count$countCDR3.L
 
-    summary <- list(L.es, countL.es, countV.es, countJ.es, countV.L.es, countJ.L.es, countCDR1.es, countCDR2.es, countCDR3.L.es, countVJ.es, countVJ.L.es)
-    names(summary) <- c("L", "countL", "countV", "countJ", "countV.L", "countJ.L", "countCDR1", "countCDR2", "countCDR3.L", "countVJ", "countVJ.L")
+    s <- unlist(strsplit(model, split="_"))
+    MHC <- s[1]
+    epitope <- s[2]
+
+    info <- c(model,sp,MHC,epitope)
+    names(info) <- c("model", "species", "MHC", "epitope")
+
+    summary <- list(info, L.es, countL.es, countV.es, countJ.es, countV.L.es, countJ.L.es, countCDR1.es, countCDR2.es, countCDR3.L.es, countVJ.es, countVJ.L.es)
+    names(summary) <- c("info", "L", "countL", "countV", "countJ", "countV.L", "countJ.L", "countCDR1", "countCDR2", "countCDR3.L", "countVJ", "countVJ.L")
     dir <- paste(output.path,"/stats/", sep="")
     if(!dir.exists(dir)){
       dir.create(dir);
@@ -316,11 +323,10 @@ MixTCRviz <- function(input1, output.path,
         countJ.L.baseline  <- all.baseline$countJ.L
         countL.VJ.baseline  <- all.baseline$countL.VJ
         countVJ.baseline  <- all.baseline$countVJ
-        countCDR1.baseline  <- all.baseline$countCDR1
-        countCDR2.baseline <- all.baseline$countCDR2
+        countCDR1.baseline  <- all.baseline$countCDR1  # This is missing for the mouse data
+        countCDR2.baseline <- all.baseline$countCDR2  # This is missing for the mouse data
         countCDR3.L.baseline <- all.baseline$countCDR3.L
         countCDR3.VJL.baseline <- all.baseline$countCDR3.VJL
-
 
       } else {
 
@@ -453,14 +459,22 @@ MixTCRviz <- function(input1, output.path,
 
               for(cdr in c("CDR1", "CDR2")){
                 lg <- nchar(cdr123[[sp]][[chain]][1,cdr])  #Check the length of cdr1 and cdr2
-                if(cdr=="CDR1"){ct <- countCDR1.es[[chain]][[lg]]; ct2 <- countCDR1.baseline[[chain]][[lg]]; ylab <- ""; ylab.baseline <- ""}
-                if(cdr=="CDR2"){ct <- countCDR2.es[[chain]][[lg]]; ct2 <- countCDR2.baseline[[chain]][[lg]]; ylab <- ""; ylab.baseline <- ""}
+                if(cdr=="CDR1"){
+                  ct <- countCDR1.es[[chain]][[lg]];
+                  #ct2 <- countCDR1.baseline[[chain]][[lg]]; # This is missing for the mouse data.
+                  ylab <- ""; ylab.baseline <- ""
+                }
+                if(cdr=="CDR2"){
+                  ct <- countCDR2.es[[chain]][[lg]];
+                  #ct2 <- countCDR2.baseline[[chain]][[lg]];
+                  ylab <- ""; ylab.baseline <- ""
+                }
                 pwm <- build_cdr12_motif(ct, keep.gap=keep.gap.pwm)  #Useful if we keep the gaps
                 logo1 <- ggseqlogoMOD(data=pwm, additionaAA=additionalAA, axisTextSizeX = 10, axisTextSizeY = 10) +
-                  ggtitle(paste(cdr,chain.small[chain]," ",es.name," ",sep="")) + ylab(ylab) + th + theme(plot.title=element_text(size=12))
-                pwm2 <- build_cdr12_motif(ct2, keep.gap=keep.gap.pwm)
-                logo2 <- ggseqlogoMOD(data=pwm2, additionaAA=additionalAA,  axisTextSizeX = 10, axisTextSizeY = 10) +
-                  ggtitle(paste(cdr,chain.small[chain]," ",baseline.name," ", sep="")) + ylab(ylab.baseline) + th + theme(plot.title=element_text(size=12))
+                  ggtitle(paste(cdr,chain.small[chain]," ",es.name," (", sum(countV.es[[chain]]),")",sep="")) + ylab(ylab) + th + theme(plot.title=element_text(size=12))
+                #pwm2 <- build_cdr12_motif(ct2, keep.gap=keep.gap.pwm)
+                #logo2 <- ggseqlogoMOD(data=pwm2, additionaAA=additionalAA,  axisTextSizeX = 10, axisTextSizeY = 10) +
+                  #ggtitle(paste(cdr,chain.small[chain]," ",baseline.name," ", sep="")) + ylab(ylab.baseline) + th + theme(plot.title=element_text(size=12))
                 #logo[[cdr]] <- ggarrange(logo1, logo2, nrow=2)
                 logo[[cdr]] <- ggarrange(logo1, nrow=1)
 

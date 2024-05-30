@@ -389,11 +389,11 @@ plotCDR3 <- function(lc.es, lc.rep, countCDR3.es, countCDR3.rep, info, comp.base
     pwm.es[[l]] <- scale(countCDR3.es[[l]], center=F, scale=colSums(countCDR3.es[[l]]))
     pwm.rep[[l]] <- scale(countCDR3.rep[[l]], center=F, scale=colSums(countCDR3.rep[[l]]))
     
-    title <- paste("CDR3", info[1]," ",info[2], " (",lc.es[[lc]],")", sep="")
+    title <- paste("CDR3", info[1],"_",l," ",info[2], " (",lc.es[[lc]],")", sep="")
     logo.CDR3.L.es[[l]] <- ggseqlogoMOD(data=pwm.es[[l]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8) + 
       labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
  
-    title.baseline <- paste("CDR3", info[1]," ",info[3], sep="")
+    title.baseline <- paste("CDR3", info[1],"_",l," ",info[3], sep="")
     if(comp.baseline==0){title.baseline <- paste(title.baseline, " (",lc.rep[[lc]],")", sep="")} else {title.baseline <- title.baseline}
     
     logo.CDR3.L.rep[[l]] <- ggseqlogoMOD(data=pwm.rep[[l]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8) +
@@ -401,13 +401,13 @@ plotCDR3 <- function(lc.es, lc.rep, countCDR3.es, countCDR3.rep, info, comp.base
     
     #For the special case where l==lmax, build the logo with different graphical parameters, depending on the plot.online
     if(l==lmax){
-      title <- paste("CDR3", info[1]," ",info[2], " (",lc.es[[lc]],")", sep="")
-      title.baseline <- paste("CDR3", info[1]," ",info[3], sep="")
+      title <- paste("CDR3", info[1],"_",l," ",info[2], " (",lc.es[[lc]],")", sep="")
+      title.baseline <- paste("CDR3", info[1],"_",l," ",info[3], sep="")
       if(comp.baseline==0){title.baseline <- paste(title.baseline, " (",lc.rep[[lc]],")", sep="")}
       
-      if(plot.oneline==1 & (nchar(title)>29 | nchar(title.baseline)>29)){
-        title <- paste("CDR3", info[1]," ",info[2], "\n(",lc.es[[lc]],")", sep="")
-        title.baseline <- paste("CDR3", info[1]," ",info[3],"\n", sep="")
+      if(plot.oneline==1 & (nchar(title)>26 | nchar(title.baseline)>26)){
+        title <- paste("CDR3", info[1],"_",l," ",info[2], "\n(",lc.es[[lc]],")", sep="")
+        title.baseline <- paste("CDR3", info[1],"_",l," ",info[3],"\n", sep="")
         if(comp.baseline==0){title.baseline <- paste(title.baseline, "(",lc.rep[[lc]],")", sep="")}
       }
       

@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @name MixTCRviz.package
 "_PACKAGE"
 
 ## usethis namespace: start

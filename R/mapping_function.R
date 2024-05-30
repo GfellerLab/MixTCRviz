@@ -1,5 +1,4 @@
 # Defining functions to handle cases where the mapping does not work.
-
 #' Correcting gene / allele names.
 #'
 #' Take the gene + allele.
