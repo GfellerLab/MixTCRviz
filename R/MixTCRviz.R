@@ -216,7 +216,7 @@ MixTCRviz <- function(input1, output.path,
     ######
 
     es <- es.all[which(es.all[,"model"]==model),]
-    sp <- unique(es[1,"species"])
+    sp <- unique(es[,"species"])
     if(length(sp)>1){
       stop("Multiple species provided for the same model. Use a different model name for each species")
     } else {
