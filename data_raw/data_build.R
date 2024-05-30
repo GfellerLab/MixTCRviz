@@ -128,6 +128,31 @@ usethis::use_data(gene.allele.list, gene.list, allele.default,
 
 
 
+# Resaving also the summary_xxx.rds file for simple loading within -------------
+# the package. Instead of having these files saved as .rds files and then loaded
+# when needed through all.baseline <- readRDS(...), I read these here will save
+# them as rda variables as well so that we can then directly load them
+# through "all.baseline <- MixTCRviz::summary_xxx" (otherwise path to these data
+# isn't necessarily known).
+# If we don't want that these are available for every use outside of the package
+# but only to be used from within the package, we could save them as internal
+# variables (but it's slowing the installation of the package and its loading
+# due to the size of these data). We could also put these in "inst/RData/"
+# folder for example and then in the code, use
+# "system.file("RData", package = "MixTCRviz")" to get path to this folder.
+if (FALSE){
+  # I did this only once and then deleted the RData folder, kept the code
+  # in case we need to redo it later.
+  summary_HomoSapiens <- readRDS("RData/summary_HomoSapiens.rds")
+  summary_HomoSapiens_noallele <- readRDS("RData/summary_HomoSapiens_noallele.rds")
+  summary_MusMusculus_noallele_noStrain_SEQTR <-
+    readRDS("RData/summary_MusMusculus_noallele_noStrain_SEQTR.rds")
+  summary_MusMusculus_noallele_SEQTR <-
+    readRDS("RData/summary_MusMusculus_noallele_SEQTR.rds")
+  usethis::use_data(summary_HomoSapiens, summary_HomoSapiens_noallele,
+    summary_MusMusculus_noallele_noStrain_SEQTR,
+    summary_MusMusculus_noallele_SEQTR, overwrite=F, internal=F)
+}
 
   # EOF ---------------------------------------------------------------------
 

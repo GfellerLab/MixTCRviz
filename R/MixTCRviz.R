@@ -297,17 +297,17 @@ MixTCRviz <- function(input1, output.path,
         if(baseline.file==""){
           if(sp=="HomoSapiens"){
             if(use.allele.es==1){
-              all.baseline <- readRDS(file=paste("Rdata/summary_",sp,".rds", sep=""))
+              all.baseline <-  MixTCRviz::summary_HomoSapiens
             } else {
-              all.baseline <- readRDS(file=paste("Rdata/summary_",sp,"_noallele.rds", sep=""))
+              all.baseline <- MixTCRviz::summary_HomoSapiens_noallele
             }
           }
           if(sp=="MusMusculus"){
             if(use.allele.es==0){  #N.B. Currently always the case in mouse
               if(use.mouse.strain==1){
-                all.baseline <- readRDS(file=paste("Rdata/summary_",sp,"_noallele_SEQTR.rds", sep=""))
+                all.baseline <- MixTCRviz::summary_MusMusculus_noallele_SEQTR
               } else {
-                all.baseline <- readRDS(file=paste("Rdata/summary_",sp,"_noallele_noStrain_SEQTR.rds", sep=""))
+                all.baseline <- MixTCRviz::summary_MusMusculus_noallele_noStrain_SEQTR
               }
             }
           }
