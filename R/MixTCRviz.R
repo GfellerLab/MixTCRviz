@@ -1,6 +1,8 @@
-#' MixTCRviz: give some title and define the function.
+#' MixTCRviz: Plot TCR motifs
 #'
-#' !!! Give some additional description of the function.
+#' MixTCRviz is an R package to display TCR motifs for a set of TCRs provided by the user.
+#' Typically, the input TCRs correspond to TCRs binding to a specific epitope, or isolated in a specific experiment.
+#' MixTCRviz compares V usage, J usage, CDR3 length distribution and CDR3 sequence motifs to those expected from baseline TCR repertoire.
 #'
 #' @param input1 csv files or data.frame with the input TCRs. Columns should
 #'   ideally include: TRAV, TRAJ, cdr3_TRA, TRBV, TRBJ, cdr3_TRB, model, species
@@ -58,6 +60,10 @@
 #' @param plot.logo.length (default=0)
 #'    * 0: Show only the CDR3 motifs for the most frequent CDR3 length.
 #'    * 1: Show in a separate plot the V usage, J usage and CDR3 motifs for all CDR3 length, for both alpha and beta chains.
+#' @param plot.cdr3.norm (default=0)
+#'    * 0: Show the CDR3 motifs of the baseline repertoire.
+#'    * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
+#'    * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
 #' @param chain.list.output (default="AB")
 #'    * A: Only the alpha chain is plotted in output;
 #'    * B: only the beta chain is plotted in output;
@@ -77,7 +83,7 @@ MixTCRviz <- function(input1, output.path,
                       input2="", baseline.file="",
                       use.allele=0, correct.gene.names=1, use.mouse.strain=0,
                       renormVJ=1, N.min=10,
-                      plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0,
+                      plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
                       chain.list.output="AB", input1.name="Epitope specific", input2.name="", output.format="pdf"){
 
 
@@ -111,7 +117,11 @@ MixTCRviz <- function(input1, output.path,
     th <- theme(plot.title = element_text(size = 8, hjust=0.5), axis.title=element_text(size=4))
   }
 
-  if(N.min < 1){N.min <- 1}
+  if(plot.cdr3.norm != 0 & plot.cdr3.norm != 1 plot.cdr3.norm != 2){
+    plot.cdr3.norm <- 0
+  }
+  
+  if(N.min < 1 | is.numeric(N.min)==FALSE){N.min <- 1}
 
   if(!dir.exists(output.path)){
     dir.create(output.path, recursive = TRUE);
@@ -504,13 +514,13 @@ MixTCRviz <- function(input1, output.path,
             if(length(countV.es[[chain]])>0 & length(countJ.es[[chain]])>0 & renormVJ==1){
               info[3] <- paste(info[3], "VJ",sep=" | ")
               wt <- weighted_countCDR3(countCDR3.VJL.baseline[[chain]], countVJ.L.es[[chain]])
-              CDR3 <- plotCDR3(countL.es[[chain]], countL.baseline[[chain]], countCDR3.L.es[[chain]], wt, info, comp.baseline, plot.oneline, plot.logo.length)
+              CDR3 <- plotCDR3(countL.es[[chain]], countL.baseline[[chain]], countCDR3.L.es[[chain]], wt, info, comp.baseline, plot.oneline, plot.logo.length, plot.cdr3.norm)
             } else {
-              CDR3 <- plotCDR3(countL.es[[chain]], countL.baseline[[chain]], countCDR3.L.es[[chain]], countCDR3.L.baseline[[chain]], info, comp.baseline, plot.oneline, plot.logo.length)
+              CDR3 <- plotCDR3(countL.es[[chain]], countL.baseline[[chain]], countCDR3.L.es[[chain]], countCDR3.L.baseline[[chain]], info, comp.baseline, plot.oneline, plot.logo.length, plot.cdr3.norm)
             }
 
           } else {
-            CDR3 <- plotCDR3(countL.es[[chain]], countL.baseline[[chain]], countCDR3.L.es[[chain]], countCDR3.L.baseline[[chain]], info, comp.baseline, plot.oneline, plot.logo.length)
+            CDR3 <- plotCDR3(countL.es[[chain]], countL.baseline[[chain]], countCDR3.L.es[[chain]], countCDR3.L.baseline[[chain]], info, comp.baseline, plot.oneline, plot.logo.length, plot.cdr3.norm)
           }
 
           logo.CDR3.L.es <- CDR3$ES
@@ -531,9 +541,9 @@ MixTCRviz <- function(input1, output.path,
             pg.all[[chain]] <- ggarrange(ggarrange(pg.cdr12, CDR3$ES_max, ncol=2, widths=c(1.2,1)),g, heights=c(1,1.5), nrow=2)
           } else {
             if(plot.oneline==1){
-              pg.all[[chain]] <- ggarrange(logo[["CDR3"]], ld.plot, countV.plot, countJ.plot, ncol=4, nrow=1)
+              pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, logo[["CDR3"]], ncol=4, nrow=1)
             } else {
-              pg.all[[chain]] <- ggarrange(logo[["CDR3"]], ld.plot, countV.plot, countJ.plot, ncol=2, nrow=2)
+              pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, logo[["CDR3"]], ncol=2, nrow=2)
             }
           }
 

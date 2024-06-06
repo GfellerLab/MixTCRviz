@@ -142,6 +142,11 @@ Optional parameters:
 - plot.logo.length (default=0): 0: Show only the CDR3 motifs for the most frequent CDR3 length.
     1: Show in a separate plot the V usage, J usage and CDR3 motifs for all CDR3 length, for both alpha and beta chains.
 
+- plot.cdr3.norm (default=0):
+    0: Show the CDR3 motifs of the baseline repertoire.
+    1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
+    2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
+
 - chain.list.output (default="AB"); A: Only the alpha chain is plotted in output; B: only the beta chain is plotted in output; AB both chains are plotted in output
 
 - output.format (default="pdf"); Choose the format for the output plots.
