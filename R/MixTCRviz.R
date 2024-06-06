@@ -117,7 +117,7 @@ MixTCRviz <- function(input1, output.path,
     th <- theme(plot.title = element_text(size = 8, hjust=0.5), axis.title=element_text(size=4))
   }
 
-  if(plot.cdr3.norm != 0 & plot.cdr3.norm != 1 plot.cdr3.norm != 2){
+  if(plot.cdr3.norm != 0 & plot.cdr3.norm != 1 & plot.cdr3.norm != 2){
     plot.cdr3.norm <- 0
   }
   
