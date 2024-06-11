@@ -9,6 +9,7 @@
 #'   * The "TRAV", "TRAJ", "TRBV", "TRBJ" should follow the IMGT nomenclature, with or without allele (see below for potential name correction).
 #'   If a column is missing, empty values will be used.
 #'   * The "cdr3_TRA" and "cdr3_TRB" columns should provide CDR3A/CDR3B sequences, following the standard definition (e.g., CAVNSDGQKLLF).
+#'   Cases with non-amino acid characters, or length <7 or >22 will be not be considered (i.e., put to NA).
 #'   If a column is missing, empty values will be used.
 #'   * The "model" column typically describes the epitopes/experiments/classes/... Each model will be treated independently in MixTCRviz.
 #'   If missing, all TCRs will be considered as coming from the same model

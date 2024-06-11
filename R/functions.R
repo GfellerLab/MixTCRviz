@@ -550,6 +550,15 @@ check_input <- function(es.all, col.TCR, use.allele, correct.gene.names, use.mou
     print("Missing model information, using the same model (Model_default)")
   }
   
+  #Remove incompatible lengths or CDR3 with weird characters
+  cdr3.list <- c("cdr3_TRA","cdr3_TRB")
+  for(cdr3 in cdr3.list){
+    if(cdr3 %in% col.TCR){
+      ind <- which(nchar(es.all[,cdr3])<=Lmin | nchar(es.all[,cdr3])>=Lmax & grepl('X|x|Z|z|-|_|\\.|\\*', es.all[,cdr3]) == T)
+      es.all[ind,cdr3] <- NA
+    }
+  }
+  
   #Remove alleles
   if(use.allele==0){
     for(s in segment.list){
@@ -581,6 +590,10 @@ check_input <- function(es.all, col.TCR, use.allele, correct.gene.names, use.mou
   for(i in col.TCR){
     es.all[which(es.all[,i] == ''),i] <- NA
   }
+  
+  ####
+  # Here we should add the check between CDR3 sequences and VJ genes
+  ####
   
   
   ################
