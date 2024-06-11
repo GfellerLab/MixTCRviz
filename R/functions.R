@@ -520,7 +520,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info, c
 }
 
 
-check_input <- function(es.all, col.TCR, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, segment.list){
+check_input <- function(es.all, col.TCR=c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB"), use.allele=0, correct.gene.names=1, use.mouse.strain=0, chain.list.output=c("TRA","TRB"), segment.list=c("TRAV","TRAJ","TRBV","TRBJ")){
 
   if(use.allele==1){
     name.list <- gene.allele.list

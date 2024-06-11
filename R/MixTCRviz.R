@@ -569,7 +569,7 @@ MixTCRviz <- function(input1, output.path,
           g.final <- pg.length[[chain]];
           mx <- length(tl.logo[[chain]])
           if(mx>0){
-            ggsave(g.final, filename=paste(dir, model,"_",chain,".", output.format, sep=""), device=output.format, width = 20/div, height = 2.5*mx)
+            ggsave(g.final, filename=paste(dir, model,"_",chain,".", output.format, sep=""), device=output.format, width = 20, height = 2.5*mx)
           }
         }
       }
