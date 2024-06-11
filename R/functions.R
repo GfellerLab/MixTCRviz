@@ -554,7 +554,7 @@ check_input <- function(es.all, col.TCR=c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ"
   cdr3.list <- c("cdr3_TRA","cdr3_TRB")
   for(cdr3 in cdr3.list){
     if(cdr3 %in% col.TCR){
-      ind <- which(nchar(es.all[,cdr3])<=Lmin | nchar(es.all[,cdr3])>=Lmax & grepl('X|x|Z|z|-|_|\\.|\\*', es.all[,cdr3]) == T)
+      ind <- which(nchar(es.all[,cdr3]) < Lmin | nchar(es.all[,cdr3]) > Lmax | grepl('X|x|Z|z|-|_|\\.|\\*', es.all[,cdr3]) == T)
       es.all[ind,cdr3] <- NA
     }
   }

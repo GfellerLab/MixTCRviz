@@ -109,8 +109,8 @@ Mandatory parameters:
 Optional parameters:
 
 - input2 (default=""): csv file or data.frame containing the "reference" TCRs to be used in comparisons. Same format as input1
-    In particular, the set of models in the "model" field need to be the same as in input1
-    so that comarisons are performed for each model separately.
+    In particular, the set of models in the "model" field needs to be the same as in input1
+    so that comparisons are performed for each model separately.
     If no "model" is given, all TCRs will be considered as coming from the same model ("Model_default").
     If input2 is provided, the comparisons is performed with this reference, and not the baseline
     repertoire.
