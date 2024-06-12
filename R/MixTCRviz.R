@@ -352,12 +352,20 @@ MixTCRviz <- function(input1, output.path,
         if(length(countL.es[[chain]])>0){
           
           if(length(countV.es[[chain]])==0){
-            print(paste("WARNING: No ", chain,"V segment", sep=""))
+            print(paste("WARNING: No ", chain,"V segment in input1", sep=""))
           }
           if(length(countJ.es[[chain]])==0){
-            print(paste("WARNING: No ",chain,"J segment", sep=""))
+            print(paste("WARNING: No ",chain,"J segment in input1", sep=""))
           }
           
+          if(comp.baseline==0){
+            if(length(countV.baseline[[chain]])==0){
+              print(paste("WARNING: No ", chain,"V segment in input2", sep=""))
+            }
+            if(length(countJ.baseline[[chain]])==0){
+              print(paste("WARNING: No ",chain,"J segment in input2", sep=""))
+            }
+          }
           
           info <- c(chain.small[chain], paste(es.name, " (", sum(countL.es[[chain]]),")",sep=""), baseline.name)
           if(comp.baseline==0){
@@ -369,7 +377,7 @@ MixTCRviz <- function(input1, output.path,
               info[3] <- paste(info[3], "VJ",sep=" | ")
               bs <- weighted_countL(countL.VJ.baseline[[chain]], countVJ.es[[chain]])
             } else {
-              print(paste("No V-J information to compute baseline CDR3",chain.small[chain]," length distribution | VJ. Try using renormVJ=0", sep=""))
+              print(paste("No V-J information to compute baseline CDR3",chain.small[chain]," length distribution | VJ. Check your data or use renormVJ=0", sep=""))
               info[3] <- paste(info[3], "NA",sep=" | ")
               bs <- countL.baseline[[chain]]-countL.baseline[[chain]]
             }
@@ -449,7 +457,7 @@ MixTCRviz <- function(input1, output.path,
               info[3] <- paste(info[3], "VJ",sep=" | ")
               bs <- weighted_countCDR3(countCDR3.VJL.baseline[[chain]], countVJ.L.es[[chain]])
             } else {
-              print(paste("No V-J information to compute baseline CDR3",chain.small[chain]," motif | VJ. Try using renormVJ=0",sep=""))
+              print(paste("No V-J information to compute baseline CDR3",chain.small[chain]," motif | VJ. Check your data or use renormVJ=0",sep=""))
               info[3] <- paste(info[3], "NA",sep=" | ")
               bs <- lapply(countCDR3.L.baseline[[chain]], function(x){y <- x-x+0.05; return(y)})
             }
@@ -530,7 +538,7 @@ MixTCRviz <- function(input1, output.path,
           pg.length[[chain]] <- ggplot()
           tl.logo[[chain]] <- c()
           
-          print(paste("WARNING: No CDR3",chain.small[chain]," data", sep=""))
+          print(paste("WARNING: No CDR3",chain.small[chain]," data in input1", sep=""))
         }
       } #End of the loop over both chains
       
