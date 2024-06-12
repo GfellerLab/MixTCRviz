@@ -31,8 +31,9 @@ build_stat <- function(es, chain.list=c("TRA","TRB"), sp="HomoSapiens", comp.VJL
 
     countL[[chain]] <- table(nchar(es[,cdr3]))
     L[[chain]] <- as.numeric(names(countL[[chain]]))
-    names(countL[[chain]]) <- paste("L",names(countL[[chain]]), sep="_")
-    
+    if(length(countL[[chain]])>0){
+      names(countL[[chain]]) <- paste("L",names(countL[[chain]]),sep="_")
+    }  
     countVJ[[chain]] <- table(es[,seg[1]], es[,seg[2]])
 
     countV.L[[chain]] <- list()
@@ -55,7 +56,9 @@ build_stat <- function(es, chain.list=c("TRA","TRB"), sp="HomoSapiens", comp.VJL
           s <- paste(V,J, sep="_")
           if(length(ind)>0){
             countL.VJ[[chain]][[s]] <- table(nchar(es[ind,cdr3]))
-            names(countL.VJ[[chain]][[s]]) <- paste("L", names(countL.VJ[[chain]][[s]]),sep="_")
+            if(length(countL.VJ[[chain]][[s]])>0){
+              names(countL.VJ[[chain]][[s]]) <- paste("L", names(countL.VJ[[chain]][[s]]),sep="_")
+            }
             countCDR3.VJL[[chain]][[s]] <- count_aa(es[ind,cdr3], keep.gap=0)
           } else {
             countL.VJ[[chain]][[s]] <- table(NA)
@@ -122,8 +125,8 @@ count_aa <- function(cdr.seq, keep.gap=0){
         }
       }
     }
-    l.c <- paste("L",lg,sep="_")
-    m.list[[l.c]] <- m
+    lc <- paste("L",lg,sep="_")
+    m.list[[lc]] <- m
   }
   return(m.list)
 }
@@ -186,7 +189,7 @@ weighted_countL <- function(countL.VJ.baseline, countVJ.es){
 
 
   countL <- rep(0,times=Lmax-Lmin+1)
-  names(countL) <- paste("L",Lmin:Lmax,sep="_")
+  names(countL) <- paste("L", Lmin:Lmax, sep="_")
 
   countVJ.es <- countVJ.es/sum(countVJ.es)
   for(v in rownames(countVJ.es)){
@@ -376,15 +379,20 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info, c
   
   L.TR <- intersect(L.es,L.rep)
   
-   pwm.rep <- list()
+  
+  
+  pwm.rep <- list()
   pwm.es <- list()
   
   logo.CDR3.L.es <- list()
   logo.CDR3.L.rep <- list()
   
-  tl <- countL.es[paste("L",L.TR,sep="_")]
-  lmax.es <- as.numeric(unlist(strsplit(names(tl[which.max(tl)]), split="_"))[2])
-  lmax <- lmax.es
+  if(length(L.TR)>0){
+    
+    tl <- countL.es[paste("L",L.TR,sep="_")]
+    lmax.es <- as.numeric(unlist(strsplit(names(tl[which.max(tl)]), split="_"))[2])
+    lmax <- lmax.es
+  
   
   if(plot.oneline==1){
     if(lmax<15){
@@ -516,47 +524,85 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info, c
   }
   ls <- list(logo.CDR3.L.es, logo.CDR3.L.rep, L.TR, lmax, logo.CDR3.L.es.max, logo.CDR3.L.rep.max)
   names(ls) <- c("ES", "Baseline", "length", "lmax", "ES_max", "Baseline_max")
+   
+  }  else { 
+    ls <- list(list(), list(), c(), 0, ggplot(), ggplot())
+    names(ls) <- c("ES", "Baseline", "length", "lmax", "ES_max", "Baseline_max")
+    
+  }
+  
   return(ls)
 }
 
 
-check_input <- function(es.all, col.TCR=c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB"), use.allele=0, correct.gene.names=1, use.mouse.strain=0, chain.list.output=c("TRA","TRB"), segment.list=c("TRAV","TRAJ","TRBV","TRBJ")){
+check_input <- function(es.all, chain.list.output="AB",name="input1"){
 
-  if(use.allele==1){
-    name.list <- gene.allele.list
-  } else {
-    name.list <- gene.list
+  if(chain.list.output=="AB"){
+    col <- c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB")
+  }
+  if(chain.list.output=="A"){
+    col <- c("TRAV","TRAJ","cdr3_TRA")
+  }
+  if(chain.list.output=="B"){
+    col <- c("TRBV","TRBJ","cdr3_TRB")
   }
   
   #Check missing input
-  for(cl in c(col.TCR)){
+  for(cl in col){
     if(cl %in% colnames(es.all) == F){
       cn <- colnames(es.all)
       es.all <- cbind(es.all,"")
       colnames(es.all) <- c(cn, cl)
-      print(paste("Missing",cl,"information"))
+      print(paste("Missing",cl,"information in",name))
     }
   }
   if("species" %in% colnames(es.all) == F){
     cn <- colnames(es.all)
     es.all <- cbind(es.all,"HomoSapiens")
     colnames(es.all) <- c(cn, "species")
-    print("Missing host species, using HomoSapiens as default")
+    print(paste("Missing host species in",name,", using HomoSapiens as default"))
   }
   if("model" %in% colnames(es.all) == F){
     cn <- colnames(es.all)
     es.all <- cbind(es.all,"Model_default")
     colnames(es.all) <- c(cn, "model")
-    print("Missing model information, using the same model (Model_default)")
+    print(paste("Missing model information in ",name,", using the Model_default as default"))
+  }
+  return(es.all) 
+
+}
+
+clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.strain=0, chain.list.output="AB"){
+  
+  if(chain.list.output=="AB"){
+    col <- c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB")
+    segment.list <- c("TRAV","TRAJ","TRBV","TRBJ")
+    cdr3.list <- c("cdr3_TRA","cdr3_TRB")
+  }
+  if(chain.list.output=="A"){
+    col <- c("TRAV","TRAJ","cdr3_TRA")
+    segment.list <- c("TRAV","TRAJ")
+    cdr3.list <- c("cdr3_TRA")
+  }
+  if(chain.list.output=="B"){
+    col <- c("TRBV","TRBJ","cdr3_TRB")
+    segment.list <- c("TRBV","TRBJ")
+    cdr3.list <- c("cdr3_TRB")
   }
   
-  #Remove incompatible lengths or CDR3 with weird characters
-  cdr3.list <- c("cdr3_TRA","cdr3_TRB")
+  if(use.allele==1){
+    name.list <- gene.allele.list
+  } else {
+    name.list <- gene.list
+  }
+  
+  #Set to NA CDR3 sequences with incompatible lengths or weird characters
+  
   for(cdr3 in cdr3.list){
-    if(cdr3 %in% col.TCR){
-      ind <- which(nchar(es.all[,cdr3]) < Lmin | nchar(es.all[,cdr3]) > Lmax | grepl('X|x|Z|z|-|_|\\.|\\*', es.all[,cdr3]) == T)
-      es.all[ind,cdr3] <- NA
-    }
+    ind <- which(nchar(es.all[,cdr3]) < Lmin | nchar(es.all[,cdr3]) > Lmax |
+                   grepl('X|x|Z|z|-|_|\\.|\\*', es.all[,cdr3]) == T)
+    
+    es.all[ind,cdr3] <- NA
   }
   
   #Remove alleles
@@ -587,12 +633,12 @@ check_input <- function(es.all, col.TCR=c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ"
   }
   
   #Replace empty values by NA
-  for(i in col.TCR){
+  for(i in col){
     es.all[which(es.all[,i] == ''),i] <- NA
   }
   
   ####
-  # Here we should add the check between CDR3 sequences and VJ genes
+  # Here we should add the check between CDR3 sequences and VJ genes 
   ####
   
   
@@ -606,7 +652,7 @@ check_input <- function(es.all, col.TCR=c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ"
   if(length(ind)>0){  
   
     if(use.allele==1){
-      #Remove the alleles
+      #Remove the alleles (if(use.allele==0), this was done before)
       for(s in segment.list){
         es.all[ind,s] <- unlist(lapply(es.all[ind,s], function(x){unlist(strsplit(x,split="*", fixed=T))[1]}))
       }
@@ -616,6 +662,7 @@ check_input <- function(es.all, col.TCR=c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ"
       es.all[ind,] <- merge_mouse_TRAV(es.all[ind,])  #WARNING: This only works if alleles have been removed (so far always the case in mouse)
     }
   }
+  
   return(es.all)
 }
 

@@ -157,8 +157,9 @@ MixTCRviz <- function(input1, output.path,
   
 
   #Check the input
-  es.all <- check_input(es.all, col.TCR, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, segment.list)
-
+  es.all <- check_input(es.all, chain.list.output, "input1")
+  es.all <- clean_input(es.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output)
+  
   #############
   #Load input2
   #############
@@ -169,7 +170,8 @@ MixTCRviz <- function(input1, output.path,
     } else if (is.data.frame(input2)==T){
       es2.all <- input2
     }
-    es2.all <- check_input(es2.all, col.TCR, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, segment.list)
+    es2.all <- check_input(es2.all, chain.list.output, "input2")
+    es2.all <- clean_input(es2.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output)
   }
   
   
@@ -459,11 +461,11 @@ MixTCRviz <- function(input1, output.path,
           logo.CDR3.L.es <- CDR3$ES
           logo.CDR3.L.baseline <- CDR3$Baseline
           
-          L.inter <- CDR3$length
-          
+          if(length(CDR3$length)>0){
+            L.inter <- paste("L",CDR3$length, sep="_")
+          } else {L.inter <- c()}
           
           lmax <- CDR3$lmax
-          
           
           logo[["CDR3"]] <- ggarrange(CDR3$ES_max, CDR3$Baseline_max, nrow=2)
           
@@ -486,7 +488,7 @@ MixTCRviz <- function(input1, output.path,
           
           if(plot.logo.length==1){
             
-            tl.logo[[chain]] <- intersect(names(countL.es[[chain]][countL.es[[chain]]>=min.logo]), paste("L",L.inter,sep="_")) #Currently the min.logo limitation does not apply to L.inter
+            tl.logo[[chain]] <- intersect(names(countL.es[[chain]][countL.es[[chain]]>=min.logo]), L.inter) #Currently the min.logo limitation does not apply to L.inter
             
             if(length(tl.logo[[chain]])>0){
               logo.sub <- list()
