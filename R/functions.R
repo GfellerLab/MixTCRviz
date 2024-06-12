@@ -663,7 +663,12 @@ clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.st
     }
   }
   
+  #Remove empty lines
+  ind <- apply(es.all,1,function(x){ s <- length(which(is.na(x[col])==F)); return(s)})
+  es.all <- es.all[which(ind>0),]
+  
   return(es.all)
+  
 }
 
 merge_mouse_TRAV <- function(es){
