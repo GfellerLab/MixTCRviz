@@ -303,8 +303,12 @@ plotLD <- function(countL.es, countL.rep,info, plot.oneline){
   L.es <- as.numeric(lapply(names(countL.es), function(x){unlist(strsplit(x,split="_"))[2]}))
   L.rep <- as.numeric(lapply(names(countL.rep), function(x){unlist(strsplit(x,split="_"))[2]}))
   
-  L.all <- sort(unique(L.es, L.rep))
- 
+  L.all <- sort(unique(c(L.es, L.rep)))
+
+  print(L.es)
+  print(L.rep)
+  print(L.all)
+   
   ct <- 1
   ld.es <- c()
   ld.rep <- c()
@@ -736,11 +740,11 @@ clean_cdr3 <- function(es.all, chain.list.output, species.default="HomoSapiens",
     
       if(verbose==1){
         if(length(ind.first)>0){
-          print(paste("*** Likely incompatibilities between V",chain.small[chain]," gene and CDR3",chain.small[chain]," ***",sep=""))
+          print(paste("*** Likely incompatibilities between V",chain.small[chain]," gene and CDR3",chain.small[chain]," in ",length(ind.first)," entries ***",sep=""))
           print(es.all[ind.sp[ind.first],c(V,cdr3)])
         }
         if(length(ind.last)>0){
-          print(paste("*** Likely incompatibilities between J",chain.small[chain]," gene and CDR3",chain.small[chain]," ***",sep=""))
+          print(paste("*** Likely incompatibilities between J",chain.small[chain]," gene and CDR3",chain.small[chain]," in ",length(ind.last)," entries ***",sep=""))
           print(es.all[ind.sp[ind.last],c(J,cdr3)])
         }
       }
