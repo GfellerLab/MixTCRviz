@@ -305,10 +305,6 @@ plotLD <- function(countL.es, countL.rep,info, plot.oneline){
   
   L.all <- sort(unique(c(L.es, L.rep)))
 
-  print(L.es)
-  print(L.rep)
-  print(L.all)
-   
   ct <- 1
   ld.es <- c()
   ld.rep <- c()
