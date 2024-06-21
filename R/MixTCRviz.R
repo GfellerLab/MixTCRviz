@@ -9,24 +9,22 @@
 #'   * The "TRAV", "TRAJ", "TRBV", "TRBJ" should follow the IMGT nomenclature, with or without allele (see below for potential name correction).
 #'   If a column is missing, empty values will be used.
 #'   * The "cdr3_TRA" and "cdr3_TRB" columns should provide CDR3A/CDR3B sequences, following the standard definition (e.g., CAVNSDGQKLLF).
-#'   Cases with non-amino acid characters, or length <7 or >22 will be not be considered (i.e., put to NA).
+#'   Cases with non-amino acid characters, or length < 7 or > 22 will be not be considered (i.e., put to NA).
 #'   If a column is missing, empty values will be used.
 #'   * The "model" column typically describes the epitopes/experiments/classes/... Each model will be treated independently in MixTCRviz.
-#'   If missing, all TCRs will be considered as coming from the same model
-#'   (Model_default).
+#'   If missing, all TCRs will be considered as coming from the same model, which can be specified in the MixTCRviz function (model.default, default value is Model_default).
 #'   * The "species" column indicates the species of the TCR (e.g., NOT the source organism of the epitope). It should be "HomoSapiens" or "MusMusculus"
-#'   If not provided, "HomoSapiens" is taken as default.
-#'
+#'   If missing, all TCRs will be considered as coming from the same species, which can be specified in the MixTCRviz function (species.default, default value is HomoSapiens).
 #' @param output.path name of the output directory (if not already existing, it
-#'   will be created).
+#'   will be created). If existing the files with the same name will be overwritten.
 #' @param input2 (default=""): csv file or data.frame containing the second set of
 #'   TCRs to be used in comparisons. Same format as input1. 
 #'   In particular, the set of models in the "model" field need to be the same as in input1
-#'   so that comarisons are performed for each model separately.
+#'   so that comparisons are performed for each model separately.
 #'   If no "model" is given, all TCRs will be considered as coming from the same model ("Model_default").
 #'   If input2 is provided, the comparisons is performed with this second input, and not the baseline
 #'   repertoire.
-#' @param baseline.file (default="") .rds file containing information about
+#' @param baseline.file (default="") .rda file containing information about
 #'   baseline repertoire. If empty, the default baseline repertoires are used.
 #' @param use.allele (default=0)
 #'    * 0: All V/J alleles are merged at the gene level (recommended).
@@ -46,7 +44,7 @@
 #'   usage observed in the input TCRs. In the plots the mark " | VJ" is used to
 #'   indicate that CDR3 length distributions and motifs correspond to those
 #'   expected with the V-J usage in the input TCRs.
-#' @param species.default (default="HomoSapiens") Option to provide the species for all the TCR in input. 
+#' @param species.default (default="HomoSapiens"). Option to provide the species for all the TCR in input. 
 #'   This is useful if your input does not contain a "species" column.
 #'   In case the input contains the "species" column, species.default is not considered.
 #'   Should be either "HomoSapiens" or "MusMusculus"
@@ -54,24 +52,25 @@
 #'   This is useful if your input does not contain a "model" column.
 #'   In case the input contains the "model" column, model.default is not considered.
 #' @param N.min (default=10) Minimum number of TCR (i.e., V-J-CDR3) for at least
-#'   one chain.
+#'   one chain. This number is computed after cleaning the data.
 #' @param output.stat (default=1) Create a stat/ folder with .rds objects summarizing the raw statistics for each model.
 #'   This includes countL, countV, countJ, countCDR3.L, etc. for each chain used in input.
+#'   Create also a processed_data/ folder with the data for each model after the different processing (e.g., removing alleles, correcting V/J names, removing inconsistent CDR3)
 #' @param correct.gene.names (default=1)
 #'    * 0: Do not attempt to correct V/J gene names. Put to NA genes not in IMGT.
-#'    * 1: Attempt to correct V/J gene names not in IMGT based on internal map. Put to NA genes that could not be corrected
+#'    * 1: Attempt to correct V/J gene names not in IMGT based on our internal dictionary. Put to NA genes that could not be corrected
 #' @param clean.cdr3.mode (default=1)
 #'    * 0: Keep all CDR3 without any correction.
 #'    * 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment; 
 #'        Remove J and CDR3 when the last two amino acids are not compatible with the J segments.
 #'    * 2: remove V and CDR3 when the M first CDR3 amino acids are incompatible with the V segment, with M depending on the V gene and the CDR3 length; 
 #'        Remove J and CDR3 when the last two amino acids are not compatible with the J segments, with M depending on the J gene and CDR3 length.
-#'    * Note: 0 means that all sequencing / TCR reconstruction errors are kept. 
-#'            1: removes several sequencing / TCR reconstruction errors.
-#'            2: All sequencing / TCR reconstruction errors at position where incompatibility between CDR3 and V/J genes are unlikely to happen.
+#'    * Note: 0: all PCR / sequencing / TCR reconstruction errors are kept. 
+#'            1: several PCR / sequencing / TCR reconstruction errors are removed, but only based on the first and last amino acids in CDR3.
+#'            2: most PCR / sequencing / TCR reconstruction errors are removed.
 #' @param verbose (default=1)
-#'    * 1: Write the different QC and putative issues with the data (V/J names, CDR3 sequences, etc.)
-#'    * 0: Write less
+#'    * 1: Write the different QC and putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
+#'    * 0: Write much less
 #' @param plot (default=1)
 #'    * 0: only create .rds object with the statistics
 #'    * 1: Plot the data in output.path/plots/ and create .rds object with the statistics for each model in output.path/stats/.
@@ -291,6 +290,11 @@ MixTCRviz <- function(input1, output.path,
         dir.create(dir);
       }
       saveRDS(summary, file=paste(output.path,"/stats/",model,".rds", sep=""))
+      dir <- paste(output.path,"/processed_data/", sep="")
+      if(!dir.exists(dir)){
+        dir.create(dir);
+      }
+      write.csv(es, file=paste(output.path,"/processed_data/",model,".csv", sep=""), quote=F, row.names = F, na = "")
     }
     
     if(plot==1){
