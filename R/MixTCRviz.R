@@ -19,12 +19,12 @@
 #'
 #' @param output.path name of the output directory (if not already existing, it
 #'   will be created).
-#' @param input2 (default=""): csv file or data.frame containing the "reference"
+#' @param input2 (default=""): csv file or data.frame containing the second set of
 #'   TCRs to be used in comparisons. Same format as input1. 
 #'   In particular, the set of models in the "model" field need to be the same as in input1
 #'   so that comarisons are performed for each model separately.
 #'   If no "model" is given, all TCRs will be considered as coming from the same model ("Model_default").
-#'   If input2 is provided, the comparisons is performed with this reference, and not the baseline
+#'   If input2 is provided, the comparisons is performed with this second input, and not the baseline
 #'   repertoire.
 #' @param baseline.file (default="") .rds file containing information about
 #'   baseline repertoire. If empty, the default baseline repertoires are used.
@@ -41,17 +41,37 @@
 #'   enrichment in one of them versus the baseline.
 #'    * 1: The different TRAV segments (e.g., TRAV10D, TRAVN10 and TRAV10) are treated separately.
 #' @param renormVJ (default=1)
-#'    * 0: Use CDR3 length distribution and motif from the full repertoire (this is the only option when input2 is provided for comparison with a user-given reference)
-#'    * 1: When comparing to the baseline TCR repertoire,
-#'   build CDR3 length distributions and CDR3 motifs corresponding to the V-J
+#'    * 0: Compare CDR3 length distribution and motif with those from the baseline repertoire or input2
+#'    * 1: Compare CDR3 length distribution and motif with those from the baseline repertoire or input2 with the V-J
 #'   usage observed in the input TCRs. In the plots the mark " | VJ" is used to
 #'   indicate that CDR3 length distributions and motifs correspond to those
 #'   expected with the V-J usage in the input TCRs.
+#' @param species.default (default="HomoSapiens") Option to provide the species for all the TCR in input. 
+#'   This is useful if your input does not contain a "species" column.
+#'   In case the input contains the "species" column, species.default is not considered.
+#'   Should be either "HomoSapiens" or "MusMusculus"
+#' @param model.default (default="Model_default") Option to provide the model for all the TCR in input, which is also used as the name of the output files. 
+#'   This is useful if your input does not contain a "model" column.
+#'   In case the input contains the "model" column, model.default is not considered.
 #' @param N.min (default=10) Minimum number of TCR (i.e., V-J-CDR3) for at least
 #'   one chain.
+#' @param output.stat (default=1) Create a stat/ folder with .rds objects summarizing the raw statistics for each model.
+#'   This includes countL, countV, countJ, countCDR3.L, etc. for each chain used in input.
 #' @param correct.gene.names (default=1)
 #'    * 0: Do not attempt to correct V/J gene names. Put to NA genes not in IMGT.
 #'    * 1: Attempt to correct V/J gene names not in IMGT based on internal map. Put to NA genes that could not be corrected
+#' @param clean.cdr3.mode (default=1)
+#'    * 0: Keep all CDR3 without any correction.
+#'    * 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment; 
+#'        Remove J and CDR3 when the last two amino acids are not compatible with the J segments.
+#'    * 2: remove V and CDR3 when the M first CDR3 amino acids are incompatible with the V segment, with M depending on the V gene and the CDR3 length; 
+#'        Remove J and CDR3 when the last two amino acids are not compatible with the J segments, with M depending on the J gene and CDR3 length.
+#'    * Note: 0 means that all sequencing / TCR reconstruction errors are kept. 
+#'            1: removes several sequencing / TCR reconstruction errors.
+#'            2: All sequencing / TCR reconstruction errors at position where incompatibility between CDR3 and V/J genes are unlikely to happen.
+#' @param verbose (default=1)
+#'    * 1: Write the different QC and putative issues with the data (V/J names, CDR3 sequences, etc.)
+#'    * 0: Write less
 #' @param plot (default=1)
 #'    * 0: only create .rds object with the statistics
 #'    * 1: Plot the data in output.path/plots/ and create .rds object with the statistics for each model in output.path/stats/.
@@ -74,10 +94,10 @@
 #'    * AB both chains are plotted in output
 #' @param output.format (default="pdf"): Choose the format for the output
 #'      plots (can be "pdf", "png" or "jpg").
-#' @param input1.name (default="Epitope Specific"): Provide a generic name for
+#' @param input1.name (default="Input"): Provide a generic name for
 #'   the input TCRs in the plots (e.g., Epitope Specific). Avoid names with more
 #'   than 20 characters
-#' @param input2.name (default="Reference"): If a second set of TCRs is provided
+#' @param input2.name (default="Input2"): If a second set of TCRs is provided
 #'   (i.e., input2 != ""), Provide a generic name for the input2 TCRs in the
 #'   plots. Avoid names with more than 20 characters.
 #'
@@ -85,10 +105,11 @@
 #' @export
 MixTCRviz <- function(input1, output.path,
                       input2="", baseline.file="",
-                      use.allele=0, correct.gene.names=1, use.mouse.strain=0,
-                      renormVJ=1, N.min=10,
+                      use.allele=0, correct.gene.names=1, use.mouse.strain=0, clean.cdr3.mode=1,
+                      renormVJ=1, N.min=10, output.stat=1,
+                      species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
-                      chain.list.output="AB", input1.name="Epitope specific", input2.name="", output.format="pdf"){
+                      chain.list.output="AB", input1.name="Input", input2.name="", output.format="pdf"){
   
   
   #######
@@ -109,6 +130,15 @@ MixTCRviz <- function(input1, output.path,
   
   if(output.format != "pdf" & output.format != "png" & output.format != "jpg"){
     stop("'output.format' should be pdf, png or jpg!")
+  }
+  
+  if(species.default %in% species.list == F){
+    stop("Wrong choice for species.default. Should be either \"HomoSapiens\" or \"MusMusculus\"")
+  }
+  
+  if(clean.cdr3.mode %in% c(0,1,2) == F){
+    clean.cdr3.mode <- 1
+    print("Using the standard mode to clean CDR3 sequences")
   }
   
   keep.gap.pwm <- 0 # 1: means that 'g' (gaps in CDR1/2) are treated as an additional aa in the logos. 0: means that 'g' are treated as unspecific (i.e., 0.05) in the logos
@@ -138,11 +168,11 @@ MixTCRviz <- function(input1, output.path,
       comp.baseline <- 1
     } else {
       comp.baseline <- 0
-      if(input2.name == ""){ baseline.name <- "Reference"} else { baseline.name <- input2.name }
+      if(input2.name == ""){ baseline.name <- "Input2"} else { baseline.name <- input2.name }
     }
   } else if(is.data.frame(input2)==T){
     comp.baseline <- 0
-    if(input2.name == ""){ baseline.name <- "Reference"} else { baseline.name <- input2.name }
+    if(input2.name == ""){ baseline.name <- "Input2"} else { baseline.name <- input2.name }
   }
   
   ############################
@@ -157,8 +187,8 @@ MixTCRviz <- function(input1, output.path,
   
 
   #Check the input
-  es.all <- check_input(es.all, chain.list.output, "input1")
-  es.all <- clean_input(es.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output)
+  es.all <- check_input(es.all, chain.list.output, "input1", species.default, model.default)
+  es.all <- clean_input(es.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, species.default, clean.cdr3.mode, verbose)
   
   #############
   #Load input2
@@ -170,10 +200,9 @@ MixTCRviz <- function(input1, output.path,
     } else if (is.data.frame(input2)==T){
       es2.all <- input2
     }
-    es2.all <- check_input(es2.all, chain.list.output, "input2")
-    es2.all <- clean_input(es2.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output)
+    es2.all <- check_input(es2.all, chain.list.output, "input2", species.default, model.default)
+    es2.all <- clean_input(es2.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, species.default, clean.cdr3.mode, verbose)
   }
-  
   
   ########################
   #Select the model which should be considered
@@ -209,7 +238,7 @@ MixTCRviz <- function(input1, output.path,
     
     use.allele.es <- use.allele
     
-    print (model)
+    print(paste("Model:",model))
     
     pg.all <- list()
     pg.length <- list()
@@ -256,11 +285,13 @@ MixTCRviz <- function(input1, output.path,
     
     summary <- list(info, L.es, countL.es, countV.es, countJ.es, countV.L.es, countJ.L.es, countCDR1.es, countCDR2.es, countCDR3.L.es, countVJ.es, countVJ.L.es)
     names(summary) <- c("info", "L", "countL", "countV", "countJ", "countV.L", "countJ.L", "countCDR1", "countCDR2", "countCDR3.L", "countVJ", "countVJ.L")
-    dir <- paste(output.path,"/stats/", sep="")
-    if(!dir.exists(dir)){
-      dir.create(dir);
+    if(output.stat==1){
+      dir <- paste(output.path,"/stats/", sep="")
+      if(!dir.exists(dir)){
+        dir.create(dir);
+      }
+      saveRDS(summary, file=paste(output.path,"/stats/",model,".rds", sep=""))
     }
-    saveRDS(summary, file=paste(output.path,"/stats/",model,".rds", sep=""))
     
     if(plot==1){
       
@@ -338,32 +369,42 @@ MixTCRviz <- function(input1, output.path,
       
       for(chain in chain.list){
         
-        print(chain)
+        #print(chain)
         
         if(comp.baseline==1){
           #Check segments that were in the ES, but not in baseline
           miss.V.baseline <- setdiff(names(countV.es[[chain]]), names(countV.baseline[[chain]]))
           miss.J.baseline <- setdiff(names(countJ.es[[chain]]), names(countJ.baseline[[chain]]))
-          if(length(miss.V.baseline)>=1){print(c(paste("WARNING: ",chain,"V in Input TCRs, but absent from baseline: ", sep=""), miss.V.baseline))}
-          if(length(miss.J.baseline)>=1){print(c(paste("WARNING: ",chain,"J in Input TCRs, but absent from baseline: ", sep=""), miss.J.baseline))}
+          if(verbose==1){
+            if(length(miss.V.baseline)>=1){
+              print(paste("WARNING: ",chain,"V in Input TCRs, but absent from baseline: ", sep=""))
+              print(miss.V.baseline)  
+            }
+            if(length(miss.J.baseline)>=1){
+              print(paste("WARNING: ",chain,"J in Input TCRs, but absent from baseline: ", sep=""))
+              print(miss.J.baseline)
+            }
+          }
         }
         
         #Make sure there are CDR3 sequences
         if(length(countL.es[[chain]])>0){
           
-          if(length(countV.es[[chain]])==0){
-            print(paste("WARNING: No ", chain,"V segment in input1", sep=""))
-          }
-          if(length(countJ.es[[chain]])==0){
-            print(paste("WARNING: No ",chain,"J segment in input1", sep=""))
-          }
-          
-          if(comp.baseline==0){
-            if(length(countV.baseline[[chain]])==0){
-              print(paste("WARNING: No ", chain,"V segment in input2", sep=""))
+          if(verbose==1){
+            if(length(countV.es[[chain]])==0){
+              print(paste("WARNING: No ", chain,"V segment in input1", sep=""))
             }
-            if(length(countJ.baseline[[chain]])==0){
-              print(paste("WARNING: No ",chain,"J segment in input2", sep=""))
+            if(length(countJ.es[[chain]])==0){
+              print(paste("WARNING: No ",chain,"J segment in input1", sep=""))
+            }
+            
+            if(comp.baseline==0){
+              if(length(countV.baseline[[chain]])==0){
+                print(paste("WARNING: No ", chain,"V segment in input2", sep=""))
+              }
+              if(length(countJ.baseline[[chain]])==0){
+                print(paste("WARNING: No ",chain,"J segment in input2", sep=""))
+              }
             }
           }
           
@@ -585,8 +626,5 @@ MixTCRviz <- function(input1, output.path,
       }
     }
   }
-  
-  #return(summary)
-  
 }
 

@@ -5,6 +5,9 @@
 
 build_stat <- function(es, chain.list=c("TRA","TRB"), sp="HomoSapiens", comp.VJL=0){
 
+  # comp.VJL=1 means we are computing length distributions and motifs knowing VJ
+  # It takes some time, but still reasonable.
+  
   L <- list()
   countL <- list()
   countV <- list()
@@ -84,6 +87,7 @@ build_stat <- function(es, chain.list=c("TRA","TRB"), sp="HomoSapiens", comp.VJL
     
   }
   return(count)
+  
 }
 
 #Compute the counts of each aa at each position.
@@ -291,33 +295,6 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline){
 
 }
 
-
-correct.VJnames <- function(es.all, name.list, segment.list){
-
-
-  for(sp in species.list){
-    for(s in segment.list){
-
-      ind <- which(es.all[,s] %in% name.list[[sp]]==F & es.all[,"species"]==sp)
-      if(length(ind)>0){
-        nm <- strsplit(es.all[ind,s], split="*", fixed=T)
-        gene <- unlist(lapply(nm, function(x){x[1]}))
-        allele <- unlist(lapply(nm, function(x){x[2]}))
-
-        ga <- unlist(lapply(1:length(gene), function(x){ clean.name.allele(gene[x],allele[x],sp)}))
-
-        #Check the cases where the segment was not NA, but was put to NA (i.e., mapping of gene name failed)
-        i <- which(es.all[ind,s] != "" & is.na(ga)==T)
-        if(length(i)>0){
-          print(paste(s, " gene names not in IMGT which could not be corrected:"))
-          print(names(table(es.all[ind[i],s])))
-        }
-        es.all[ind,s] <- ga
-      }
-    }
-  }
-  return(es.all)
-}
 
 
 plotLD <- function(countL.es, countL.rep,info, plot.oneline){
@@ -535,8 +512,10 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info, c
 }
 
 
-check_input <- function(es.all, chain.list.output="AB",name="input1"){
+check_input <- function(es.all, chain.list.output="AB", name="input1", species.default="HomoSapiens", model.default="Model_default"){
 
+  #Check if some columns are missing, and add them with default values
+  
   if(chain.list.output=="AB"){
     col <- c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB")
   }
@@ -556,23 +535,39 @@ check_input <- function(es.all, chain.list.output="AB",name="input1"){
       print(paste("Missing",cl,"information in",name))
     }
   }
+  #If the "species" column is not provided, we add a column with species.default
+  #This is a bit suboptimal, but ok for now
   if("species" %in% colnames(es.all) == F){
     cn <- colnames(es.all)
-    es.all <- cbind(es.all,"HomoSapiens")
+    es.all <- cbind(es.all,species.default)
     colnames(es.all) <- c(cn, "species")
-    print(paste("Missing host species in",name,", using HomoSapiens as default"))
+    print(paste("Using",species.default,"as species for all entries"))
   }
   if("model" %in% colnames(es.all) == F){
     cn <- colnames(es.all)
-    es.all <- cbind(es.all,"Model_default")
+    es.all <- cbind(es.all,model.default)
     colnames(es.all) <- c(cn, "model")
-    print(paste("Missing model information in ",name,", using the Model_default as default"))
+    print(paste("using",model.default,"as model for all entries"))
   }
   return(es.all) 
 
 }
 
-clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.strain=0, chain.list.output="AB"){
+clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.strain=0, chain.list.output="AB", species.default="HomoSapiens", clean.cdr3.mode=1, verbose=1){
+  
+  ####
+  # Clean the input by removing CDR3 with weird characters, longer than Lmax or shorter than Lmin
+  # Correct VJ genes based on our dictionary
+  # species.default is only used if es.all does not contain the "species" column
+  ####
+  
+  if("species" %in% colnames(es.all)){
+    sp.list <- unique(es.all[,"species"])
+    use.species.default <- 0
+  } else {
+    sp.list <- c(species.default)
+    use.species.default <- 1
+  }
   
   if(chain.list.output=="AB"){
     col <- c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB")
@@ -620,15 +615,22 @@ clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.st
   ###################
   
   if(correct.gene.names==1){
-    es.all <- correct.VJnames(es.all, name.list, segment.list)
+    es.all <- correct.VJnames(es.all, name.list, segment.list, species.default, verbose)
   }
   if(correct.gene.names==0){
-    for(s in segment.list){
-      ind <- which(es.all[,s] %in% name.list[[sp]] == F & !is.na(es.all[,s]) )
-      if(length(ind)>=1){
-        print(c(paste("WARNING: ",s," names in Input TCRs absent from IMGT: ",sep=""), sort(unique(es.all[ind,s])) ))
+    for(sp in sp.list){
+      if(use.species.default==0){
+        ind.sp <- which(es.all[,"species"]==sp)
+      } else {
+        ind.sp <- 1:dim(es.all)[1]
       }
-      es.all[ind,s] <- NA
+      for(s in segment.list){
+        ind <- which(es.all[ind.sp,s] %in% name.list[[sp]] == F & !is.na(es.all[ind.sp,s]) )
+        if(length(ind)>=1){
+          print(c(paste("WARNING: ",s," names in Input TCRs absent from IMGT: ",sep=""), sort(unique(es.all[ind.sp[ind],s])) ))
+        }
+        es.all[ind.sp[ind],s] <- NA
+      }
     }
   }
   
@@ -638,17 +640,26 @@ clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.st
   }
   
   ####
-  # Here we should add the check between CDR3 sequences and VJ genes 
+  # Here we should add the check between CDR3 sequences and VJ genes based on the clean_cdr3 function
   ####
   
-  
+  if(clean.cdr3.mode > 0){
+    es.all <- clean_cdr3(es.all, chain.list.output, species.default, clean.cdr3.mode, verbose)
+  }
   ################
   # Do an extra correction for mouse entries, where only gene level analyses are allowed
   # and TRAV genes can be merged
   ################
   
-  ind <- which(es.all[,"species"]=="MusMusculus")
-  
+  if(use.species.default==0){
+    ind <- which(es.all[,"species"]=="MusMusculus")
+  } else {
+    if(species.default=="MusMusculus"){
+      ind <- 1:dim(es.all)[1]
+    } else {
+      ind <- c()
+    }
+  }
   if(length(ind)>0){  
   
     if(use.allele==1){
@@ -671,22 +682,155 @@ clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.st
   
 }
 
+clean_cdr3 <- function(es.all, chain.list.output, species.default="HomoSapiens", clean.cdr3.mode=1, verbose=1){
+  
+  # Clean the CDR3 based on the V and J usage.
+  # This should be applied after correcting the gene names, and adding the species if needed
+  # species.default is only used if es.all does not contain the "species" column
+  
+  use.species.default <- 0
+  if("species" %in% colnames(es.all)){
+    sp.list <- unique(es.all[,"species"])
+  } else {
+    sp.list <- c(species.default)
+    use.species.default <- 1
+  }
+  
+  if(chain.list.output=="A"){chain.list=c("TRA")}
+  if(chain.list.output=="B"){chain.list=c("TRB")}
+  if(chain.list.output=="AB"){chain.list=c("TRA","TRB")}
+  
+  #Fixed lengths for checking the agreement between V/J and CDR3
+  if(clean.cdr3.mode==1){
+    start.lg <- 1
+    end.lg <- 2
+  }
+  
+  
+  for(chain in chain.list){
+    
+    V <- paste(chain,"V",sep="")
+    J <- paste(chain,"J",sep="")
+    cdr3 <- paste("cdr3_",chain,sep="")
+    
+    for(sp in sp.list){
+    
+      if(use.species.default==0){
+        ind.sp <- which(es.all[,"species"]==sp)
+      } else{
+        ind.sp <- 1:dim(es.all)[1]
+      }
+      
+      if(clean.cdr3.mode==1){
+        first <- substr(es.all[ind.sp,cdr3], 1, start.lg)
+        V.end <- cdr123[[sp]][[chain]][,"CDR3"]
+        ref.first <- substr(V.end,1,start.lg); names(ref.first) <- rownames(cdr123[[sp]][[chain]])
+        
+        last <- substr(es.all[ind.sp,cdr3], nchar(es.all[ind.sp,cdr3])-end.lg+1, nchar(es.all[ind.sp,cdr3]))
+        J.start <- Jseq[[sp]][[chain]][,"CDR3_full"]
+        ref.last <- substr(J.start, nchar(J.start)-end.lg+1, nchar(J.start));  names(ref.last) <- rownames(Jseq[[sp]][[chain]])
+      }
+      
+      ind.first <- which( (first != ref.first[es.all[ind.sp,V]] ) & ref.first[es.all[ind.sp,V]]!="" & is.na(ref.first[es.all[ind.sp,V]])==F )
+      ind.last <- which( (last != ref.last[es.all[ind.sp,J]] ) & ref.last[es.all[ind.sp,J]]!="" & is.na(ref.last[es.all[ind.sp,J]])==F ) 
+    
+      if(verbose==1){
+        if(length(ind.first)>0){
+          print(paste("*** Likely incompatibilities between V",chain.small[chain]," gene and CDR3",chain.small[chain]," ***",sep=""))
+          print(es.all[ind.sp[ind.first],c(V,cdr3)])
+        }
+        if(length(ind.last)>0){
+          print(paste("*** Likely incompatibilities between J",chain.small[chain]," gene and CDR3",chain.small[chain]," ***",sep=""))
+          print(es.all[ind.sp[ind.last],c(J,cdr3)])
+        }
+      }
+      
+      es.all[ind.sp[ind.first],c(V,cdr3)] <- NA
+      es.all[ind.sp[ind.last],c(J,cdr3)] <- NA
+    
+    }
+  }
+  
+  return(es.all)
+}
+
+
+correct.VJnames <- function(es.all, name.list, segment.list, species.default="HomoSapiens", verbose=1){
+  
+  if("species" %in% colnames(es.all)){
+    sp.list <- unique(es.all[,"species"])
+  } else {
+    sp.list <- c(species.default)
+  }
+  
+  for(sp in sp.list){
+    for(s in segment.list){
+      
+      if("species" %in% colnames(es.all)){
+        ind <- which(es.all[,s] %in% name.list[[sp]]==F & es.all[,"species"]==sp)
+      } else {
+        ind <- which(es.all[,s] %in% name.list[[sp]]==F)
+      }
+      
+      if(length(ind)>0){
+        nm <- strsplit(es.all[ind,s], split="*", fixed=T)
+        gene <- unlist(lapply(nm, function(x){x[1]}))
+        allele <- unlist(lapply(nm, function(x){x[2]}))
+        
+        ga <- unlist(lapply(1:length(gene), function(x){ clean.name.allele(gene[x],allele[x],sp)}))
+        
+        if(verbose==1){
+          i <- which(es.all[ind,s] != ga & is.na(ga)==F)
+          if(length(i)>0){
+            
+            print(paste("*** ",s," names that were corrected ***",sep=""))
+            m.cor <- data.frame(original.name = es.all[ind[i],s], corrected.name = ga[i],row.names = NULL)
+            m.cor <- m.cor[!duplicated(m.cor),]
+            print(m.cor)
+          }
+        
+          #Check the cases where the segment was not NA, but was put to NA (i.e., mapping of gene name failed)
+          i <- which(es.all[ind,s] != "" & is.na(ga)==T)
+          if(length(i)>0){
+            print(paste("***", s, "gene names not in IMGT which could not be corrected ***"))
+            print(unique(es.all[ind[i],s]))
+          }
+        }
+        
+        es.all[ind,s] <- ga
+      }
+    }
+  }
+  return(es.all)
+}
+
+
 merge_mouse_TRAV <- function(es){
 
-  #This has to be run after alleles have been removed and genes have been corrected
-
+  # This has to be run after alleles have been removed and genes have been corrected
+  # If the "species" field is present, it takes only "MusMusculus" entries
+  # If not, it assumes all entries are "MusMusculus"
+  # It also assumes that alleles have been removed
+  
   if("TRAV" %in% colnames(es)){
-    ind <- which(es[,"species"]=="MusMusculus")
-    v.cor <- as.character(unlist(lapply(es[["TRAV"]][ind], function(y){
+    
+    if("species" %in% colnames(es)){
+      ind <- which(es[,"species"]=="MusMusculus")
+    } else {
+      ind <- 1:dim(es)[1]
+    }
+    
+    v.cor <- as.character(unlist(lapply(es[["TRAV"]][ind], function(y){  # WARNING: I don't understand why not using es[ind,"TRAV"]
       if (y %in% names(merge.mouse.TRAV)){
         y <- merge.mouse.TRAV[y]
       }
       return(y)
     })))
+    
     es[ind,"TRAV"] <- v.cor
   }
-
   return(es)
+  
 }
 
 
