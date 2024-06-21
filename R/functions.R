@@ -554,7 +554,7 @@ check_input <- function(es.all, chain.list.output="AB", name="input1", species.d
 
 }
 
-clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.strain=0, chain.list.output="AB", species.default="HomoSapiens", clean.cdr3.mode=1, verbose=1){
+clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.strain=0, chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, verbose=1){
   
   ####
   # Clean the input by removing CDR3 with weird characters, longer than Lmax or shorter than Lmin
@@ -641,11 +641,11 @@ clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.st
   }
   
   ####
-  # Here we should add the check between CDR3 sequences and VJ genes based on the clean_cdr3 function
+  # Here we should add the check between CDR3 sequences and VJ genes based on the check_cdr3 function
   ####
   
-  if(clean.cdr3.mode > 0){
-    es.all <- clean_cdr3(es.all, chain.list.output, species.default, clean.cdr3.mode, verbose)
+  if(check.cdr3.mode > 0){
+    es.all <- check_cdr3(es.all, chain.list.output, species.default, check.cdr3.mode, verbose)
   }
   ################
   # Do an extra correction for mouse entries, where only gene level analyses are allowed
@@ -683,7 +683,7 @@ clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.st
   
 }
 
-clean_cdr3 <- function(es.all, chain.list.output, species.default="HomoSapiens", clean.cdr3.mode=1, verbose=1){
+check_cdr3 <- function(es.all, chain.list.output, species.default="HomoSapiens", check.cdr3.mode=1, verbose=1){
   
   # Clean the CDR3 based on the V and J usage.
   # This should be applied after correcting the gene names, and adding the species if needed
@@ -702,7 +702,7 @@ clean_cdr3 <- function(es.all, chain.list.output, species.default="HomoSapiens",
   if(chain.list.output=="AB"){chain.list=c("TRA","TRB")}
   
   #Fixed lengths for checking the agreement between V/J and CDR3
-  if(clean.cdr3.mode==1){
+  if(check.cdr3.mode==1){
     start.lg <- 1
     end.lg <- 2
   }
@@ -722,7 +722,7 @@ clean_cdr3 <- function(es.all, chain.list.output, species.default="HomoSapiens",
         ind.sp <- 1:dim(es.all)[1]
       }
       
-      if(clean.cdr3.mode==1){
+      if(check.cdr3.mode==1){
         first <- substr(es.all[ind.sp,cdr3], 1, start.lg)
         V.end <- cdr123[[sp]][[chain]][,"CDR3"]
         ref.first <- substr(V.end,1,start.lg); names(ref.first) <- rownames(cdr123[[sp]][[chain]])

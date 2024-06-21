@@ -160,7 +160,7 @@ Mandatory parameters:
     * 0: Do not attempt to correct V/J gene names. Put to NA genes not in IMGT.
     * 1: Attempt to correct V/J gene names not in IMGT based on our internal dictionary. Put to NA genes that could not be corrected
 
-- clean.cdr3.mode (default=1)
+- check.cdr3.mode (default=1)
     * 0: Keep all CDR3 without any correction.
     * 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment;
         Remove J and CDR3 when the last two amino acids are not compatible with the J segments.
@@ -230,8 +230,8 @@ If correct.gene.names==1, we will attempt to correct as many V/J gene names
 Cases which could not be corrected are put to NA, and not considered in any statistics.
 
 ** PCR / Sequencing / TCR reconstruction errors frequently occur when analysing TCR-Seq data. Different stringencies are offered in MixTCRviz.
-If clean.cdr3.mode = 0, no filtering is performed.
-If clean.cdr3.mode = 1, the first amino acid of the CDR3 is compared to the one expecte based on the V gene.
+If check.cdr3.mode = 0, no filtering is performed.
+If check.cdr3.mode = 1, the first amino acid of the CDR3 is compared to the one expecte based on the V gene.
 In case of inconsistencies, both the V and the CDR3 sequence are put to NA.
 Similarly, the last two amino acids of the CDR3 are compared wiht those expeted based on the J genes.
 In case of inconsistencies, both the J and the CDR3 sequence are put to NA.

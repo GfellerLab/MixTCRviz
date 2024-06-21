@@ -59,7 +59,7 @@
 #' @param correct.gene.names (default=1)
 #'    * 0: Do not attempt to correct V/J gene names. Put to NA genes not in IMGT.
 #'    * 1: Attempt to correct V/J gene names not in IMGT based on our internal dictionary. Put to NA genes that could not be corrected
-#' @param clean.cdr3.mode (default=1)
+#' @param check.cdr3.mode (default=1)
 #'    * 0: Keep all CDR3 without any correction.
 #'    * 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment; 
 #'        Remove J and CDR3 when the last two amino acids are not compatible with the J segments.
@@ -104,7 +104,7 @@
 #' @export
 MixTCRviz <- function(input1, output.path,
                       input2="", baseline.file="",
-                      use.allele=0, correct.gene.names=1, use.mouse.strain=0, clean.cdr3.mode=1,
+                      use.allele=0, correct.gene.names=1, use.mouse.strain=0, check.cdr3.mode=1,
                       renormVJ=1, N.min=10, output.stat=1,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
@@ -135,8 +135,8 @@ MixTCRviz <- function(input1, output.path,
     stop("Wrong choice for species.default. Should be either \"HomoSapiens\" or \"MusMusculus\"")
   }
   
-  if(clean.cdr3.mode %in% c(0,1,2) == F){
-    clean.cdr3.mode <- 1
+  if(check.cdr3.mode %in% c(0,1,2) == F){
+    check.cdr3.mode <- 1
     print("Using the standard mode to clean CDR3 sequences")
   }
   
@@ -187,7 +187,7 @@ MixTCRviz <- function(input1, output.path,
 
   #Check the input
   es.all <- check_input(es.all, chain.list.output, "input1", species.default, model.default)
-  es.all <- clean_input(es.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, species.default, clean.cdr3.mode, verbose)
+  es.all <- clean_input(es.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, species.default, check.cdr3.mode, verbose)
   
   #############
   #Load input2
@@ -200,7 +200,7 @@ MixTCRviz <- function(input1, output.path,
       es2.all <- input2
     }
     es2.all <- check_input(es2.all, chain.list.output, "input2", species.default, model.default)
-    es2.all <- clean_input(es2.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, species.default, clean.cdr3.mode, verbose)
+    es2.all <- clean_input(es2.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, species.default, check.cdr3.mode, verbose)
   }
   
   ########################
