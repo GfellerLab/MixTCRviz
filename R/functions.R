@@ -350,14 +350,14 @@ plotLD <- function(countL.es, countL.rep,info, plot.oneline){
 }
 
 
-plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info, comp.baseline, plot.oneline=0, plot.logo.length=0, plot.cdr3.subtract.baseline=0){
+plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info, 
+                     comp.baseline, plot.oneline=0, plot.logo.length=0,
+                     plot.cdr3.subtract.baseline=0, set.cdr3.length=""){
   
   L.es <- as.numeric(lapply(names(countL.es), function(x){unlist(strsplit(x,split="_"))[2]}))
   L.rep <- as.numeric(lapply(names(countL.rep), function(x){unlist(strsplit(x,split="_"))[2]}))
   
   L.TR <- intersect(L.es,L.rep)
-  
-  
   
   pwm.rep <- list()
   pwm.es <- list()
@@ -368,141 +368,149 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info, c
   if(length(L.TR)>0){
     
     tl <- countL.es[paste("L",L.TR,sep="_")]
-    lmax.es <- as.numeric(unlist(strsplit(names(tl[which.max(tl)]), split="_"))[2])
-    lmax <- lmax.es
-  
-  
-  if(plot.oneline==1){
-    if(lmax<15){
-      axis.size.max <- 8
+    
+    if(set.cdr3.length==""){
+      lmax <- as.numeric(unlist(strsplit(names(tl[which.max(tl)]), split="_"))[2])
     } else {
-      axis.size.max <- 7
+      if(set.cdr3.length %in% L.TR){
+        lmax <- set.cdr3.length
+      } else {
+        lmax <- as.numeric(unlist(strsplit(names(tl[which.max(tl)]), split="_"))[2])
+        print(paste("set.cdr3",info[1],".length=",set.cdr3.length," is incompatible with the input data. Default value of ",lmax," will be used.", sep=""))
+      }
     }
-    title.size <- 11
-  } else {
-    axis.size.max <- 10
-    title.size <- 12
-  }
-  ylab <- ""
-  
-  
-  if(plot.logo.length==0){
-    L.TR <- c(lmax)
-  }
-  
-  for(l in L.TR){
     
-    lc <- paste("L",l,sep="_")
+    if(plot.oneline==1){
+      if(lmax<15){
+        axis.size.max <- 8
+      } else {
+        axis.size.max <- 7
+      }
+      title.size <- 11
+    } else {
+      axis.size.max <- 10
+      title.size <- 12
+    }
+    ylab <- ""
     
-    pwm.es[[lc]] <- scale(countCDR3.es[[lc]], center=F, scale=colSums(countCDR3.es[[lc]]))
-    pwm.rep[[lc]] <- scale(countCDR3.rep[[lc]], center=F, scale=colSums(countCDR3.rep[[lc]]))
     
-    if(plot.cdr3.subtract.baseline==1){
+    if(plot.logo.length==0){
+      L.TR <- c(lmax)
+    }
+    
+    for(l in L.TR){
       
-      #Compute the logo representing the difference in frequencies renormalized by information content
-      #This is currently not supported by ggseqlogoMOD...
-      #Compute the matrix representing the size of each letter
-      size.es <- apply(pwm.es[[lc]], 2, function(x){ ind <- which(x!=0); IC <- log(N.aa)/log(2)+sum(x[ind]*log(x[ind])/log(2)); return(IC*x) })
-      size.rep <- apply(pwm.rep[[lc]], 2, function(x){ ind <- which(x!=0); IC <- log(N.aa)/log(2)+sum(x[ind]*log(x[ind])/log(2)); return(IC*x) })
-      x.norm <- size.es-size.rep
-      y.inc <- 1
-    } 
-    if(plot.cdr3.subtract.baseline==2){
+      lc <- paste("L",l,sep="_")
       
-      #Compute the logo based on normalised fold-change
-      rc <- max(5,0.1*countL.es[[lc]])
-      #rc <- 5
-      pseudo <- 1/N.aa*rc/countL.es[[lc]]
-      x.baseline <- pwm.rep[[lc]]+pseudo
-      x.es <- pwm.es[[lc]]+pseudo
-      x.norm <- x.es/x.baseline
-      x.norm <- scale(x.norm,center = F, scale=colSums(x.norm))
-      y.inc <- 4
-    }
-    
-    title <- paste("CDR3", info[1],"_",l," ",info[2], " (",countL.es[[lc]],")", sep="")
-    logo.CDR3.L.es[[lc]] <- ggseqlogoMOD(data=pwm.es[[lc]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8) +
-      labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
-    
-    if(plot.cdr3.subtract.baseline==0){
-      title.baseline <- paste("CDR3", info[1],"_",l," ",info[3], sep="")
-    } else if(plot.cdr3.subtract.baseline==1){
-      title.baseline <- paste("CDR3", info[1],"_",l," subtract ",info[3], sep="")
-    } else if(plot.cdr3.subtract.baseline==2){
-      title.baseline <- paste("CDR3", info[1],"_",l," renorm ",info[3], sep="")
-    }
-    
-    
-    if(comp.baseline==0){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")} else {title.baseline <- title.baseline}
-    
-    if(plot.cdr3.subtract.baseline==0){
-      logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD(data=pwm.rep[[lc]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8) +
-        labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
-    } else if(plot.cdr3.subtract.baseline==1){
-      y.min <- min(apply(x.norm, 2, function(x){ sum(x[x<0]) }))
-      y.max <- max(apply(x.norm, 2, function(x){ sum(x[x>0]) }))
-      y.min <- max(-log(N.aa)/log(2), y.inc*y.min)
-      y.max <- log(N.aa)/log(2) # min(log(N.aa)/log(2), y.inc*y.max)
-      logo.CDR3.L.rep[[lc]] <- ggseqlogo(data=x.norm, method='custom') +
-        labs(title=title.baseline) + ylim(y.min,y.max) + ylab(ylab) +
-        theme(plot.title=element_text(size=title.size, hjust=0.5)) + theme(legend.position = 'none')
-    } else if(plot.cdr3.subtract.baseline==2){
-      IC.max <- max(unlist(apply(x.norm, 2, function(x){ ind <- which(x!=0); IC <- log(N.aa)/log(2)+sum(x[ind]*log(x[ind])/log(2)); return(IC) })))
-      y.max <- min(IC.max*y.inc, log(N.aa)/log(2))
-      logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD(data=x.norm, additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8, ylim=c(0, y.max)) +
-        labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5)) 
-    }
-    #For the special case where l==lmax, build the logo with different graphical parameters, depending on the plot.online
-    #So far, we redo everything, since the graphical outline has to be a little bit different,
-    # but this is not optimal since any change has to be performed multiple times
-    if(l==lmax){
+      pwm.es[[lc]] <- scale(countCDR3.es[[lc]], center=F, scale=colSums(countCDR3.es[[lc]]))
+      pwm.rep[[lc]] <- scale(countCDR3.rep[[lc]], center=F, scale=colSums(countCDR3.rep[[lc]]))
+      
+      if(plot.cdr3.subtract.baseline==1){
+        
+        #Compute the logo representing the difference in frequencies renormalized by information content
+        #This is currently not supported by ggseqlogoMOD...
+        #Compute the matrix representing the size of each letter
+        size.es <- apply(pwm.es[[lc]], 2, function(x){ ind <- which(x!=0); IC <- log(N.aa)/log(2)+sum(x[ind]*log(x[ind])/log(2)); return(IC*x) })
+        size.rep <- apply(pwm.rep[[lc]], 2, function(x){ ind <- which(x!=0); IC <- log(N.aa)/log(2)+sum(x[ind]*log(x[ind])/log(2)); return(IC*x) })
+        x.norm <- size.es-size.rep
+        y.inc <- 1
+      } 
+      if(plot.cdr3.subtract.baseline==2){
+        
+        #Compute the logo based on normalised fold-change
+        rc <- max(5,0.1*countL.es[[lc]])
+        #rc <- 5
+        pseudo <- 1/N.aa*rc/countL.es[[lc]]
+        x.baseline <- pwm.rep[[lc]]+pseudo
+        x.es <- pwm.es[[lc]]+pseudo
+        x.norm <- x.es/x.baseline
+        x.norm <- scale(x.norm,center = F, scale=colSums(x.norm))
+        y.inc <- 4
+      }
+      
       title <- paste("CDR3", info[1],"_",l," ",info[2], " (",countL.es[[lc]],")", sep="")
+      logo.CDR3.L.es[[lc]] <- ggseqlogoMOD(data=pwm.es[[lc]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8) +
+        labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
+      
       if(plot.cdr3.subtract.baseline==0){
         title.baseline <- paste("CDR3", info[1],"_",l," ",info[3], sep="")
-      } else if(plot.cdr3.subtract.baseline==1){ 
+      } else if(plot.cdr3.subtract.baseline==1){
         title.baseline <- paste("CDR3", info[1],"_",l," subtract ",info[3], sep="")
-      } else if(plot.cdr3.subtract.baseline==2){ 
+      } else if(plot.cdr3.subtract.baseline==2){
         title.baseline <- paste("CDR3", info[1],"_",l," renorm ",info[3], sep="")
       }
-      if(comp.baseline==0){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
       
-      if(plot.oneline==1 & (nchar(title)>26 | nchar(title.baseline)>26)){
-        title <- paste("CDR3", info[1],"_",l," ",info[2], "\n(",countL.es[[lc]],")", sep="")
-        if(plot.cdr3.subtract.baseline==0){
-          title.baseline <- paste("CDR3", info[1],"_",l," ",info[3],"\n", sep="")
-        } else if(plot.cdr3.subtract.baseline==1){ 
-          title.baseline <- paste("CDR3", info[1],"_",l," subtract \n",info[3], sep="")
-        } else if(plot.cdr3.subtract.baseline==2){ 
-          title.baseline <- paste("CDR3", info[1],"_",l," renorm \n",info[3], sep="")
-        }
-        if(comp.baseline==0){title.baseline <- paste(title.baseline, "(",countL.rep[[lc]],")", sep="")}
-      }
       
-      logo.CDR3.L.es.max <- ggseqlogoMOD(data=pwm.es[[lc]], additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8) +
-        labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=title.size, hjust=0.5))
+      if(comp.baseline==0){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")} else {title.baseline <- title.baseline}
       
       if(plot.cdr3.subtract.baseline==0){
-        logo.CDR3.L.rep.max <- ggseqlogoMOD(data=pwm.rep[[lc]], additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8) +
-          labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=title.size, hjust=0.5))
+        logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD(data=pwm.rep[[lc]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8) +
+          labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
       } else if(plot.cdr3.subtract.baseline==1){
         y.min <- min(apply(x.norm, 2, function(x){ sum(x[x<0]) }))
         y.max <- max(apply(x.norm, 2, function(x){ sum(x[x>0]) }))
-        y.min <- max(-log(N.aa)/log(2), 2*y.min)
-        y.max <- log(N.aa)/log(2) # min(log(N.aa)/log(2), 2*y.max)
-        logo.CDR3.L.rep.max <- ggseqlogo(data=x.norm, method='custom') +
-            ggtitle(title.baseline) + ylim(y.min,y.max) + ylab(ylab) +
-            theme(plot.title=element_text(size=title.size, hjust=0.5)) + theme(legend.position = 'none')
-      } else if (plot.cdr3.subtract.baseline==2){ 
+        y.min <- max(-log(N.aa)/log(2), y.inc*y.min)
+        y.max <- log(N.aa)/log(2) # min(log(N.aa)/log(2), y.inc*y.max)
+        logo.CDR3.L.rep[[lc]] <- ggseqlogo(data=x.norm, method='custom') +
+          labs(title=title.baseline) + ylim(y.min,y.max) + ylab(ylab) +
+          theme(plot.title=element_text(size=title.size, hjust=0.5)) + theme(legend.position = 'none')
+      } else if(plot.cdr3.subtract.baseline==2){
         IC.max <- max(unlist(apply(x.norm, 2, function(x){ ind <- which(x!=0); IC <- log(N.aa)/log(2)+sum(x[ind]*log(x[ind])/log(2)); return(IC) })))
         y.max <- min(IC.max*y.inc, log(N.aa)/log(2))
-        logo.CDR3.L.rep.max <- ggseqlogoMOD(data=x.norm, additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8, ylim=c(0, y.max)) +
-          labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=title.size, hjust=0.5))
+        logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD(data=x.norm, additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8, ylim=c(0, y.max)) +
+          labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5)) 
+      }
+      #For the special case where l==lmax, build the logo with different graphical parameters, depending on the plot.online
+      #So far, we redo everything, since the graphical outline has to be a little bit different,
+      # but this is not optimal since any change has to be performed multiple times
+      if(l==lmax){
+        title <- paste("CDR3", info[1],"_",l," ",info[2], " (",countL.es[[lc]],")", sep="")
+        if(plot.cdr3.subtract.baseline==0){
+          title.baseline <- paste("CDR3", info[1],"_",l," ",info[3], sep="")
+        } else if(plot.cdr3.subtract.baseline==1){ 
+          title.baseline <- paste("CDR3", info[1],"_",l," subtract ",info[3], sep="")
+        } else if(plot.cdr3.subtract.baseline==2){ 
+          title.baseline <- paste("CDR3", info[1],"_",l," renorm ",info[3], sep="")
+        }
+        if(comp.baseline==0){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
+        
+        if(plot.oneline==1 & (nchar(title)>26 | nchar(title.baseline)>26)){
+          title <- paste("CDR3", info[1],"_",l," ",info[2], "\n(",countL.es[[lc]],")", sep="")
+          if(plot.cdr3.subtract.baseline==0){
+            title.baseline <- paste("CDR3", info[1],"_",l," ",info[3],"\n", sep="")
+          } else if(plot.cdr3.subtract.baseline==1){ 
+            title.baseline <- paste("CDR3", info[1],"_",l," subtract \n",info[3], sep="")
+          } else if(plot.cdr3.subtract.baseline==2){ 
+            title.baseline <- paste("CDR3", info[1],"_",l," renorm \n",info[3], sep="")
+          }
+          if(comp.baseline==0){title.baseline <- paste(title.baseline, "(",countL.rep[[lc]],")", sep="")}
+        }
+        
+        logo.CDR3.L.es.max <- ggseqlogoMOD(data=pwm.es[[lc]], additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8) +
+          labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=title.size, hjust=0.5))
+        
+        if(plot.cdr3.subtract.baseline==0){
+          logo.CDR3.L.rep.max <- ggseqlogoMOD(data=pwm.rep[[lc]], additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8) +
+            labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=title.size, hjust=0.5))
+        } else if(plot.cdr3.subtract.baseline==1){
+          y.min <- min(apply(x.norm, 2, function(x){ sum(x[x<0]) }))
+          y.max <- max(apply(x.norm, 2, function(x){ sum(x[x>0]) }))
+          y.min <- max(-log(N.aa)/log(2), 2*y.min)
+          y.max <- log(N.aa)/log(2) # min(log(N.aa)/log(2), 2*y.max)
+          logo.CDR3.L.rep.max <- ggseqlogo(data=x.norm, method='custom') +
+            ggtitle(title.baseline) + ylim(y.min,y.max) + ylab(ylab) +
+            theme(plot.title=element_text(size=title.size, hjust=0.5)) + theme(legend.position = 'none')
+        } else if (plot.cdr3.subtract.baseline==2){ 
+          IC.max <- max(unlist(apply(x.norm, 2, function(x){ ind <- which(x!=0); IC <- log(N.aa)/log(2)+sum(x[ind]*log(x[ind])/log(2)); return(IC) })))
+          y.max <- min(IC.max*y.inc, log(N.aa)/log(2))
+          logo.CDR3.L.rep.max <- ggseqlogoMOD(data=x.norm, additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8, ylim=c(0, y.max)) +
+            labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=title.size, hjust=0.5))
+        }
       }
     }
-  }
-  ls <- list(logo.CDR3.L.es, logo.CDR3.L.rep, L.TR, lmax, logo.CDR3.L.es.max, logo.CDR3.L.rep.max)
-  names(ls) <- c("ES", "Baseline", "length", "lmax", "ES_max", "Baseline_max")
-   
+    ls <- list(logo.CDR3.L.es, logo.CDR3.L.rep, L.TR, lmax, logo.CDR3.L.es.max, logo.CDR3.L.rep.max)
+    names(ls) <- c("ES", "Baseline", "length", "lmax", "ES_max", "Baseline_max")
+    
   }  else { 
     ls <- list(list(), list(), c(), 0, ggplot(), ggplot())
     names(ls) <- c("ES", "Baseline", "length", "lmax", "ES_max", "Baseline_max")

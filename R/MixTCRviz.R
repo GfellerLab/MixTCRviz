@@ -51,6 +51,10 @@
 #' @param model.default (default="Model_default") Option to provide the model for all the TCR in input, which is also used as the name of the output files. 
 #'   This is useful if your input does not contain a "model" column.
 #'   In case the input contains the "model" column, model.default is not considered.
+#' @param set.cdr3a.length (default="") Length for the CDR3a motif to be shown in the main plot.
+#'   By default the value corresponding to the most frequent CDR3a length in input1 (and also present in input2 if input2 is given) is chosen.
+#' @param set.cdr3b.length (default="") Length for the CDR3b motif to be shown in the main plot.
+#'   By default the value corresponding to the most frequent CDR3b length in input1 (and also present in input2 if input2 is given) is chosen.
 #' @param N.min (default=10) Minimum number of TCR (i.e., V-J-CDR3) for at least
 #'   one chain. This number is computed after cleaning the data.
 #' @param output.stat (default=1) Create a stat/ folder with .rds objects summarizing the raw statistics for each model.
@@ -105,7 +109,7 @@
 MixTCRviz <- function(input1, output.path,
                       input2="", baseline.file="",
                       use.allele=0, correct.gene.names=1, use.mouse.strain=0, check.cdr3.mode=1,
-                      renormVJ=1, N.min=10, output.stat=1,
+                      renormVJ=1, N.min=10, output.stat=1, set.cdr3a.length="", set.cdr3b.length="",
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
                       chain.list.output="AB", input1.name="Input", input2.name="", output.format="pdf"){
@@ -115,11 +119,32 @@ MixTCRviz <- function(input1, output.path,
   # Choose some parameters
   #######
   
-  if(chain.list.output=="A"){    chain.list <- c("TRA");
-  } else if(chain.list.output=="B"){  chain.list <- c("TRB");
-  } else if(chain.list.output=="AB"){    chain.list <- c("TRA","TRB");
-  } else { stop(paste("chain.list.output ", chain.list.output, " not supported by mixTCRviz", sep=""))
+  if(set.cdr3a.length != ""){
+    if(is.numeric(set.cdr3a.length)==F | set.cdr3a.length < Lmin | set.cdr3a.length > Lmax | set.cdr3a.length%%1 != 0){
+      print(paste("Invalid value for set.cdr3a.length",". Default value will be used.", sep=""))
+      set.cdr3a.length=""
+    }
   }
+  if(set.cdr3b.length != ""){
+    if(is.numeric(set.cdr3b.length)==F | set.cdr3b.length < Lmin | set.cdr3b.length > Lmax | set.cdr3b.length%%1 != 0){
+      print(paste("Invalid value for set.cdr3b.length=",set.cdr3b.length,". Default value will be used.", sep=""))
+      set.cdr3b.length=""
+    }
+  }
+  
+  if(chain.list.output=="A"){
+    chain.list <- c("TRA"); 
+    set.cdr3.length <- c(set.cdr3a.length)
+  } else if(chain.list.output=="B"){
+    chain.list <- c("TRB"); 
+    set.cdr3.length <- c(set.cdr3b.length)
+  } else if(chain.list.output=="AB"){
+    chain.list <- c("TRA","TRB"); 
+    set.cdr3.length <- c(set.cdr3a.length, set.cdr3b.length)
+  } else { 
+    stop(paste("chain.list.output ", chain.list.output, " not supported by mixTCRviz", sep=""))
+  }
+  names(set.cdr3.length) <- chain.list
   
   col.TCR <- c(); segment.list <- c()
   for(chain in chain.list){
@@ -186,6 +211,7 @@ MixTCRviz <- function(input1, output.path,
   
 
   #Check the input
+  print("Check input1")
   es.all <- check_input(es.all, chain.list.output, "input1", species.default, model.default)
   es.all <- clean_input(es.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, species.default, check.cdr3.mode, verbose)
   
@@ -199,6 +225,7 @@ MixTCRviz <- function(input1, output.path,
     } else if (is.data.frame(input2)==T){
       es2.all <- input2
     }
+    print("Check input2")
     es2.all <- check_input(es2.all, chain.list.output, "input2", species.default, model.default)
     es2.all <- clean_input(es2.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, species.default, check.cdr3.mode, verbose)
   }
@@ -509,7 +536,9 @@ MixTCRviz <- function(input1, output.path,
           } else {
             bs <- countCDR3.L.baseline[[chain]]
           }
-          CDR3 <- plotCDR3(countL.es[[chain]], countL.baseline[[chain]], countCDR3.L.es[[chain]], bs, info, comp.baseline, plot.oneline, plot.logo.length, plot.cdr3.norm)
+          CDR3 <- plotCDR3(countL.es[[chain]], countL.baseline[[chain]], countCDR3.L.es[[chain]], 
+                           bs, info, comp.baseline, plot.oneline, plot.logo.length, plot.cdr3.norm,
+                           set.cdr3.length[[chain]])
           
           logo.CDR3.L.es <- CDR3$ES
           logo.CDR3.L.baseline <- CDR3$Baseline

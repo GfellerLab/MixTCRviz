@@ -148,6 +148,12 @@ Mandatory parameters:
    This is useful if your input does not contain a "model" column.
    In case the input contains the "model" column, model.default is not considered.
 
+- set.cdr3a.length (default="") Length for the CDR3a motif to be shown in the main plot.
+   By default the value corresponding to the most frequent CDR3a length in input1 (and also present in input2 if input2 is given) is chosen.
+
+- set.cdr3b.length (default="") Length for the CDR3b motif to be shown in the main plot.
+   By default the value corresponding to the most frequent CDR3b length in input1 (and also present in input2 if input2 is given) is chosen.
+
 - N.min (default=10) Minimum number of TCR (i.e., V-J-CDR3) for at least
    one chain. This number is computed after cleaning the data.
 
