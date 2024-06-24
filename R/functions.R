@@ -745,7 +745,7 @@ check_cdr3 <- function(es.all, chain.list.output="AB", species.default="HomoSapi
     
       if(verbose>0){
         if(length(ind.first)>0){
-          print(paste("*** Likely inconsistencies between ",chain,"V gene and CDR3",chain.small[chain]," in ",length(ind.first)," entries - will be put to NA ***",sep=""))
+          print(paste("*** Likely inconsistencies between ",chain,"V gene and CDR3",chain.small[chain]," in ",length(ind.first)," entries in ",sp,"- will be put to NA ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.first))
             print("Examples  (use verbose=2 to see them all):")
@@ -757,7 +757,7 @@ check_cdr3 <- function(es.all, chain.list.output="AB", species.default="HomoSapi
           cat("\n")
         }
         if(length(ind.last)>0){
-          print(paste("*** Likely inconsistencies between ",chain,"J gene and CDR3",chain.small[chain]," in ",length(ind.last)," entries - will be put to NA ***",sep=""))
+          print(paste("*** Likely inconsistencies between ",chain,"J gene and CDR3",chain.small[chain]," in ",length(ind.last)," entries in ",sp," - will be put to NA ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.last))
             print("Examples (use verbose=2 to see them all):")
@@ -826,13 +826,13 @@ correct.VJnames <- function(es.all, name.list, segment.list, species.default="Ho
           i <- which(es.all[ind,s] != "" & is.na(ga)==T)
           if(length(i)>0){
             v <- unique(es.all[ind[i],s])
-            print(paste("*** ",length(v), " ", s, "gene names not in IMGT which could not be corrected - will be put to NA ***"))
+            print(paste("*** ",length(v), " ", s, "gene names not in IMGT which could not be corrected in ",sp," - will be put to NA ***", sep=""))
             if(verbose==1){
               n <- min(10,length(i))
-              print(unique(es.all[ind[i[1:n]],s]))
+              print(v[1:n])
             }
             if(verbose==2){
-              print(unique(es.all[ind[i],s]))
+              print(v)
             }
             cat("\n")
           }
