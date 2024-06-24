@@ -562,7 +562,7 @@ check_input <- function(es.all, chain.list.output="AB", name="input1", species.d
 
 }
 
-clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.strain=0, chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, verbose=2){
+clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.strain=0, chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, verbose=1){
   
   ####
   # Clean the input by removing CDR3 with weird characters, longer than Lmax or shorter than Lmin
@@ -691,7 +691,7 @@ clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.st
   
 }
 
-check_cdr3 <- function(es.all, chain.list.output, species.default="HomoSapiens", check.cdr3.mode=1, verbose=2){
+check_cdr3 <- function(es.all, chain.list.output, species.default="HomoSapiens", check.cdr3.mode=1, verbose=1){
   
   # Clean the CDR3 based on the V and J usage.
   # This should be applied after correcting the gene names, and adding the species if needed
@@ -780,7 +780,7 @@ check_cdr3 <- function(es.all, chain.list.output, species.default="HomoSapiens",
 }
 
 
-correct.VJnames <- function(es.all, name.list, segment.list, species.default="HomoSapiens", verbose=2){
+correct.VJnames <- function(es.all, name.list, segment.list, species.default="HomoSapiens", verbose=1){
   
   if("species" %in% colnames(es.all)){
     sp.list <- unique(es.all[,"species"])
