@@ -691,7 +691,7 @@ clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.st
   
 }
 
-check_cdr3 <- function(es.all, chain.list.output, species.default="HomoSapiens", check.cdr3.mode=1, verbose=1){
+check_cdr3 <- function(es.all, chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, verbose=1){
   
   # Clean the CDR3 based on the V and J usage.
   # This should be applied after correcting the gene names, and adding the species if needed
