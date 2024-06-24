@@ -810,14 +810,14 @@ correct.VJnames <- function(es.all, name.list, segment.list, species.default="Ho
             
             m.cor <- data.frame(original.name = es.all[ind[i],s], corrected.name = ga[i],row.names = NULL)
             m.cor <- m.cor[!duplicated(m.cor),]
-            print(paste("*** ",dim(m.cor)[1]," ",s," names that were corrected ***",sep=""))
-            if(verbose==1){
-              n <- min(10,dim(m.cor)[1])
-              print("Examples (use verbose=2 to see the all):")
-              print(m.cor[1:n,])
-            }
-            if(verbose==2){
-              print(m.cor)
+            if(verbose>0){
+              print(paste("*** ",dim(m.cor)[1]," ",s," names were corrected ***",sep=""))
+              if(verbose==1){
+                print("Use verbose=2 to see them")
+              }
+              if(verbose==2){
+                print(m.cor)
+              }
             }
             cat("\n")
           }
@@ -826,7 +826,7 @@ correct.VJnames <- function(es.all, name.list, segment.list, species.default="Ho
           i <- which(es.all[ind,s] != "" & is.na(ga)==T)
           if(length(i)>0){
             v <- unique(es.all[ind[i],s])
-            print(paste("*** ",length(v), " ", s, "gene names not in IMGT which could not be corrected in ",sp," - will be put to NA ***", sep=""))
+            print(paste("*** ",length(v), " ", s, " gene names not in IMGT could not be corrected in ",sp," - will be put to NA ***", sep=""))
             if(verbose==1){
               n <- min(10,length(i))
               print(v[1:n])
