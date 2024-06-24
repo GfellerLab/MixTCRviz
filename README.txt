@@ -177,8 +177,9 @@ Mandatory parameters:
             2: most PCR / sequencing / TCR reconstruction errors are removed.
 
 - verbose (default=1)
-    * 1: Write the different QC and putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
-    * 0: Write much less
+    * 0: Do not write any QC in the output
+    * 1: Write max 10 examples of putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
+    * 2: Write all the putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
 
 - plot (default=1)
     * 0: only create .rds object with the statistics

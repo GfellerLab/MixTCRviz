@@ -73,8 +73,9 @@
 #'            1: several PCR / sequencing / TCR reconstruction errors are removed, but only based on the first and last amino acids in CDR3.
 #'            2: most PCR / sequencing / TCR reconstruction errors are removed.
 #' @param verbose (default=1)
-#'    * 1: Write the different QC and putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
-#'    * 0: Write much less
+#'    * 0: Do not write any QC in the output
+#'    * 1: Write max 10 examples of putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
+#'    * 2: Write all the putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
 #' @param plot (default=1)
 #'    * 0: only create .rds object with the statistics
 #'    * 1: Plot the data in output.path/plots/ and create .rds object with the statistics for each model in output.path/stats/.
@@ -406,7 +407,7 @@ MixTCRviz <- function(input1, output.path,
           #Check segments that were in the ES, but not in baseline
           miss.V.baseline <- setdiff(names(countV.es[[chain]]), names(countV.baseline[[chain]]))
           miss.J.baseline <- setdiff(names(countJ.es[[chain]]), names(countJ.baseline[[chain]]))
-          if(verbose==1){
+          if(verbose>0){
             if(length(miss.V.baseline)>=1){
               print(paste("WARNING: ",chain,"V in Input TCRs, but absent from baseline: ", sep=""))
               print(miss.V.baseline)  
@@ -421,7 +422,7 @@ MixTCRviz <- function(input1, output.path,
         #Make sure there are CDR3 sequences
         if(length(countL.es[[chain]])>0){
           
-          if(verbose==1){
+          if(verbose>0){
             if(length(countV.es[[chain]])==0){
               print(paste("WARNING: No ", chain,"V segment in input1", sep=""))
             }

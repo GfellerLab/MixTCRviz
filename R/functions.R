@@ -562,7 +562,7 @@ check_input <- function(es.all, chain.list.output="AB", name="input1", species.d
 
 }
 
-clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.strain=0, chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, verbose=1){
+clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.strain=0, chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, verbose=2){
   
   ####
   # Clean the input by removing CDR3 with weird characters, longer than Lmax or shorter than Lmin
@@ -691,7 +691,7 @@ clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.st
   
 }
 
-check_cdr3 <- function(es.all, chain.list.output, species.default="HomoSapiens", check.cdr3.mode=1, verbose=1){
+check_cdr3 <- function(es.all, chain.list.output, species.default="HomoSapiens", check.cdr3.mode=1, verbose=2){
   
   # Clean the CDR3 based on the V and J usage.
   # This should be applied after correcting the gene names, and adding the species if needed
@@ -743,14 +743,30 @@ check_cdr3 <- function(es.all, chain.list.output, species.default="HomoSapiens",
       ind.first <- which( (first != ref.first[es.all[ind.sp,V]] ) & ref.first[es.all[ind.sp,V]]!="" & is.na(ref.first[es.all[ind.sp,V]])==F )
       ind.last <- which( (last != ref.last[es.all[ind.sp,J]] ) & ref.last[es.all[ind.sp,J]]!="" & is.na(ref.last[es.all[ind.sp,J]])==F ) 
     
-      if(verbose==1){
+      if(verbose>0){
         if(length(ind.first)>0){
           print(paste("*** Likely inconsistencies between ",chain,"V gene and CDR3",chain.small[chain]," in ",length(ind.first)," entries ***",sep=""))
-          print(es.all[ind.sp[ind.first],c(V,cdr3)])
+          if(verbose==1){
+            n <- min(10,length(ind.first))
+            print("Examples  (use verbose=2 to see the all):")
+            print(es.all[ind.sp[ind.first[1:n]],c(V,cdr3)])
+          }
+          if(verbose==2){
+            print(es.all[ind.sp[ind.first],c(V,cdr3)])
+          }
+          cat("\n")
         }
         if(length(ind.last)>0){
           print(paste("*** Likely inconsistencies between ",chain,"J gene and CDR3",chain.small[chain]," in ",length(ind.last)," entries ***",sep=""))
-          print(es.all[ind.sp[ind.last],c(J,cdr3)])
+          if(verbose==1){
+            n <- min(10,length(ind.last))
+            print("Examples (use verbose=2 to see the all):")
+            print(es.all[ind.sp[ind.last[1:n]],c(J,cdr3)])
+          }
+          if(verbose==2){
+            print(es.all[ind.sp[ind.last],c(J,cdr3)])
+          }
+          cat("\n")
         }
       }
       
@@ -764,7 +780,7 @@ check_cdr3 <- function(es.all, chain.list.output, species.default="HomoSapiens",
 }
 
 
-correct.VJnames <- function(es.all, name.list, segment.list, species.default="HomoSapiens", verbose=1){
+correct.VJnames <- function(es.all, name.list, segment.list, species.default="HomoSapiens", verbose=2){
   
   if("species" %in% colnames(es.all)){
     sp.list <- unique(es.all[,"species"])
@@ -788,21 +804,37 @@ correct.VJnames <- function(es.all, name.list, segment.list, species.default="Ho
         
         ga <- unlist(lapply(1:length(gene), function(x){ clean.name.allele(gene[x],allele[x],sp)}))
         
-        if(verbose==1){
+        if(verbose>0){
           i <- which(es.all[ind,s] != ga & is.na(ga)==F)
           if(length(i)>0){
             
-            print(paste("*** ",s," names that were corrected ***",sep=""))
             m.cor <- data.frame(original.name = es.all[ind[i],s], corrected.name = ga[i],row.names = NULL)
             m.cor <- m.cor[!duplicated(m.cor),]
-            print(m.cor)
+            print(paste("*** ",dim(m.cor)[1]," ",s," names that were corrected ***",sep=""))
+            if(verbose==1){
+              n <- min(10,dim(m.cor)[1])
+              print("Examples (use verbose=2 to see the all):")
+              print(m.cor[1:n,])
+            }
+            if(verbose==2){
+              print(m.cor)
+            }
+            cat("\n")
           }
         
           #Check the cases where the segment was not NA, but was put to NA (i.e., mapping of gene name failed)
           i <- which(es.all[ind,s] != "" & is.na(ga)==T)
           if(length(i)>0){
-            print(paste("***", s, "gene names not in IMGT which could not be corrected ***"))
-            print(unique(es.all[ind[i],s]))
+            v <- unique(es.all[ind[i],s])
+            print(paste("*** ",length(v), " ", s, "gene names not in IMGT which could not be corrected ***"))
+            if(verbose==1){
+              n <- min(10,length(i))
+              print(unique(es.all[ind[i[1:n]],s]))
+            }
+            if(verbose==2){
+              print(unique(es.all[ind[i],s]))
+            }
+            cat("\n")
           }
         }
         
