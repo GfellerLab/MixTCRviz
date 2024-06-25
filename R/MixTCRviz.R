@@ -211,13 +211,13 @@ MixTCRviz <- function(input1, output.path,
   }
   
 
-  #Check the input
+  # Check the input
   print("Check input1")
   es.all <- check_input(es.all, chain.list.output, "input1", species.default, model.default)
   es.all <- clean_input(es.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, species.default, check.cdr3.mode, verbose)
   
   #############
-  #Load input2
+  # Load input2
   #############
   
   if(comp.baseline==0){
@@ -336,36 +336,36 @@ MixTCRviz <- function(input1, output.path,
         if(baseline.file==""){
           if(sp=="HomoSapiens"){
             if(use.allele.es==1){
-              all.baseline <-  MixTCRviz::summary_HomoSapiens
+              baseline <-  MixTCRviz::summary_HomoSapiens
             } else {
-              all.baseline <- MixTCRviz::summary_HomoSapiens_noallele
+              baseline <- MixTCRviz::summary_HomoSapiens_noallele
             }
           }
           if(sp=="MusMusculus"){
             if(use.allele.es==0){  #N.B. Currently always the case in mouse
               if(use.mouse.strain==1){
-                all.baseline <- MixTCRviz::summary_MusMusculus_noallele_SEQTR
+                baseline <- MixTCRviz::summary_MusMusculus_noallele_SEQTR
               } else {
-                all.baseline <- MixTCRviz::summary_MusMusculus_noallele_noStrain_SEQTR
+                baseline <- MixTCRviz::summary_MusMusculus_noallele_noStrain_SEQTR
               }
             }
           }
         } else {
-          all.baseline <- readRDS(file=baseline.file)
+          baseline <- readRDS(file=baseline.file)
         }
         
-        L.baseline <- all.baseline$L
-        countL.baseline <- all.baseline$countL
-        countV.baseline <- all.baseline$countV
-        countJ.baseline  <- all.baseline$countJ
-        countV.L.baseline <- all.baseline$countV.L
-        countJ.L.baseline  <- all.baseline$countJ.L
-        countL.VJ.baseline  <- all.baseline$countL.VJ
-        countVJ.baseline  <- all.baseline$countVJ
-        countCDR1.baseline  <- all.baseline$countCDR1  # This is missing for the mouse data
-        countCDR2.baseline <- all.baseline$countCDR2  # This is missing for the mouse data
-        countCDR3.L.baseline <- all.baseline$countCDR3.L
-        countCDR3.VJL.baseline <- all.baseline$countCDR3.VJL
+        L.baseline <- baseline$L
+        countL.baseline <- baseline$countL
+        countV.baseline <- baseline$countV
+        countJ.baseline  <- baseline$countJ
+        countV.L.baseline <- baseline$countV.L
+        countJ.L.baseline  <- baseline$countJ.L
+        countL.VJ.baseline  <- baseline$countL.VJ
+        countVJ.baseline  <- baseline$countVJ
+        countCDR1.baseline  <- baseline$countCDR1  # This is missing for the mouse data
+        countCDR2.baseline <- baseline$countCDR2  # This is missing for the mouse data
+        countCDR3.L.baseline <- baseline$countCDR3.L
+        countCDR3.VJL.baseline <- baseline$countCDR3.VJL
         
       } else {
         
