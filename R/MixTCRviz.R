@@ -25,8 +25,10 @@
 #'   If no "model" is given, all TCRs will be considered as coming from the same model ("Model_default").
 #'   If input2 is provided, the comparisons is performed with this second input, and not the baseline
 #'   repertoire.
-#' @param baseline.file (default="") .rda file containing information about
-#'   baseline repertoire. If empty, the default baseline repertoires are used.
+#' @param baseline.file (default="") .rds or .rda file containing all data about the
+#'   baseline repertoire to be used, in the same format as the default repertoires. 
+#'   If .rda file, the object containing the data about the repertoires must be called 'baseline'.
+#'   If empty, the default baseline repertoires are used. 
 #' @param use.allele (default=0)
 #'    * 0: All V/J alleles are merged at the gene level (recommended).
 #'    * 1: Alleles are kept, including mouse TRAV genes from different strains.
@@ -354,7 +356,14 @@ MixTCRviz <- function(input1, output.path,
             }
           }
         } else {
-          baseline <- readRDS(file=baseline.file)
+          
+          st <- unlist(strsplit(baseline.file, split=".", fixed = T))
+          if(st[length(st)]=="rds"){
+            baseline <- readRDS(file=baseline.file)
+          } else if(st[length(st)]=="rda" | st[length(st)]=="rdata"){
+            load(baseline.file)
+          }
+          
         }
         
         L.baseline <- baseline$L
