@@ -6,7 +6,8 @@
 #'
 #' @param input1 csv files or data.frame with the input TCRs. Columns should
 #'   ideally include: TRAV, TRAJ, cdr3_TRA, TRBV, TRBJ, cdr3_TRB, model, species
-#'   * The "TRAV", "TRAJ", "TRBV", "TRBJ" should follow the IMGT nomenclature, with or without allele (see below for potential name correction).
+#'   * The "TRAV", "TRAJ", "TRBV", "TRBJ" should follow the IMGT
+#'   nomenclature, with or without allele (see below for potential name correction).
 #'   If a column is missing, empty values will be used.
 #'   * The "cdr3_TRA" and "cdr3_TRB" columns should provide CDR3A/CDR3B sequences, following the standard definition (e.g., CAVNSDGQKLLF).
 #'   Cases with non-amino acid characters, or length < 7 or > 22 will be not be considered (i.e., put to NA).
@@ -334,6 +335,8 @@ MixTCRviz <- function(input1, output.path,
         #####
         
         if(baseline.file==""){
+          
+          #These are the default repertoires.
           if(sp=="HomoSapiens"){
             if(use.allele.es==1){
               baseline <-  MixTCRviz::summary_HomoSapiens
@@ -362,8 +365,8 @@ MixTCRviz <- function(input1, output.path,
         countJ.L.baseline  <- baseline$countJ.L
         countL.VJ.baseline  <- baseline$countL.VJ
         countVJ.baseline  <- baseline$countVJ
-        countCDR1.baseline  <- baseline$countCDR1  # This is missing for the mouse data
-        countCDR2.baseline <- baseline$countCDR2  # This is missing for the mouse data
+        countCDR1.baseline  <- baseline$countCDR1  
+        countCDR2.baseline <- baseline$countCDR2  
         countCDR3.L.baseline <- baseline$countCDR3.L
         countCDR3.VJL.baseline <- baseline$countCDR3.VJL
         
