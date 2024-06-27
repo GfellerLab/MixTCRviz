@@ -826,6 +826,7 @@ correct.VJnames <- function(es.all, name.list, segment.list, species.default="Ho
           i <- which(es.all[ind,s] != "" & is.na(ga)==T)
           if(length(i)>0){
             v <- unique(es.all[ind[i],s])
+            v <- v[!is.na(v)]
             print(paste("*** ",length(v), " ", s, " gene names not in IMGT could not be corrected in ",sp," - will be put to NA ***", sep=""))
             if(verbose==1){
               n <- min(10,length(i))
