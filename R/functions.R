@@ -57,11 +57,11 @@ build_stat <- function(es, chain.list=c("TRA","TRB"), sp="HomoSapiens", comp.VJL
       
       for(V in names(countV[[chain]])){
         indv <- which(es[,Vn]==V)
-        countCDR3.VL[[chain]][[s]] <- count_aa(es[indv,cdr3], keep.gap=0)
+        countCDR3.VL[[chain]][[V]] <- count_aa(es[indv,cdr3], keep.gap=0)
       }
       for(J in names(countJ[[chain]])){
         indj <- which(es[,Jn]==J)
-        countCDR3.JL[[chain]][[s]] <- count_aa(es[indj,cdr3], keep.gap=0)
+        countCDR3.JL[[chain]][[J]] <- count_aa(es[indj,cdr3], keep.gap=0)
       }
       for(V in names(countV[[chain]])){
         indv <- which(es[,Vn]==V)
