@@ -31,7 +31,7 @@
 #'   If empty, the default baseline repertoires are used. 
 #' @param use.allele (default=0)
 #'    * 0: All V/J alleles are merged at the gene level (recommended).
-#'    * 1: Alleles are kept, including mouse TRAV genes from different strains.
+#'    * 1: Alleles are kept. If some entries do not include alleles, the most frequent one is added.
 #'   Currently, use.allele is fixed to 0 for mouse TCRs.
 #' @param use.mouse.strain (default=0)
 #'    * 0: Merge the different TRAV genes corresponding to different mouse strains (e.g., TRAV10D, TRAVN10 and TRAV10 become all TRAV10).

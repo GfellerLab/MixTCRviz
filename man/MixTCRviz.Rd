@@ -2,7 +2,7 @@
 % Please edit documentation in R/MixTCRviz.R
 \name{MixTCRviz}
 \alias{MixTCRviz}
-\title{MixTCRviz: give some title and define the function.}
+\title{MixTCRviz: Plot TCR motifs}
 \usage{
 MixTCRviz(
   input1,
@@ -12,14 +12,22 @@ MixTCRviz(
   use.allele = 0,
   correct.gene.names = 1,
   use.mouse.strain = 0,
+  check.cdr3.mode = 1,
   renormVJ = 1,
   N.min = 10,
+  output.stat = 1,
+  set.cdr3a.length = "",
+  set.cdr3b.length = "",
+  species.default = "HomoSapiens",
+  model.default = "Model_default",
+  verbose = 1,
   plot = 1,
   plot.cdr12.motif = 0,
   plot.oneline = 0,
   plot.logo.length = 0,
+  plot.cdr3.norm = 0,
   chain.list.output = "AB",
-  input1.name = "Epitope specific",
+  input1.name = "Input",
   input2.name = "",
   output.format = "pdf"
 )
@@ -28,39 +36,45 @@ MixTCRviz(
 \item{input1}{csv files or data.frame with the input TCRs. Columns should
 ideally include: TRAV, TRAJ, cdr3_TRA, TRBV, TRBJ, cdr3_TRB, model, species
 \itemize{
-\item The "TRAV", "TRAJ", "TRBV", "TRBJ" should follow the IMGT nomenclature, with or without allele (see below for potential name correction).
+\item The "TRAV", "TRAJ", "TRBV", "TRBJ" should follow the IMGT
+nomenclature, with or without allele (see below for potential name correction).
 If a column is missing, empty values will be used.
 \item The "cdr3_TRA" and "cdr3_TRB" columns should provide CDR3A/CDR3B sequences, following the standard definition (e.g., CAVNSDGQKLLF).
+Cases with non-amino acid characters, or length < 7 or > 22 will be not be considered (i.e., put to NA).
 If a column is missing, empty values will be used.
 \item The "model" column typically describes the epitopes/experiments/classes/... Each model will be treated independently in MixTCRviz.
-If missing, all TCRs will be considered as coming from the same model
-(Model_default).
+If missing, all TCRs will be considered as coming from the same model, which can be specified in the MixTCRviz function (model.default, default value is Model_default).
 \item The "species" column indicates the species of the TCR (e.g., NOT the source organism of the epitope). It should be "HomoSapiens" or "MusMusculus"
-If not provided, "HomoSapiens" is taken as default.
+If missing, all TCRs will be considered as coming from the same species, which can be specified in the MixTCRviz function (species.default, default value is HomoSapiens).
 }}
 
 \item{output.path}{name of the output directory (if not already existing, it
-will be created).}
+will be created). If existing the files with the same name will be overwritten.}
 
-\item{input2}{(default=""): csv file or data.frame containing the "reference"
-TCRs to be used in comparisons. Same format as input1 If provided, the
-comparisons is performed with this reference, and not the baseline
+\item{input2}{(default=""): csv file or data.frame containing the second set of
+TCRs to be used in comparisons. Same format as input1.
+In particular, the set of models in the "model" field need to be the same as in input1
+so that comparisons are performed for each model separately.
+If no "model" is given, all TCRs will be considered as coming from the same model ("Model_default").
+If input2 is provided, the comparisons is performed with this second input, and not the baseline
 repertoire.}
 
-\item{baseline.file}{(default="") .rds file containing information about
-baseline repertoire. If empty, the default baseline repertoires are used.}
+\item{baseline.file}{(default="") .rds or .rda file containing all data about the
+baseline repertoire to be used, in the same format as the default repertoires.
+If .rda file, the object containing the data about the repertoires must be called 'baseline'.
+If empty, the default baseline repertoires are used.}
 
 \item{use.allele}{(default=0)
 \itemize{
 \item 0: All V/J alleles are merged at the gene level (recommended).
-\item 1: Alleles are kept, including mouse TRAV genes from different strains.
+\item 1: Alleles are kept. If some entries do not include alleles, the most frequent one is added.
 Currently, use.allele is fixed to 0 for mouse TCRs.
 }}
 
 \item{correct.gene.names}{(default=1)
 \itemize{
 \item 0: Do not attempt to correct V/J gene names. Put to NA genes not in IMGT.
-\item 1: Attempt to correct V/J gene names not in IMGT based on internal map. Put to NA genes that could not be corrected
+\item 1: Attempt to correct V/J gene names not in IMGT based on our internal dictionary. Put to NA genes that could not be corrected
 }}
 
 \item{use.mouse.strain}{(default=0)
@@ -74,18 +88,55 @@ enrichment in one of them versus the baseline.
 \item 1: The different TRAV segments (e.g., TRAV10D, TRAVN10 and TRAV10) are treated separately.
 }}
 
+\item{check.cdr3.mode}{(default=1)
+\itemize{
+\item 0: Keep all CDR3 without any correction.
+\item 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment;
+Remove J and CDR3 when the last two amino acids are not compatible with the J segments.
+\item 2: remove V and CDR3 when the M first CDR3 amino acids are incompatible with the V segment, with M depending on the V gene and the CDR3 length;
+Remove J and CDR3 when the last two amino acids are not compatible with the J segments, with M depending on the J gene and CDR3 length.
+\item Note: 0: all PCR / sequencing / TCR reconstruction errors are kept.
+1: several PCR / sequencing / TCR reconstruction errors are removed, but only based on the first and last amino acids in CDR3.
+2: most PCR / sequencing / TCR reconstruction errors are removed.
+}}
+
 \item{renormVJ}{(default=1)
 \itemize{
-\item 0: Use CDR3 length distribution and motif from the full repertoire (this is the only option when input2 is provided for comparison with a user-given reference)
-\item 1: When comparing to the baseline TCR repertoire,
-build CDR3 length distributions and CDR3 motifs corresponding to the V-J
+\item 0: Compare CDR3 length distribution and motif with those from the baseline repertoire or input2
+\item 1: Compare CDR3 length distribution and motif with those from the baseline repertoire or input2 with the V-J
 usage observed in the input TCRs. In the plots the mark " | VJ" is used to
 indicate that CDR3 length distributions and motifs correspond to those
 expected with the V-J usage in the input TCRs.
 }}
 
 \item{N.min}{(default=10) Minimum number of TCR (i.e., V-J-CDR3) for at least
-one chain.}
+one chain. This number is computed after cleaning the data.}
+
+\item{output.stat}{(default=1) Create a stat/ folder with .rds objects summarizing the raw statistics for each model.
+This includes countL, countV, countJ, countCDR3.L, etc. for each chain used in input.
+Create also a processed_data/ folder with the data for each model after the different processing (e.g., removing alleles, correcting V/J names, removing inconsistent CDR3)}
+
+\item{set.cdr3a.length}{(default="") Length for the CDR3a motif to be shown in the main plot.
+By default the value corresponding to the most frequent CDR3a length in input1 (and also present in input2 if input2 is given) is chosen.}
+
+\item{set.cdr3b.length}{(default="") Length for the CDR3b motif to be shown in the main plot.
+By default the value corresponding to the most frequent CDR3b length in input1 (and also present in input2 if input2 is given) is chosen.}
+
+\item{species.default}{(default="HomoSapiens"). Option to provide the species for all the TCR in input.
+This is useful if your input does not contain a "species" column.
+In case the input contains the "species" column, species.default is not considered.
+Should be either "HomoSapiens" or "MusMusculus"}
+
+\item{model.default}{(default="Model_default") Option to provide the model for all the TCR in input, which is also used as the name of the output files.
+This is useful if your input does not contain a "model" column.
+In case the input contains the "model" column, model.default is not considered.}
+
+\item{verbose}{(default=1)
+\itemize{
+\item 0: Do not write any QC in the output
+\item 1: Write max 10 examples of putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
+\item 2: Write all the putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
+}}
 
 \item{plot}{(default=1)
 \itemize{
@@ -111,6 +162,13 @@ one chain.}
 \item 1: Show in a separate plot the V usage, J usage and CDR3 motifs for all CDR3 length, for both alpha and beta chains.
 }}
 
+\item{plot.cdr3.norm}{(default=0)
+\itemize{
+\item 0: Show the CDR3 motifs of the baseline repertoire.
+\item 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
+\item 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
+}}
+
 \item{chain.list.output}{(default="AB")
 \itemize{
 \item A: Only the alpha chain is plotted in output;
@@ -118,11 +176,11 @@ one chain.}
 \item AB both chains are plotted in output
 }}
 
-\item{input1.name}{(default="Epitope Specific"): Provide a generic name for
+\item{input1.name}{(default="Input"): Provide a generic name for
 the input TCRs in the plots (e.g., Epitope Specific). Avoid names with more
 than 20 characters}
 
-\item{input2.name}{(default="Reference"): If a second set of TCRs is provided
+\item{input2.name}{(default="Input2"): If a second set of TCRs is provided
 (i.e., input2 != ""), Provide a generic name for the input2 TCRs in the
 plots. Avoid names with more than 20 characters.}
 
@@ -133,5 +191,7 @@ plots (can be "pdf", "png" or "jpg").}
 Nothing.
 }
 \description{
-!!! Give some additional description of the function.
+MixTCRviz is an R package to display TCR motifs for a set of TCRs provided by the user.
+Typically, the input TCRs correspond to TCRs binding to a specific epitope, or isolated in a specific experiment.
+MixTCRviz compares V usage, J usage, CDR3 length distribution and CDR3 sequence motifs to those expected from baseline TCR repertoire.
 }

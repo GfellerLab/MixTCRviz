@@ -621,12 +621,15 @@ clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.st
     es.all[ind,cdr3] <- NA
   }
   
-  #Remove alleles
+  #Remove or add alleles
   if(use.allele==0){
     for(s in segment.list){
-      es.all[,s] <- unlist(lapply(es.all[,s], function(x){unlist(strsplit(x,split="*", fixed=T))[1]})) # This is needed if we did not correct gene name
+      es.all[,s] <- sapply(es.all[,s], function(x){unlist(strsplit(x,split="*", fixed=T))[1]})
     }
+  } else if(use.allele==1){
+    es.all <- as.data.frame( t( apply( es.all, 1, function(x){add_alleles(x, segment.list, species.default)} ) ) )
   }
+  
   
   ###################
   # Correct gene names
@@ -636,7 +639,7 @@ clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.st
   ###################
   
   if(correct.gene.names==1){
-    es.all <- correct.VJnames(es.all, name.list, segment.list, species.default, verbose)
+    es.all <- correct.VJnames(es.all, segment.list=segment.list, species.default=species.default, use.allele=use.allele, verbose)
   }
   if(correct.gene.names==0){
     for(sp in sp.list){
@@ -659,10 +662,6 @@ clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.st
   for(i in col){
     es.all[which(es.all[,i] == ''),i] <- NA
   }
-  
-  ####
-  # Here we should add the check between CDR3 sequences and VJ genes based on the check_cdr3 function
-  ####
   
   if(check.cdr3.mode > 0){
     es.all <- check_cdr3(es.all, chain.list.output, species.default, check.cdr3.mode, verbose)
@@ -792,12 +791,18 @@ check_cdr3 <- function(es.all, chain.list.output="AB", species.default="HomoSapi
 }
 
 
-correct.VJnames <- function(es.all, name.list, segment.list, species.default="HomoSapiens", verbose=1){
+correct.VJnames <- function(es.all, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), species.default="HomoSapiens", use.allele=0, verbose=1){
   
   if("species" %in% colnames(es.all)){
     sp.list <- unique(es.all[,"species"])
   } else {
     sp.list <- c(species.default)
+  }
+  
+  if(use.allele==1){
+    name.list <- gene.allele.list
+  } else {
+    name.list <- gene.list
   }
   
   for(sp in sp.list){
@@ -814,7 +819,7 @@ correct.VJnames <- function(es.all, name.list, segment.list, species.default="Ho
         gene <- unlist(lapply(nm, function(x){x[1]}))
         allele <- unlist(lapply(nm, function(x){x[2]}))
         
-        ga <- unlist(lapply(1:length(gene), function(x){ clean.name.allele(gene[x],allele[x],sp)}))
+        ga <- unlist(lapply(1:length(gene), function(x){ clean.name.allele(gene[x],allele[x],sp, use.allele)}))
         
         if(verbose>0){
           i <- which(es.all[ind,s] != ga & is.na(ga)==F)
@@ -887,6 +892,91 @@ merge_mouse_TRAV <- function(es){
   
 }
 
+#' Take the gene + allele.
+#' If allele is empty, try to correct the gene if needed, and return only the gene.
+#' If allele is not empty, try to correct the gene\*allele.
+#' If the gene can be corrected, but the gene\*allele does not exist, return gene\*default.allele
+#' If the gene cannot be corrected, return NA.
+clean.name.allele <- function(gene, allele, sp="HomoSapiens", use.allele=1){
+  
+  if(sp != "HomoSapiens" & sp != "MusMusculus"){
+    print("Undefined species: ",sp)
+  }
+  
+  if(use.allele==0){
+    allele <- ""
+  }
+  
+  if(is.na(gene) | gene==""){
+    ga <- NA
+  } else {
+    #An allele is given
+    if(!is.na(allele) & allele != "" | use.allele==1){
+      ga <- paste(gene,allele,sep="*")
+      if(ga %in% gene.allele.list[[sp]] == F){
+        #Try correcting the gene name
+        if(gene %in% gene.list[[sp]] == F ){
+          #The gene is not ok.
+          if(!is.na(map[[sp]][gene])){
+            #If the gene can be corrected
+            gene.map <- map[[sp]][gene]
+            v <- paste(gene.map,allele,sep="*")
+            if(v %in% gene.allele.list[[sp]] == T){
+              ga <- v #After correcting the gene, the gene*allele is ok
+            } else {
+              ga <- paste(gene.map,allele.default[[sp]][gene.map],sep="*") #If not, Use the gene*default.allele
+            }
+          } else {
+            ga <- NA #The gene is wrong and could not be corrected
+          }
+        } else {
+          #The gene is ok
+          ga <- paste(gene,allele.default[[sp]][gene],sep="*") #Use the gene*default.allele
+        }
+      }
+    } else {  #Allele is not given or should be removed
+      
+      if(gene %in% gene.list[[sp]] == F ){
+        if(!is.na(map[[sp]][gene])){
+          ga <- map[[sp]][gene] #The gene was wrong, but can be corrected
+        } else {
+          ga <- NA #The gene was wrong and could not be corrected
+        }
+      } else {
+        ga <- gene
+      }
+    }
+  }
+  return(ga)
+}
 
 
+add_alleles <- function(TCR, segment.list=c("TRAV", "TRAJ", "TRBV", "TRBJ"), species.default="HomoSapiens"){
+  
+  # If allele is missing, add the default one (or "01" is default is not known, which can happen if people use non-standard V/J names)
+  # Important: this function does not attempt to correct V/J names
+  
+
+  
+  if("species" %in% names(TCR)){
+    sp <- as.character(TCR["species"])
+  } else {
+    sp <- species.default
+  }
+  
+  for(s in segment.list){
+    if(s %in% names(TCR)){
+      a <- unlist(strsplit(as.character(TCR[s]),split="*", fixed=T))
+      
+      if(length(a)==1){
+        if(a[1] %in% names(allele.default[[sp]])){
+          TCR[s]=paste(a[1],allele.default[[sp]][a[1]], sep="*")
+        } else {
+          TCR[s]=paste(a[1],"01",sep="*")
+        }
+      } 
+    }
+  }
+  return(TCR)
+}
 
