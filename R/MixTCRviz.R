@@ -88,6 +88,7 @@
 #' @param plot.oneline (default=0)
 #'    * 0: Show the data on two lines (better for clarity).
 #'    * 1: Show all plots in a single line (can be useful to compare different models).
+#'    * 2: Show only V/J usage and length (i.e., do not show CDR3 motifs)
 #' @param plot.logo.length (default=0)
 #'    * 0: Show only the CDR3 motifs for the most frequent CDR3 length.
 #'    * 1: Show in a separate plot the V usage, J usage and CDR3 motifs for all CDR3 length, for both alpha and beta chains.
@@ -168,6 +169,11 @@ MixTCRviz <- function(input1, output.path,
     check.cdr3.mode <- 1
     print("Using the standard mode to clean CDR3 sequences")
   }
+  if(plot.oneline %in% c(0,1,2)==F){
+    print(paste("plot.oneline=",plot.oneline," not supported, using default plot.oneline=0", sep=""))
+    plot.oneline <- 0
+  }
+  
   
   keep.gap.pwm <- 0 # 1: means that 'g' (gaps in CDR1/2) are treated as an additional aa in the logos. 0: means that 'g' are treated as unspecific (i.e., 0.05) in the logos
   if(keep.gap.pwm==1){taa.list <- c(aa.list,"g"); additionalAA <- "g"} else {taa.list <- aa.list; additionalAA <- ""}
@@ -175,7 +181,7 @@ MixTCRviz <- function(input1, output.path,
   min.logo <- 5 #Minimum number of sequences to plot the logos (when plotting different lengths)
   
   if(plot.cdr12.motif==1){ plot.oneline <- 0 }
-  if(plot.oneline==1){
+  if(plot.oneline != 0){
     th <- theme(plot.title = element_text(size = 8, hjust=0.5), axis.title=element_text(size=4))
   }
   
@@ -573,10 +579,12 @@ MixTCRviz <- function(input1, output.path,
             pg.cdr12 <- ggarrange(logo[["CDR1"]], logo[["CDR2"]], ncol=2)
             pg.all[[chain]] <- ggarrange(g, ggarrange(pg.cdr12, CDR3$ES_max, ncol=2, widths=c(1.2,1)), heights=c(1.5,1), nrow=2)
           } else {
-            if(plot.oneline==1){
-              pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, logo[["CDR3"]], ncol=4, nrow=1)
-            } else {
+            if(plot.oneline==0){
               pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, logo[["CDR3"]], ncol=2, nrow=2)
+            } else if(plot.oneline==1){
+              pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, logo[["CDR3"]], ncol=4, nrow=1)
+            } else if(plot.oneline==2){
+              pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, ncol=3, nrow=1)
             }
           }
           
@@ -646,12 +654,15 @@ MixTCRviz <- function(input1, output.path,
         width <- 20
         height <- 6
       } else {
-        if(plot.oneline==1){
-          width <- 20
-          height <- 3
-        } else {
+        if(plot.oneline==0){
           width <- 15
           height <- 8
+        } else if(plot.oneline==1){
+          width <- 20
+          height <- 3
+        } else if(plot.oneline==2){
+          width <- 15
+          height <- 3
         }
       }
       ggsave(fig, filename=paste(output.path,"/plots/",model,".", output.format, sep=""), device=output.format, width = width/div, height = height)

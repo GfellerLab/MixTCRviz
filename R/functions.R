@@ -346,7 +346,7 @@ plotLD <- function(countL.es, countL.rep,info, plot.oneline){
   ld.df$v3 <- factor(ld.df$v3, levels=c(info[2], info[3]))
 
   legend.size <- 12
-  if(plot.oneline==1){
+  if(plot.oneline!=0){
     if(nchar(info[2])>23){legend.size=11}
     if(nchar(info[2])>25){legend.size=10}
   }
@@ -392,7 +392,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
       }
     }
     
-    if(plot.oneline==1){
+    if(plot.oneline!=0){
       if(lmax<15){
         axis.size.max <- 8
       } else {
@@ -472,7 +472,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
         logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD(data=x.norm, additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8, ylim=c(0, y.max)) +
           labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5)) 
       }
-      #For the special case where l==lmax, build the logo with different graphical parameters, depending on the plot.online
+      #For the special case where l==lmax, build the logo with different graphical parameters, depending on the plot.oneline
       #So far, we redo everything, since the graphical outline has to be a little bit different,
       # but this is not optimal since any change has to be performed multiple times
       if(l==lmax){
@@ -486,7 +486,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
         }
         if(comp.baseline==0){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
         
-        if(plot.oneline==1 & (nchar(title)>26 | nchar(title.baseline)>26)){
+        if(plot.oneline!=0 & (nchar(title)>26 | nchar(title.baseline)>26)){
           title <- paste("CDR3", info[1],"_",l," ",info[2], "\n(",countL.es[[lc]],")", sep="")
           if(plot.cdr3.subtract.baseline==0){
             title.baseline <- paste("CDR3", info[1],"_",l," ",info[3],"\n", sep="")
