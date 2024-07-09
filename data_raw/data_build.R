@@ -29,6 +29,7 @@ for(tsp in species.list){
   if(tsp=="HomoSapiens"){
     allele.default[[tsp]]["TRAV14/DV4"] <- "02"
     allele.default[[tsp]]["TRAV36/DV7"] <- "02"
+    allele.default[[tsp]]["TRAJ24"] <- "02"
   }
 }
 
