@@ -19,18 +19,23 @@ for(tsp in species.list){
   gene.list[[tsp]] <- c()
   for(s in segment.list){
     gene.allele.list[[tsp]] <- c(gene.allele.list[[tsp]], rownames(read.csv(file=paste("data_raw/CDR123/",tsp,"/",s,"_allele.csv", sep=""), row.names = 1)))
-    gene.list[[tsp]] <- c(gene.list[[tsp]], rownames(read.csv(file=paste("data_raw/CDR123/",tsp,"/",s,".csv", sep=""), row.names = 1)))
+    df <- read.csv(file=paste("data_raw/CDR123/",tsp,"/",s,".csv", sep=""), row.names = 1)
+    gene.list[[tsp]] <- c(gene.list[[tsp]], rownames(df))
+    default <- df[,"default_allele"]
+    names(default) <- rownames(df)
+    allele.default[[tsp]] <- c(allele.default[[tsp]], default)
   }
 
   # Build the mapping to the most likely allele (needed when allele names are not given, and we infer them)
-  allele.default[[tsp]] <- rep("01", length(gene.list[[tsp]]))
-  names(allele.default[[tsp]]) <- gene.list[[tsp]]
+  #allele.default[[tsp]] <- rep("01", length(gene.list[[tsp]]))
+  #names(allele.default[[tsp]]) <- gene.list[[tsp]]
   # Do some manual correction
-  if(tsp=="HomoSapiens"){
-    allele.default[[tsp]]["TRAV14/DV4"] <- "02"
-    allele.default[[tsp]]["TRAV36/DV7"] <- "02"
-    allele.default[[tsp]]["TRAJ24"] <- "02"
-  }
+  #if(tsp=="HomoSapiens"){
+  # allele.default[[tsp]]["TRAV14/DV4"] <- "02"
+  #  allele.default[[tsp]]["TRAV36/DV7"] <- "02"
+  #  allele.default[[tsp]]["TRAJ24"] <- "02"
+  #}
+  
 }
 
 #For mouse TRAV, take the merging between different strains
@@ -118,7 +123,7 @@ for(species in species.list){
 
 usethis::use_data(gene.allele.list, gene.list, allele.default,
   merge.mouse.TRAV, map, cdr123, Jseq, th, yl, aa, aa.list, N.aa,
-  chain.small, gap, Lmin, Lmax, species.list, overwrite=F, internal=T)
+  chain.small, gap, Lmin, Lmax, species.list, overwrite=T, internal=T)
 
 # usethis::use_data(gene.allele.list, gene.list, allele.default,
 #   merge.mouse.TRAV, map, cdr123, Jseq, th, yl, aa, aa.list, N.aa,

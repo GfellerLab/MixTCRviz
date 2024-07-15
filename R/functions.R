@@ -707,6 +707,7 @@ check_cdr3 <- function(es.all, chain.list.output="AB", species.default="HomoSapi
   # Clean the CDR3 based on the V and J usage.
   # This should be applied after correcting the gene names, and adding the species if needed
   # species.default is only used if es.all does not contain the "species" column
+  # If the allele is given in the gene name, the allele will be used.
   
   use.species.default <- 0
   if("species" %in% colnames(es.all)){
@@ -747,7 +748,7 @@ check_cdr3 <- function(es.all, chain.list.output="AB", species.default="HomoSapi
         ref.first <- substr(V.end,1,start.lg); names(ref.first) <- rownames(cdr123[[sp]][[chain]])
         
         last <- substr(es.all[ind.sp,cdr3], nchar(es.all[ind.sp,cdr3])-end.lg+1, nchar(es.all[ind.sp,cdr3]))
-        J.start <- Jseq[[sp]][[chain]][,"CDR3_full"]
+        J.start <- Jseq[[sp]][[chain]][,"CDR3"]
         ref.last <- substr(J.start, nchar(J.start)-end.lg+1, nchar(J.start));  names(ref.last) <- rownames(Jseq[[sp]][[chain]])
       }
       
