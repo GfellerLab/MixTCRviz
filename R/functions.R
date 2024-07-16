@@ -761,8 +761,9 @@ check_cdr3 <- function(es.all, chain.list.output="AB", species.default="HomoSapi
       }
       
       if(verbose>0){
+        nt <- length(ind.sp)
         if(length(ind.first)>0){
-          nt <- length(ind.sp)
+          
           print(paste("*** Likely inconsistencies between ",chain,"V gene and CDR3",chain.small[chain]," in ",length(ind.first)," entries (out of ",nt,") in ",sp,"- will be put to NA ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.first))
