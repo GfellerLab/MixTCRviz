@@ -21,7 +21,7 @@ for(tsp in species.list){
     gene.allele.list[[tsp]] <- c(gene.allele.list[[tsp]], rownames(read.csv(file=paste("data_raw/CDR123/",tsp,"/",s,"_allele.csv", sep=""), row.names = 1)))
     df <- read.csv(file=paste("data_raw/CDR123/",tsp,"/",s,".csv", sep=""), row.names = 1)
     gene.list[[tsp]] <- c(gene.list[[tsp]], rownames(df))
-    default <- df[,"default_allele"]
+    default <- substr(df[,"default_allele"],2,3)
     names(default) <- rownames(df)
     allele.default[[tsp]] <- c(allele.default[[tsp]], default)
   }
