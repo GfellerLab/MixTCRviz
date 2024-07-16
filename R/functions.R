@@ -767,10 +767,16 @@ check_cdr3 <- function(es.all, chain.list.output="AB", species.default="HomoSapi
           if(verbose==1){
             n <- min(10,length(ind.first))
             print("Examples  (use verbose=2 to see them all):")
-            print(es.all[ind.sp[ind.first[1:n]],c(V,cdr3)])
           }
           if(verbose==2){
-            print(es.all[ind.sp[ind.first],c(V,cdr3)])
+            n <- length(ind.first)
+          }
+          if(verbose==1 | verbose==2){
+            ti <- ind.sp[ind.first[1:n]]
+            sg <- es.all[ti,V]
+            m.prob <- cbind(es.all[ti,c(V,cdr3)], cdr123[[sp]][[chain]][sg,"CDR3"])
+            colnames(m.prob) <- c(V,cdr3,"Ref_CDR3_start")
+            print(m.prob)
           }
           cat("\n")
         }
@@ -779,10 +785,16 @@ check_cdr3 <- function(es.all, chain.list.output="AB", species.default="HomoSapi
           if(verbose==1){
             n <- min(10,length(ind.last))
             print("Examples (use verbose=2 to see them all):")
-            print(es.all[ind.sp[ind.last[1:n]],c(J,cdr3)])
           }
           if(verbose==2){
-            print(es.all[ind.sp[ind.last],c(J,cdr3)])
+            n <- length(ind.last)
+          }
+          if(verbose==1 | verbose==2){
+            ti <- ind.sp[ind.last[1:n]]
+            sg <- es.all[ti,J]
+            m.prob <- cbind(es.all[ti,c(J,cdr3)], Jseq[[sp]][[chain]][sg,"CDR3"])
+            colnames(m.prob) <- c(J,cdr3,"Ref_CDR3_end")
+            print(m.prob)
           }
           cat("\n")
         }
