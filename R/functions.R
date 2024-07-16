@@ -847,7 +847,7 @@ correct.VJnames <- function(es.all, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"),
             v <- v[!is.na(v)]
             print(paste("*** ",length(v), " ", s, " gene names not in IMGT could not be corrected in ",sp," - will be put to NA ***", sep=""))
             if(verbose==1){
-              n <- min(10,length(i))
+              n <- min(10,length(v))
               print(v[1:n])
             }
             if(verbose==2){
