@@ -84,7 +84,7 @@
 #'    * 1: Plot the data in output.path/plots/ and create .rds object with the statistics for each model in output.path/stats/.
 #' @param plot.cdr12.motif (default=0)
 #'    * 0: Only show motifs for CDR3.
-#'    * 1: Include sequence motifs for CDR1 and CDR2.
+#'    * 1: Include sequence motifs for CDR1 and CDR2. With this choice, plot.oneline is set to 0.
 #' @param plot.oneline (default=0)
 #'    * 0: Show the data on two lines (better for clarity).
 #'    * 1: Show all plots in a single line (can be useful to compare different models).
