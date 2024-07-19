@@ -118,6 +118,8 @@ Mandatory parameters:
 - baseline.file (default="") .rda file containing information about
    baseline repertoire. If empty, the default baseline repertoires are used.
 
+Optional parameters:
+
 - use.allele (default=0)
     * 0: All V/J alleles are merged at the gene level (recommended).
     * 1: Alleles are kept, including mouse TRAV genes from different strains.
@@ -158,9 +160,8 @@ Mandatory parameters:
    one chain. This number is computed after cleaning the data.
 
 - output.stat (default=1) Create a stat/ folder with .rds objects summarizing the raw statistics for each model.
-   This includes countL, countV, countJ, countCDR3.L, etc. for each chain used in input.
    Create also a processed_data/ folder with the data for each model after the different processing
-   (e.g., removing alleles, correcting V/J names, removing inconsistent CDR3)
+   (e.g., removing alleles, correcting V/J names, removing inconsistent CDR3, etc.)
 
 - correct.gene.names (default=1)
     * 0: Do not attempt to correct V/J gene names. Put to NA genes not in IMGT.
