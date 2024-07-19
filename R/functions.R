@@ -650,7 +650,7 @@ clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.st
       }
       for(s in segment.list){
         ind <- which(es.all[ind.sp,s] %in% name.list[[sp]] == F & !is.na(es.all[ind.sp,s]) )
-        if(length(ind)>=1){
+        if(length(ind)>=1 & verbose != 0){
           print(c(paste("WARNING: ",s," names in Input TCRs absent from IMGT: ",sep=""), sort(unique(es.all[ind.sp[ind],s])) ))
         }
         es.all[ind.sp[ind],s] <- NA
