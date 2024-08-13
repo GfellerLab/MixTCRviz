@@ -26,6 +26,7 @@ MixTCRviz(
   plot.oneline = 0,
   plot.logo.length = 0,
   plot.cdr3.norm = 0,
+  plot.VJ.as.bars = FALSE,
   chain.list.output = "AB",
   input1.name = "Input",
   input2.name = "",
@@ -147,13 +148,14 @@ In case the input contains the "model" column, model.default is not considered.}
 \item{plot.cdr12.motif}{(default=0)
 \itemize{
 \item 0: Only show motifs for CDR3.
-\item 1: Include sequence motifs for CDR1 and CDR2.
+\item 1: Include sequence motifs for CDR1 and CDR2. With this choice, plot.oneline is set to 0.
 }}
 
 \item{plot.oneline}{(default=0)
 \itemize{
 \item 0: Show the data on two lines (better for clarity).
 \item 1: Show all plots in a single line (can be useful to compare different models).
+\item 2: Show only V/J usage and length (i.e., do not show CDR3 motifs)
 }}
 
 \item{plot.logo.length}{(default=0)
@@ -167,6 +169,12 @@ In case the input contains the "model" column, model.default is not considered.}
 \item 0: Show the CDR3 motifs of the baseline repertoire.
 \item 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
 \item 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
+}}
+
+\item{plot.VJ.as.bars}{(default=FALSE)
+\itemize{
+\item FALSE: Show the VJ usage as a scatter plot.
+\item TRUE: Show the VJ usage as a bar plot.
 }}
 
 \item{chain.list.output}{(default="AB")

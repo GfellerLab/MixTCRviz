@@ -248,10 +248,12 @@ find_mhc <- function(m){
   }))
 }
 
-# Plot the comparison between V or J usage.
-# We should have different criteria for selecting the labels for the ES versus Pred
+#' Plot the comparison between V or J usage.
+#'
+#' We should have different criteria for selecting the labels for the ES versus Pred.
+#'
 #' @param as.bars When T, we plot the enrichment as bar plot instead of scatter plot.
-#' @sp Tells the species, which is used for bar colors when as.bars=T.
+#' @param sp Tells the species, which is used for bar colors when as.bars=T.
 plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
   sp="HomoSapiens"){
   if (length(count.es) == 0){
@@ -346,7 +348,8 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
       theme(plot.title = element_text(size = 14, hjust=0.5),
         axis.text=element_text(size=12), axis.title=element_text(size=14),
         panel.grid.major.y=element_blank(),
-        axis.text.y=element_text(size=22, face="bold", color="black"))
+        axis.text.y=element_text(size=22, face="bold", color="black"),
+        legend.position="top")
   }
 
   return(count.plot)
