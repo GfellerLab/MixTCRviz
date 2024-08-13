@@ -322,6 +322,7 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
     # Build a result table containing the various information needed for the
     # bar plot.
     resTab$gene <- rownames(resTab)
+    resTab$pattern <- xlab
     resTab$label <- factor(resTab$gene, levels=resTab$gene)
     # Use a factor with given levels to keep the order pre-selected above.
     levels(resTab$label) <- gsub(gene, "", levels(resTab$label))
@@ -332,13 +333,15 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
       scale_color_gradient2(low="gray90", mid="gray10", high="black", midpoint=4,
         limits=c(0, max(c(resTab$log2FC, 5))), oob=scales::squish) +
       # gradient2 to make grayscale colors around the boxes based on log2FC.
-      ggpattern::geom_col_pattern(aes(x=Baseline), pattern="stripe", fill=NA,
+      ggpattern::geom_col_pattern(aes(x=Baseline, pattern=pattern), fill=NA,
         pattern_density=0.5, color="gray80", pattern_fill="gray80",
         pattern_alpha=0.4, pattern_angle=45, linewidth=0.5) +
       ggtitle(paste0(gene, " (", n, ")")) + xlab("Frequency") + ylab(NULL) +
       scale_x_continuous(expand=expansion(mult=c(0, 0.05))) +
       # Make the x-axis isn't expanded on the left and is expanded as usual on
       # the right.
+      ggpattern::scale_pattern_manual(values="stripe") +
+      labs(pattern="Pattern") +
       theme_minimal() +
       theme(plot.title = element_text(size = 14, hjust=0.5),
         axis.text=element_text(size=12), axis.title=element_text(size=14),
