@@ -36,7 +36,7 @@ for(tsp in species.list){
   #  allele.default[[tsp]]["TRAV36/DV7"] <- "02"
   #  allele.default[[tsp]]["TRAJ24"] <- "02"
   #}
-  
+
 }
 
 #For mouse TRAV, take the merging between different strains
@@ -60,6 +60,28 @@ names(map[["HomoSapiens"]]) <- mp[pos.h,1]
 pos.m <- which(mp[,4]=="Mouse")
 map[["MusMusculus"]] <- mp[pos.m,2]
 names(map[["MusMusculus"]]) <- mp[pos.m,1]
+
+
+# Defining a color map for TCR genes --------------------------------------
+TCRgene2color <- list()
+for (tsp in species.list){
+  TCRgene2color[[tsp]] <- c()
+  for (s in segment.list){
+    cGenes <- grep(s, gene.list[[tsp]], value=TRUE)
+    cols <- hcl.colors(n=length(cGenes), palette="Set 2")
+    TCRgene2color[[tsp]] <- c(TCRgene2color[[tsp]], setNames(cols, cGenes))
+    # If we want to show the set of colors used (didn't indicate corresponding
+    # gene name))
+    if (FALSE){
+      nG <- length(cGenes)
+      quartz()
+      plot.new()
+      plot.window(c(0, nG), c(0, 1))
+      rect(0:(nG-1), 0, 1:nG, 1, col = cols, border = "black")
+      title(main=paste0(s, " - ", tsp))
+    }
+  }
+}
 
 
 # Defining other parameters -----------------------------------------------
@@ -124,7 +146,8 @@ for(species in species.list){
 
 usethis::use_data(gene.allele.list, gene.list, allele.default,
   merge.mouse.TRAV, map, cdr123, Jseq, th, yl, aa, aa.list, N.aa,
-  chain.small, gap, Lmin, Lmax, species.list, overwrite=T, internal=T)
+  chain.small, gap, Lmin, Lmax, species.list, TCRgene2color,
+  overwrite=T, internal=T)
 
 # usethis::use_data(gene.allele.list, gene.list, allele.default,
 #   merge.mouse.TRAV, map, cdr123, Jseq, th, yl, aa, aa.list, N.aa,

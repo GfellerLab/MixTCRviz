@@ -19,16 +19,16 @@
 #' @param output.path name of the output directory (if not already existing, it
 #'   will be created). If existing the files with the same name will be overwritten.
 #' @param input2 (default=""): csv file or data.frame containing the second set of
-#'   TCRs to be used in comparisons. Same format as input1. 
+#'   TCRs to be used in comparisons. Same format as input1.
 #'   In particular, the set of models in the "model" field need to be the same as in input1
 #'   so that comparisons are performed for each model separately.
 #'   If no "model" is given, all TCRs will be considered as coming from the same model ("Model_default").
 #'   If input2 is provided, the comparisons is performed with this second input, and not the baseline
 #'   repertoire.
 #' @param baseline.file (default="") .rds or .rda file containing all data about the
-#'   baseline repertoire to be used, in the same format as the default repertoires. 
+#'   baseline repertoire to be used, in the same format as the default repertoires.
 #'   If .rda file, the object containing the data about the repertoires must be called 'baseline'.
-#'   If empty, the default baseline repertoires are used. 
+#'   If empty, the default baseline repertoires are used.
 #' @param use.allele (default=0)
 #'    * 0: All V/J alleles are merged at the gene level (recommended).
 #'    * 1: Alleles are kept. If some entries do not include alleles, the most frequent one is added.
@@ -47,11 +47,11 @@
 #'   usage observed in the input TCRs. In the plots the mark " | VJ" is used to
 #'   indicate that CDR3 length distributions and motifs correspond to those
 #'   expected with the V-J usage in the input TCRs.
-#' @param species.default (default="HomoSapiens"). Option to provide the species for all the TCR in input. 
+#' @param species.default (default="HomoSapiens"). Option to provide the species for all the TCR in input.
 #'   This is useful if your input does not contain a "species" column.
 #'   In case the input contains the "species" column, species.default is not considered.
 #'   Should be either "HomoSapiens" or "MusMusculus"
-#' @param model.default (default="Model_default") Option to provide the model for all the TCR in input, which is also used as the name of the output files. 
+#' @param model.default (default="Model_default") Option to provide the model for all the TCR in input, which is also used as the name of the output files.
 #'   This is useful if your input does not contain a "model" column.
 #'   In case the input contains the "model" column, model.default is not considered.
 #' @param set.cdr3a.length (default="") Length for the CDR3a motif to be shown in the main plot.
@@ -68,11 +68,11 @@
 #'    * 1: Attempt to correct V/J gene names not in IMGT based on our internal dictionary. Put to NA genes that could not be corrected
 #' @param check.cdr3.mode (default=1)
 #'    * 0: Keep all CDR3 without any correction.
-#'    * 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment; 
+#'    * 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment;
 #'        Remove J and CDR3 when the last two amino acids are not compatible with the J segments.
-#'    * 2: remove V and CDR3 when the M first CDR3 amino acids are incompatible with the V segment, with M depending on the V gene and the CDR3 length; 
+#'    * 2: remove V and CDR3 when the M first CDR3 amino acids are incompatible with the V segment, with M depending on the V gene and the CDR3 length;
 #'        Remove J and CDR3 when the last two amino acids are not compatible with the J segments, with M depending on the J gene and CDR3 length.
-#'    * Note: 0: all PCR / sequencing / TCR reconstruction errors are kept. 
+#'    * Note: 0: all PCR / sequencing / TCR reconstruction errors are kept.
 #'            1: several PCR / sequencing / TCR reconstruction errors are removed, but only based on the first and last amino acids in CDR3.
 #'            2: most PCR / sequencing / TCR reconstruction errors are removed.
 #' @param verbose (default=1)
@@ -96,6 +96,9 @@
 #'    * 0: Show the CDR3 motifs of the baseline repertoire.
 #'    * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
 #'    * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
+#' @param plot.VJ.as.bars (default=FALSE)
+#'    * FALSE: Show the VJ usage as a scatter plot.
+#'    * TRUE: Show the VJ usage as a bar plot.
 #' @param chain.list.output (default="AB")
 #'    * A: Only the alpha chain is plotted in output;
 #'    * B: only the beta chain is plotted in output;
@@ -117,13 +120,14 @@ MixTCRviz <- function(input1, output.path,
                       renormVJ=1, N.min=10, output.stat=1, set.cdr3a.length="", set.cdr3b.length="",
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
+                      plot.VJ.as.bars=FALSE,
                       chain.list.output="AB", input1.name="Input", input2.name="", output.format="pdf"){
-  
-  
+
+
   #######
   # Choose some parameters
   #######
-  
+
   if(set.cdr3a.length != ""){
     if(is.numeric(set.cdr3a.length)==F | set.cdr3a.length < Lmin | set.cdr3a.length > Lmax | set.cdr3a.length%%1 != 0){
       print(paste("Invalid value for set.cdr3a.length",". Default value will be used.", sep=""))
@@ -136,35 +140,35 @@ MixTCRviz <- function(input1, output.path,
       set.cdr3b.length=""
     }
   }
-  
+
   if(chain.list.output=="A"){
-    chain.list <- c("TRA"); 
+    chain.list <- c("TRA");
     set.cdr3.length <- c(set.cdr3a.length)
   } else if(chain.list.output=="B"){
-    chain.list <- c("TRB"); 
+    chain.list <- c("TRB");
     set.cdr3.length <- c(set.cdr3b.length)
   } else if(chain.list.output=="AB"){
-    chain.list <- c("TRA","TRB"); 
+    chain.list <- c("TRA","TRB");
     set.cdr3.length <- c(set.cdr3a.length, set.cdr3b.length)
-  } else { 
+  } else {
     stop(paste("chain.list.output ", chain.list.output, " not supported by mixTCRviz", sep=""))
   }
   names(set.cdr3.length) <- chain.list
-  
+
   col.TCR <- c(); segment.list <- c()
   for(chain in chain.list){
     col.TCR <- c(col.TCR, paste(chain,"V",sep=""), paste(chain,"J",sep=""), paste("cdr3_",chain,sep=""))
     segment.list <- c(segment.list, paste(chain,"V",sep=""), paste(chain,"J",sep=""))
   }
-  
+
   if(output.format != "pdf" & output.format != "png" & output.format != "jpg"){
     stop("'output.format' should be pdf, png or jpg!")
   }
-  
+
   if(species.default %in% species.list == F){
     stop("Wrong choice for species.default. Should be either \"HomoSapiens\" or \"MusMusculus\"")
   }
-  
+
   if(check.cdr3.mode %in% c(0,1,2) == F){
     check.cdr3.mode <- 1
     print("Using the standard mode to clean CDR3 sequences")
@@ -173,29 +177,29 @@ MixTCRviz <- function(input1, output.path,
     print(paste("plot.oneline=",plot.oneline," not supported, using default plot.oneline=0", sep=""))
     plot.oneline <- 0
   }
-  
-  
+
+
   keep.gap.pwm <- 0 # 1: means that 'g' (gaps in CDR1/2) are treated as an additional aa in the logos. 0: means that 'g' are treated as unspecific (i.e., 0.05) in the logos
   if(keep.gap.pwm==1){taa.list <- c(aa.list,"g"); additionalAA <- "g"} else {taa.list <- aa.list; additionalAA <- ""}
-  
+
   min.logo <- 5 #Minimum number of sequences to plot the logos (when plotting different lengths)
-  
+
   if(plot.cdr12.motif==1){ plot.oneline <- 0 }
   if(plot.oneline != 0){
     th <- theme(plot.title = element_text(size = 8, hjust=0.5), axis.title=element_text(size=4))
   }
-  
+
   if(plot.cdr3.norm != 0 & plot.cdr3.norm != 1 & plot.cdr3.norm != 2){
     plot.cdr3.norm <- 0
   }
-  
+
   if(N.min < 1 | is.numeric(N.min)==FALSE){N.min <- 1}
-  
+
   if(!dir.exists(output.path)){
     dir.create(output.path, recursive = TRUE);
   }
   es.name <- input1.name
-  
+
   if(is.character(input2)==T){  #Either empty, or a filename
     if(input2 == ""){  #Compare to the baseline
       if(input2.name == ""){ baseline.name <- "Baseline"}
@@ -208,27 +212,27 @@ MixTCRviz <- function(input1, output.path,
     comp.baseline <- 0
     if(input2.name == ""){ baseline.name <- "Input2"} else { baseline.name <- input2.name }
   }
-  
+
   ############################
   # Load all the input data
   ############################
-  
+
   if(is.character(input1)==T){
     es.all <- read.csv(input1)
   } else if(is.data.frame(input1)==T){
     es.all <- input1
   }
-  
+
 
   # Check the input
   print("Check input1")
   es.all <- check_input(es.all, chain.list.output, "input1", species.default, model.default)
   es.all <- clean_input(es.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, species.default, check.cdr3.mode, verbose)
-  
+
   #############
   # Load input2
   #############
-  
+
   if(comp.baseline==0){
     if(is.character(input2)==T){
       es2.all <- read.csv(input2)
@@ -239,13 +243,13 @@ MixTCRviz <- function(input1, output.path,
     es2.all <- check_input(es2.all, chain.list.output, "input2", species.default, model.default)
     es2.all <- clean_input(es2.all, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, species.default, check.cdr3.mode, verbose)
   }
-  
+
   ########################
   #Select the model which should be considered
   ########################
-  
+
   #Take samples where there is at least one chain with enough data
-  
+
   md <- unique(es.all[,"model"])
   st <- lapply(md, function(x){
     i <- which(es.all[,"model"]==x);
@@ -260,30 +264,30 @@ MixTCRviz <- function(input1, output.path,
     }
   })
   model.list <- md[st==1]
-  
+
   if(length(model.list)==0){
     stop("No model has enough data to use MixTCRviz. Check your input or lower the N.min parameter (default 10)")
   }
-  
-  
+
+
   #######################################
   # Analyse the input
   #######################################
-  
+
   for(model in model.list){
-    
+
     use.allele.es <- use.allele
-    
+
     print(paste("Model:",model))
-    
+
     pg.all <- list()
     pg.length <- list()
     tl.logo <- list() #Keep track of the number of logos of different length
-    
+
     ######
     # Select the input models with enough data
     ######
-    
+
     es <- es.all[which(es.all[,"model"]==model),]
     sp <- unique(es[,"species"])
     if(length(sp)>1){
@@ -297,8 +301,8 @@ MixTCRviz <- function(input1, output.path,
       print("Alleles currently not supported in mouse. The data will be treated at the gene level")
       use.allele.es <- 0
     }
-   
-    
+
+
     count <- build_stat(es=es, chain.list=chain.list, sp=sp, comp.VJL=0)
     L.es <- count$L
     countL.es <- count$countL
@@ -311,14 +315,14 @@ MixTCRviz <- function(input1, output.path,
     countCDR1.es  <- count$countCDR1
     countCDR2.es <- count$countCDR2
     countCDR3.L.es <- count$countCDR3.L
-    
+
     s <- unlist(strsplit(model, split="_"))
     MHC <- s[1]
     epitope <- s[2]
-    
+
     info <- c(model,sp,MHC,epitope)
     names(info) <- c("model", "species", "MHC", "epitope")
-    
+
     summary <- list(info, L.es, countL.es, countV.es, countJ.es, countV.L.es, countJ.L.es, countCDR1.es, countCDR2.es, countCDR3.L.es, countVJ.es, countVJ.L.es)
     names(summary) <- c("info", "L", "countL", "countV", "countJ", "countV.L", "countJ.L", "countCDR1", "countCDR2", "countCDR3.L", "countVJ", "countVJ.L")
     if(output.stat==1){
@@ -333,17 +337,17 @@ MixTCRviz <- function(input1, output.path,
       }
       write.csv(es, file=paste(output.path,"/processed_data/",model,".csv", sep=""), quote=F, row.names = F, na = "")
     }
-    
+
     if(plot==1){
-      
+
       if(comp.baseline==1){
-        
+
         #####
         # Load the baseline repertoire corresponding to the species
         #####
-        
+
         if(baseline.file==""){
-          
+
           #These are the default repertoires.
           if(sp=="HomoSapiens"){
             if(use.allele.es==1){
@@ -362,16 +366,16 @@ MixTCRviz <- function(input1, output.path,
             }
           }
         } else {
-          
+
           st <- unlist(strsplit(baseline.file, split=".", fixed = T))
           if(st[length(st)]=="rds"){
             baseline <- readRDS(file=baseline.file)
           } else if(st[length(st)]=="rda" | st[length(st)]=="rdata"){
             load(baseline.file)
           }
-          
+
         }
-        
+
         L.baseline <- baseline$L
         countL.baseline <- baseline$countL
         countV.baseline <- baseline$countV
@@ -380,26 +384,26 @@ MixTCRviz <- function(input1, output.path,
         countJ.L.baseline  <- baseline$countJ.L
         countL.VJ.baseline  <- baseline$countL.VJ
         countVJ.baseline  <- baseline$countVJ
-        countCDR1.baseline  <- baseline$countCDR1  
-        countCDR2.baseline <- baseline$countCDR2  
+        countCDR1.baseline  <- baseline$countCDR1
+        countCDR2.baseline <- baseline$countCDR2
         countCDR3.L.baseline <- baseline$countCDR3.L
         countCDR3.VJL.baseline <- baseline$countCDR3.VJL
-        
+
       } else {
-        
+
         #####
         # Load the other repertoire to compare with
         #####
-        
+
         ind <- which(es2.all[,"model"]==model)
         if(length(ind)==0){
           stop(c("Missing model in Input2: ", model))
         } else {
           es2 <- es2.all[ind,]
         }
-        
+
         count <- build_stat(es=es2, chain.list=chain.list, sp=sp, comp.VJL=renormVJ)
-        
+
         L.baseline <- count$L
         countL.baseline <- count$countL
         countV.baseline <- count$countV
@@ -409,18 +413,18 @@ MixTCRviz <- function(input1, output.path,
         countCDR1.baseline  <- count$countCDR1
         countCDR2.baseline <- count$countCDR2
         countCDR3.L.baseline <- count$countCDR3.L
-        
+
         if(renormVJ==1){
           countL.VJ.baseline <- count$countL.VJ
           countCDR3.VJL.baseline <- count$countCDR3.VJL
         }
-        
+
       }
-      
+
       for(chain in chain.list){
-        
+
         #print(chain)
-        
+
         if(comp.baseline==1){
           #Check segments that were in the ES, but not in baseline
           miss.V.baseline <- setdiff(names(countV.es[[chain]]), names(countV.baseline[[chain]]))
@@ -428,7 +432,7 @@ MixTCRviz <- function(input1, output.path,
           if(verbose>0){
             if(length(miss.V.baseline)>=1){
               print(paste("WARNING: ",chain,"V in Input TCRs, but absent from baseline: ", sep=""))
-              print(miss.V.baseline)  
+              print(miss.V.baseline)
             }
             if(length(miss.J.baseline)>=1){
               print(paste("WARNING: ",chain,"J in Input TCRs, but absent from baseline: ", sep=""))
@@ -436,10 +440,10 @@ MixTCRviz <- function(input1, output.path,
             }
           }
         }
-        
+
         #Make sure there are CDR3 sequences
         if(length(countL.es[[chain]])>0){
-          
+
           if(verbose>0){
             if(length(countV.es[[chain]])==0){
               print(paste("WARNING: No ", chain,"V segment in input1", sep=""))
@@ -447,7 +451,7 @@ MixTCRviz <- function(input1, output.path,
             if(length(countJ.es[[chain]])==0){
               print(paste("WARNING: No ",chain,"J segment in input1", sep=""))
             }
-            
+
             if(comp.baseline==0){
               if(length(countV.baseline[[chain]])==0){
                 print(paste("WARNING: No ", chain,"V segment in input2", sep=""))
@@ -457,12 +461,12 @@ MixTCRviz <- function(input1, output.path,
               }
             }
           }
-          
+
           info <- c(chain.small[chain], paste(es.name, " (", sum(countL.es[[chain]]),")",sep=""), baseline.name)
           if(comp.baseline==0){
             info[3] <- paste(info[3], " (", sum(countL.baseline[[chain]]),")",sep="")
           }
-          
+
           if(renormVJ==1){
             if(length(countVJ.es[[chain]])>0){
               info[3] <- paste(info[3], "VJ",sep=" | ")
@@ -475,38 +479,40 @@ MixTCRviz <- function(input1, output.path,
           } else{
             bs <- countL.baseline[[chain]]
           }
-          
+
           ld.plot <- plotLD(countL.es[[chain]], bs, info, plot.oneline)
-          
+
           #######
           # Plot comparison of V/J usage
           #######
-          
+
           infoV <- c(paste(chain,"V", sep=""), es.name, baseline.name)
           infoJ <- c(paste(chain,"J", sep=""), es.name, baseline.name)
-          
+
           if(length(countV.es[[chain]])>0){
-            countV.plot <- plotVJ(countV.es[[chain]], countV.baseline[[chain]], infoV, comp.baseline)
+            countV.plot <- plotVJ(countV.es[[chain]], countV.baseline[[chain]],
+              infoV, comp.baseline, as.bars=plot.VJ.as.bars, sp=sp)
           } else {
             countV.plot <- ggplot()
           }
           if(length(countJ.es[[chain]])>0){
-            countJ.plot <- plotVJ(countJ.es[[chain]], countJ.baseline[[chain]], infoJ, comp.baseline)
+            countJ.plot <- plotVJ(countJ.es[[chain]], countJ.baseline[[chain]],
+              infoJ, comp.baseline, as.bars=plot.VJ.as.bars, sp=sp)
           } else {
             countJ.plot <- ggplot()
           }
-          
+
           #######
           # Plot comparison of motifs for CDR1 and CDR2, but this is redundant with V/J plots
           # No correction based on VJ usage
           #######
-          
+
           logo <- list()
-          
+
           if(plot.cdr12.motif==1){
-            
+
             if(length(countV.es[[chain]])>0){
-              
+
               for(cdr in c("CDR1", "CDR2")){
                 lc <- paste("L",nchar(cdr123[[sp]][[chain]][1,cdr]),sep="_")  #Check the length of cdr1 and cdr2
                 if(cdr=="CDR1"){
@@ -525,23 +531,23 @@ MixTCRviz <- function(input1, output.path,
                 #ggtitle(paste(cdr,chain.small[chain]," ",baseline.name," ", sep="")) + ylab(ylab.baseline) + th + theme(plot.title=element_text(size=12))
                 #logo[[cdr]] <- ggarrange(logo1, logo2, nrow=2)
                 logo[[cdr]] <- ggarrange(logo1, nrow=1)
-                
+
               }
-              
+
             } else {
               for(cdr in c("CDR1", "CDR2")){
                 logo[[cdr]] <- ggplot()
               }
             }
           }
-          
+
           #######
           # Plot comparison of motifs of CDR3 for specific lengths
           #######
-          
+
           #Take the length with max Input TCRs
           info <- c(chain.small[chain], es.name, baseline.name)
-         
+
           #Here we include a correction based on VJ usage for each length.
           if(renormVJ==1){
             if(max(sapply(countVJ.L.es[[chain]],length))>0){  #Make sure we have V-J pairs for at least one length
@@ -555,25 +561,25 @@ MixTCRviz <- function(input1, output.path,
           } else {
             bs <- countCDR3.L.baseline[[chain]]
           }
-          CDR3 <- plotCDR3(countL.es[[chain]], countL.baseline[[chain]], countCDR3.L.es[[chain]], 
+          CDR3 <- plotCDR3(countL.es[[chain]], countL.baseline[[chain]], countCDR3.L.es[[chain]],
                            bs, info, comp.baseline, plot.oneline, plot.logo.length, plot.cdr3.norm,
                            set.cdr3.length[[chain]])
-          
+
           logo.CDR3.L.es <- CDR3$ES
           logo.CDR3.L.baseline <- CDR3$Baseline
-          
+
           if(length(CDR3$length)>0){
             L.inter <- paste("L",CDR3$length, sep="_")
           } else {L.inter <- c()}
-          
+
           lmax <- CDR3$lmax
-          
+
           logo[["CDR3"]] <- ggarrange(CDR3$ES_max, CDR3$Baseline_max, nrow=2)
-          
+
           #############
           #Build the full Figure
           #############
-          
+
           if(plot.cdr12.motif==1){
             g <- ggarrange(countV.plot, countJ.plot, ld.plot, ncol=3)
             pg.cdr12 <- ggarrange(logo[["CDR1"]], logo[["CDR2"]], ncol=2)
@@ -587,69 +593,73 @@ MixTCRviz <- function(input1, output.path,
               pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, ncol=3, nrow=1)
             }
           }
-          
-          
+
+
           if(plot.logo.length==1){
-            
+
             tl.logo[[chain]] <- intersect(names(countL.es[[chain]][countL.es[[chain]]>=min.logo]), L.inter) #Currently the min.logo limitation does not apply to L.inter
-            
+
             if(length(tl.logo[[chain]])>0){
               logo.sub <- list()
               logo.sub.baseline <- list()
-              
+
               plotVJ.L <- list()
               ct <- 1
               for(t in tl.logo[[chain]]){
                 logo.sub[[ct]] <- logo.CDR3.L.es[[t]]
                 logo.sub.baseline[[ct]] <- logo.CDR3.L.baseline[[t]]
-                
+
                 #Add the comparison of V/J usage
-                plotV.L <- plotVJ(countV.L.es[[chain]][[t]],countV.L.baseline[[chain]][[t]], c(paste(chain,"V", sep=""), es.name, baseline.name), comp.baseline)
-                plotJ.L <- plotVJ(countJ.L.es[[chain]][[t]],countJ.L.baseline[[chain]][[t]], c(paste(chain,"J", sep=""), es.name, baseline.name), comp.baseline)
-                
+                plotV.L <- plotVJ(countV.L.es[[chain]][[t]],countV.L.baseline[[chain]][[t]],
+                  c(paste(chain,"V", sep=""), es.name, baseline.name), comp.baseline,
+                  as.bars=plot.VJ.as.bars, sp=sp)
+                plotJ.L <- plotVJ(countJ.L.es[[chain]][[t]],countJ.L.baseline[[chain]][[t]],
+                  c(paste(chain,"J", sep=""), es.name, baseline.name), comp.baseline,
+                  as.bars=plot.VJ.as.bars, sp=sp)
+
                 plotVJ.L[[ct]] <- ggarrange(plotV.L, plotJ.L, ncol=2, nrow=1)
-                
+
                 ct <- ct+1
-                
+
               }
               g1 <- ggarrange(plotlist=plotVJ.L, nrow=length(tl.logo[[chain]]), ncol=1)
               g2 <- ggarrange(plotlist=logo.sub, nrow=length(tl.logo[[chain]]), ncol=1)
               g3 <- ggarrange(plotlist=logo.sub.baseline, nrow=length(tl.logo[[chain]]), ncol=1)
-              
+
               pg.length[[chain]] <- ggarrange(plotlist=list(g1,g2,g3), nrow=1, ncol=3)
-              
-              
+
+
             } else {
               tl.logo[[chain]] <- c()
               pg.length[[chain]] <- ggplot()
             }
-            
+
           }
           #End of the part specific for plotting data
-          
+
         } else {
           #This is the case where no CDR3 is given
           pg.all[[chain]] <- ggplot()
           pg.length[[chain]] <- ggplot()
           tl.logo[[chain]] <- c()
-          
+
           print(paste("WARNING: No CDR3",chain.small[chain]," data in input1", sep=""))
         }
       } #End of the loop over both chains
-      
-      
-      
+
+
+
       dir <- paste(output.path,"/plots/", sep="")
       if(!dir.exists(dir)){
         dir.create(dir);
       }
-      
+
       if(chain.list.output=="A" | chain.list.output=="B"){   pg.both <- pg.all[[chain.list[1]]]; div=2   }
       if(chain.list.output=="AB"){  pg.both <- ggarrange(pg.all[[chain.list[1]]], pg.all[[chain.list[2]]], ncol=2); div=1  }
-      
+
       #fig <- annotate_figure(pg.both, top = text_grob(model, face = "bold", size = 12))
       fig <- pg.both
-      
+
       if(plot.cdr12.motif==1){
         width <- 20
         height <- 6
@@ -666,13 +676,13 @@ MixTCRviz <- function(input1, output.path,
         }
       }
       ggsave(fig, filename=paste(output.path,"/plots/",model,".", output.format, sep=""), device=output.format, width = width/div, height = height)
-      
+
       if(plot.logo.length==1){
         dir <- paste(output.path,"/plots/CDR3_length/", sep="")
         if(!dir.exists(dir)){
           dir.create(dir);
         }
-        
+
         for(chain in chain.list){
           g.final <- pg.length[[chain]];
           mx <- length(tl.logo[[chain]])

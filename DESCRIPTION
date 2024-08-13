@@ -1,6 +1,6 @@
 Package: MixTCRviz
 Title: Visualize important properties of a set of TCRs
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: c(
     person("David", "Gfeller", , "david.gfeller@unil.ch", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3952-0930")),
