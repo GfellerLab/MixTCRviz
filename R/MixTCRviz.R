@@ -99,6 +99,12 @@
 #' @param plot.VJ.as.bars (default=FALSE)
 #'    * FALSE: Show the VJ usage as a scatter plot.
 #'    * TRUE: Show the VJ usage as a bar plot.
+#' @param plot.modelsCombined (default=FALSE)
+#'    * FALSE or empty string: Show the data for each model separately.
+#'    * TRUE or a string: Show the data for all models combined in a single
+#'        figure (based on the format plot.VJ.as.bars=TRUE). When given as a
+#'        logical, the default name "modCombined" is used. Otherwise, the string
+#'        is used for the resulting figure filename.
 #' @param chain.list.output (default="AB")
 #'    * A: Only the alpha chain is plotted in output;
 #'    * B: only the beta chain is plotted in output;
@@ -120,7 +126,7 @@ MixTCRviz <- function(input1, output.path,
                       renormVJ=1, N.min=10, output.stat=1, set.cdr3a.length="", set.cdr3b.length="",
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
-                      plot.VJ.as.bars=FALSE,
+                      plot.VJ.as.bars=FALSE, plot.modelsCombined=FALSE,
                       chain.list.output="AB", input1.name="Input", input2.name="", output.format="pdf"){
 
 
@@ -176,6 +182,22 @@ MixTCRviz <- function(input1, output.path,
   if(plot.oneline %in% c(0,1,2)==F){
     print(paste("plot.oneline=",plot.oneline," not supported, using default plot.oneline=0", sep=""))
     plot.oneline <- 0
+  }
+
+  modelsCombinded_name <- "modCombined"
+  if (is.character(plot.modelsCombined)){
+    if (plot.modelsCombined == ""){
+      plot.modelsCombined <- F
+    } else {
+      modelsCombinded_name <- plot.modelsCombined
+      plot.modelsCombined <- T
+    }
+  }
+  if (plot.modelsCombined && !plot.VJ.as.bars){
+    warning("plot.modelsCombined is set to TRUE, and plot.VJ.as.bars was FALSE.",
+      "Setting plot.VJ.as.bars to TRUE as other VJ plot format is not available",
+      "when combining results from all models in a single plot.")
+    plot.VJ.as.bars <- TRUE
   }
 
 
@@ -274,6 +296,8 @@ MixTCRviz <- function(input1, output.path,
   # Analyse the input
   #######################################
 
+  comb_res <- list()
+  # Will be used when plot.modelsCombined=TRUE to store values from each model.
   for(model in model.list){
 
     use.allele.es <- use.allele
@@ -394,6 +418,10 @@ MixTCRviz <- function(input1, output.path,
         #####
         # Load the other repertoire to compare with
         #####
+        if (plot.modelsCombined){
+          stop("The plot.modelsCombined isn't implemented for comparisons with ",
+            "additional input2 data instead of a baseline repertoire.")
+        }
 
         ind <- which(es2.all[,"model"]==model)
         if(length(ind)==0){
@@ -462,7 +490,8 @@ MixTCRviz <- function(input1, output.path,
             }
           }
 
-          info <- c(chain.small[chain], paste(es.name, " (", sum(countL.es[[chain]]),")",sep=""), baseline.name)
+          info <- c(chain.small[chain], paste(es.name, " (", sum(countL.es[[chain]]),")",sep=""),
+            baseline.name, model)
           if(comp.baseline==0){
             info[3] <- paste(info[3], " (", sum(countL.baseline[[chain]]),")",sep="")
           }
@@ -480,27 +509,23 @@ MixTCRviz <- function(input1, output.path,
             bs <- countL.baseline[[chain]]
           }
 
-          ld.plot <- plotLD(countL.es[[chain]], bs, info, plot.oneline)
+
+          ld.plot <- plotLD(countL.es[[chain]], bs, info, plot.oneline,
+            ret.resList=plot.modelsCombined)
 
           #######
           # Plot comparison of V/J usage
           #######
 
-          infoV <- c(paste(chain,"V", sep=""), es.name, baseline.name)
-          infoJ <- c(paste(chain,"J", sep=""), es.name, baseline.name)
+          infoV <- c(paste(chain,"V", sep=""), es.name, baseline.name, model)
+          infoJ <- c(paste(chain,"J", sep=""), es.name, baseline.name, model)
 
-          if(length(countV.es[[chain]])>0){
-            countV.plot <- plotVJ(countV.es[[chain]], countV.baseline[[chain]],
-              infoV, comp.baseline, as.bars=plot.VJ.as.bars, sp=sp)
-          } else {
-            countV.plot <- ggplot()
-          }
-          if(length(countJ.es[[chain]])>0){
-            countJ.plot <- plotVJ(countJ.es[[chain]], countJ.baseline[[chain]],
-              infoJ, comp.baseline, as.bars=plot.VJ.as.bars, sp=sp)
-          } else {
-            countJ.plot <- ggplot()
-          }
+          countV.plot <- plotVJ(countV.es[[chain]], countV.baseline[[chain]],
+            infoV, comp.baseline, as.bars=plot.VJ.as.bars, sp=sp,
+            ret.resList=plot.modelsCombined)
+          countJ.plot <- plotVJ(countJ.es[[chain]], countJ.baseline[[chain]],
+            infoJ, comp.baseline, as.bars=plot.VJ.as.bars, sp=sp,
+            ret.resList=plot.modelsCombined)
 
           #######
           # Plot comparison of motifs for CDR1 and CDR2, but this is redundant with V/J plots
@@ -510,6 +535,9 @@ MixTCRviz <- function(input1, output.path,
           logo <- list()
 
           if(plot.cdr12.motif==1){
+            if (plot.modelsCombined){
+              stop("The plot.modelsCombined isn't implemented for CDR1/2 motifs.")
+            }
 
             if(length(countV.es[[chain]])>0){
 
@@ -546,7 +574,7 @@ MixTCRviz <- function(input1, output.path,
           #######
 
           #Take the length with max Input TCRs
-          info <- c(chain.small[chain], es.name, baseline.name)
+          info <- c(chain.small[chain], es.name, baseline.name, model)
 
           #Here we include a correction based on VJ usage for each length.
           if(renormVJ==1){
@@ -574,28 +602,58 @@ MixTCRviz <- function(input1, output.path,
 
           lmax <- CDR3$lmax
 
-          logo[["CDR3"]] <- ggarrange(CDR3$ES_max, CDR3$Baseline_max, nrow=2)
-
-          #############
-          #Build the full Figure
-          #############
-
-          if(plot.cdr12.motif==1){
-            g <- ggarrange(countV.plot, countJ.plot, ld.plot, ncol=3)
-            pg.cdr12 <- ggarrange(logo[["CDR1"]], logo[["CDR2"]], ncol=2)
-            pg.all[[chain]] <- ggarrange(g, ggarrange(pg.cdr12, CDR3$ES_max, ncol=2, widths=c(1.2,1)), heights=c(1.5,1), nrow=2)
+          if (!plot.modelsCombined){
+            logo[["CDR3"]] <- ggarrange(CDR3$ES_max, CDR3$Baseline_max, nrow=2)
           } else {
-            if(plot.oneline==0){
-              pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, logo[["CDR3"]], ncol=2, nrow=2)
-            } else if(plot.oneline==1){
-              pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, logo[["CDR3"]], ncol=4, nrow=1)
-            } else if(plot.oneline==2){
-              pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, ncol=3, nrow=1)
+            CDR3$ES_max$labels$title <- paste0(model, " - ", CDR3$ES_max$labels$title)
+          }
+
+
+          #############
+          #Build the full Figure (or save intermediate results for plot.modelsCombined)
+          #############
+
+          if (!plot.modelsCombined){
+            if(plot.cdr12.motif==1){
+              g <- ggarrange(countV.plot, countJ.plot, ld.plot, ncol=3)
+              pg.cdr12 <- ggarrange(logo[["CDR1"]], logo[["CDR2"]], ncol=2)
+              pg.all[[chain]] <- ggarrange(g, ggarrange(pg.cdr12, CDR3$ES_max, ncol=2, widths=c(1.2,1)), heights=c(1.5,1), nrow=2)
+            } else {
+              if(plot.oneline==0){
+                pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, logo[["CDR3"]], ncol=2, nrow=2)
+              } else if(plot.oneline==1){
+                pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, logo[["CDR3"]], ncol=4, nrow=1)
+              } else if(plot.oneline==2){
+                pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, ncol=3, nrow=1)
+              }
             }
+          } else {
+            # Combine data from current model with data from previous models
+            comb_res[[sp]][[chain]]$V$count.df <- dplyr::bind_rows(
+              comb_res[[sp]][[chain]]$V$count.df, countV.plot$count.df)
+            comb_res[[sp]][[chain]]$V$gene <- union(
+              comb_res[[sp]][[chain]]$V$gene, countV.plot$gene)
+            comb_res[[sp]][[chain]]$V$genesToKeep <- union(
+              comb_res[[sp]][[chain]]$V$genesToKeep, countV.plot$genesToKeep)
+            comb_res[[sp]][[chain]]$J$count.df <- dplyr::bind_rows(
+              comb_res[[sp]][[chain]]$J$count.df, countJ.plot$count.df)
+            comb_res[[sp]][[chain]]$J$gene <- union(
+              comb_res[[sp]][[chain]]$J$gene, countJ.plot$gene)
+            comb_res[[sp]][[chain]]$J$genesToKeep <- union(
+              comb_res[[sp]][[chain]]$J$genesToKeep, countJ.plot$genesToKeep)
+            comb_res[[sp]][[chain]]$ld$ld.df <- dplyr::bind_rows(
+              comb_res[[sp]][[chain]]$ld$ld.df, ld.plot$ld.df)
+            comb_res[[sp]][[chain]]$ld$info <- union(
+              comb_res[[sp]][[chain]]$ld$info, ld.plot$info)
+            comb_res[[sp]][[chain]]$CDR3[[model]] <- CDR3$ES_max
           }
 
 
           if(plot.logo.length==1){
+            if (plot.modelsCombined){
+              stop("The plot.modelsCombined isn't implemented to show the ",
+                "results from various CDR3 lengths.")
+            }
 
             tl.logo[[chain]] <- intersect(names(countL.es[[chain]][countL.es[[chain]]>=min.logo]), L.inter) #Currently the min.logo limitation does not apply to L.inter
 
@@ -654,44 +712,110 @@ MixTCRviz <- function(input1, output.path,
         dir.create(dir);
       }
 
-      if(chain.list.output=="A" | chain.list.output=="B"){   pg.both <- pg.all[[chain.list[1]]]; div=2   }
-      if(chain.list.output=="AB"){  pg.both <- ggarrange(pg.all[[chain.list[1]]], pg.all[[chain.list[2]]], ncol=2); div=1  }
+      if (!plot.modelsCombined){
+        if(chain.list.output=="A" | chain.list.output=="B"){   pg.both <- pg.all[[chain.list[1]]]; div=2   }
+        if(chain.list.output=="AB"){  pg.both <- ggarrange(pg.all[[chain.list[1]]], pg.all[[chain.list[2]]], ncol=2); div=1  }
 
-      #fig <- annotate_figure(pg.both, top = text_grob(model, face = "bold", size = 12))
-      fig <- pg.both
+        #fig <- annotate_figure(pg.both, top = text_grob(model, face = "bold", size = 12))
+        fig <- pg.both
 
-      if(plot.cdr12.motif==1){
-        width <- 20
-        height <- 6
-      } else {
-        if(plot.oneline==0){
-          width <- 15
-          height <- 8
-        } else if(plot.oneline==1){
+        if(plot.cdr12.motif==1){
           width <- 20
-          height <- 3
-        } else if(plot.oneline==2){
-          width <- 15
-          height <- 3
+          height <- 6
+        } else {
+          if(plot.oneline==0){
+            width <- 15
+            height <- 8
+          } else if(plot.oneline==1){
+            width <- 20
+            height <- 3
+          } else if(plot.oneline==2){
+            width <- 15
+            height <- 3
+          }
         }
-      }
-      ggsave(fig, filename=paste(output.path,"/plots/",model,".", output.format, sep=""), device=output.format, width = width/div, height = height)
+        ggsave(fig, filename=paste(output.path,"/plots/",model,".", output.format, sep=""), device=output.format, width = width/div, height = height)
 
-      if(plot.logo.length==1){
-        dir <- paste(output.path,"/plots/CDR3_length/", sep="")
-        if(!dir.exists(dir)){
-          dir.create(dir);
-        }
+        if(plot.logo.length==1){
+          dir <- paste(output.path,"/plots/CDR3_length/", sep="")
+          if(!dir.exists(dir)){
+            dir.create(dir);
+          }
 
-        for(chain in chain.list){
-          g.final <- pg.length[[chain]];
-          mx <- length(tl.logo[[chain]])
-          if(mx>0){
-            ggsave(g.final, filename=paste(dir, model,"_",chain,".", output.format, sep=""), device=output.format, width = 20, height = 2.5*mx)
+          for(chain in chain.list){
+            g.final <- pg.length[[chain]];
+            mx <- length(tl.logo[[chain]])
+            if(mx>0){
+              ggsave(g.final, filename=paste(dir, model,"_",chain,".", output.format, sep=""), device=output.format, width = 20, height = 2.5*mx)
+            }
           }
         }
       }
     }
+  }
+  if (plot.modelsCombined && (plot==1)){
+
+    # First, a little test to see if there seem to be inconsistencies between
+    # the various models in the sense that some descriptors weren't the same.
+    purrr::iwalk(comb_res, .f=function(resSp, sp){
+      purrr::iwalk(resSp, .f=function(resCh, chain){
+        purrr::walk2(c("V", "J", "ld"), c("gene", "gene", "info"), .f=function(x, y){
+          if (length(resCh[[x]][[y]]) > 1){
+            stop(paste0("The length of comb_res[[", sp, "]][[", chain, "]][[",
+              x, "]][[", y, "]] seems inconsistent, having more than 1 value ",
+              "after combining models."))
+          }
+        })
+      })
+    })
+
+    purrr::iwalk(comb_res, .f=function(resSp, sp){
+      # The 1st level of comb_res is the species. We'll make separate plot
+      # per species as there aren't the same genes.
+      for (chain in chain.list){
+        # The 2nd level of comb_res is the chain.
+        ld.plot <- plotLD(combined.resList=resSp[[chain]]$ld)
+        countV.plot <- plotVJ(as.bars=plot.VJ.as.bars, sp=sp,
+          combined.resList=resSp[[chain]]$V)
+        countJ.plot <- plotVJ(as.bars=plot.VJ.as.bars, sp=sp,
+          combined.resList=resSp[[chain]]$J)
+        CDR3_logos <- ggarrange(plotlist=resSp[[chain]]$CDR3, ncol=1)
+
+        if(plot.oneline==0){
+          pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, CDR3_logos, ncol=2, nrow=2)
+        } else if(plot.oneline==1){
+          pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, CDR3_logos, ncol=4, nrow=1)
+        } else if(plot.oneline==2){
+          pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, ncol=3, nrow=1)
+        }
+      }
+
+      if(chain.list.output=="A" | chain.list.output=="B"){   pg.both <- pg.all[[chain.list[1]]]; div=2   }
+      if(chain.list.output=="AB"){  pg.both <- ggarrange(pg.all[[chain.list[1]]], pg.all[[chain.list[2]]], ncol=2); div=1  }
+
+      fig <- pg.both
+
+      if(plot.oneline==0){
+        width <- 15
+        height <- 8
+      } else if(plot.oneline==1){
+        width <- 20
+        height <- 3
+      } else if(plot.oneline==2){
+        width <- 15
+        height <- 3
+      }
+      filename <- paste0(output.path,"/plots/", modelsCombinded_name)
+      if (length(comb_res) > 1){
+        filename <- paste0(filename, "_", sp)
+        # Add species name when there where models corresponding to multiple
+        # species in the data.
+      }
+      filename <- paste0(filename, ".", output.format)
+      ggsave(fig, filename=filename, device=output.format,
+        width = width/div, height = height)
+    })
+
   }
 }
 

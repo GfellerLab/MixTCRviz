@@ -254,56 +254,71 @@ find_mhc <- function(m){
 #'
 #' @param as.bars When T, we plot the enrichment as bar plot instead of scatter plot.
 #' @param sp Tells the species, which is used for bar colors when as.bars=T.
+#' @param ret.resList when T indicates to return a list of the results instead of
+#'    the plots directly (in this case, the "info" should have a 4th element,
+#'   indicating the model name).
+#' @param combined.resList When this isn't NULL, we'll use the results from
+#'    this list to plot the results (from multiple models combined together).
+
 plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
-  sp="HomoSapiens"){
-  if (length(count.es) == 0){
-    # Can directly return an empty plot when this doesn't contain any data.
-    return(ggplot())
+  sp="HomoSapiens", ret.resList=F, combined.resList=NULL){
+  if (is.null(combined.resList)){
+    if (length(count.es) == 0){
+      # Can directly return an empty plot when this doesn't contain any data.
+      if (ret.resList){
+        return(NULL)
+      } else {
+        return(ggplot())
+      }
+    }
+
+    #count.es is on the Y axis, count.rep on the X
+    gene <- info[1]
+    n <- sum(count.es)
+    if(comp.baseline==0){n.rep <- sum(count.rep)}
+    v <- c(names(count.rep), names(count.es))
+    nm <- unique(v)
+    type1 <- info[2]
+    type2 <- info[3]
+    cn <- c(type1, type2)
+    count <- matrix(0, nrow=length(nm), ncol=2)
+    rownames(count) <- nm
+    colnames(count) <- cn
+    for(i in 1:length(count.es)){ count[names(count.es[i]),type1] <- count.es[i] }
+    for(i in 1:length(count.rep)){ count[names(count.rep[i]),type2] <- count.rep[i] }
+    count <- scale(count, center=F, scale=colSums(count))
+    count.df <- data.frame(count)
+    colnames(count.df) <- c("Y","X")
+
+    lim.y <- max(count[,c(type1)] )*1.3
+    lim.x <- max(count[,c(type2)] )*1.3
+
+    #lim.y <- round(min( max(count[,c(type1)] )+0.1, max( count[,c(type1)] )*1.4),1)
+    #lim.x <- min(max(count[,c(type2)])+0.1, max(count[,c(type2)])*1.4)
+    #if(lim.x < 0.1){lim.x <- round(lim.x+0.005,2)}
+    #else { lim.x <- round(lim.x+0.05,1) }
+
+    label <- nm
+    label[count.df[,"Y"] < 0.05 & count.df[,"X"] < 0.05] <- NA
+    ratio <- count.df[,"Y"]/(count.df[,"X"]+0.001)
+    label[which(ratio < 1.5 & count.df[,"X"] < 0.3 & count.df[,"Y"] < 0.3) ] <- NA
+    n_lab_max <- ifelse(as.bars, 15, 8)
+    #If there are too many labels, show only those with FC > 2 (bar plot can
+    #accomodate more labels before it gets too confusing visually).
+    if(length(which(!is.na(label)))> n_lab_max){
+      label[which( (ratio < 2) & count.df[,"Y"]<0.1)] <- NA
+    }
+
+    ylab <- paste(type1," (",n,")", sep="")
+
+    if(comp.baseline==1){  xlab <- type2 } else {xlab <- paste(type2," (",n.rep,")", sep="")}
   }
-
-  #count.es is on the Y axis, count.rep on the X
-  gene <- info[1]
-  n <- sum(count.es)
-  if(comp.baseline==0){n.rep <- sum(count.rep)}
-  v <- c(names(count.rep), names(count.es))
-  nm <- unique(v)
-  type1 <- info[2]
-  type2 <- info[3]
-  cn <- c(type1, type2)
-  count <- matrix(0, nrow=length(nm), ncol=2)
-  rownames(count) <- nm
-  colnames(count) <- cn
-  for(i in 1:length(count.es)){ count[names(count.es[i]),type1] <- count.es[i] }
-  for(i in 1:length(count.rep)){ count[names(count.rep[i]),type2] <- count.rep[i] }
-  count <- scale(count, center=F, scale=colSums(count))
-  count.df <- data.frame(count)
-  colnames(count.df) <- c("Y","X")
-
-  lim.y <- max(count[,c(type1)] )*1.3
-  lim.x <- max(count[,c(type2)] )*1.3
-
-  #lim.y <- round(min( max(count[,c(type1)] )+0.1, max( count[,c(type1)] )*1.4),1)
-  #lim.x <- min(max(count[,c(type2)])+0.1, max(count[,c(type2)])*1.4)
-  #if(lim.x < 0.1){lim.x <- round(lim.x+0.005,2)}
-  #else { lim.x <- round(lim.x+0.05,1) }
-
-  label <- nm
-  label[count.df[,"Y"] < 0.05 & count.df[,"X"] < 0.05] <- NA
-  ratio <- count.df[,"Y"]/(count.df[,"X"]+0.001)
-  label[which(ratio < 1.5 & count.df[,"X"] < 0.3 & count.df[,"Y"] < 0.3) ] <- NA
-  n_lab_max <- ifelse(as.bars, 15, 8)
-  #If there are too many labels, show only those with FC > 2 (bar plot can
-  #accomodate more labels before it gets too confusing visually).
-  if(length(which(!is.na(label)))> n_lab_max){
-    label[which( (ratio < 2) & count.df[,"Y"]<0.1)] <- NA
-  }
-
-  ylab <- paste(type1," (",n,")", sep="")
-
-  if(comp.baseline==1){  xlab <- type2 } else {xlab <- paste(type2," (",n.rep,")", sep="")}
 
   #Plot the comparison between input and repertoires
   if (!as.bars){
+    if (ret.resList || !is.null(combined.resList)){
+      stop("Didn't implement the use of combined.ResList when as.bars=F")
+    }
     count.plot <- list()
     count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) +
       geom_point() + geom_abline(col="orange",linetype="dashed",linewidth=1) +
@@ -315,30 +330,58 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
   } else {
     # Show results as bar plots. Will only keep most significant genes and
     # rework a bit the data.
-    names(ratio) <- nm
-    labKept <- setdiff(label, NA)
-    ratio <- ratio[labKept]
-    ratio <- sort(ratio, decreasing = F)
-    # Use decreasing=F so that the gene with highest ratio will be on top
-    resTab <- as.data.frame(count[names(ratio),,drop=F])
-    # Build a result table containing the various information needed for the
-    # bar plot.
-    resTab$gene <- rownames(resTab)
-    resTab$pattern <- xlab
-    resTab$label <- factor(resTab$gene, levels=resTab$gene)
-    # Use a factor with given levels to keep the order pre-selected above.
-    levels(resTab$label) <- gsub(gene, "", levels(resTab$label))
-    resTab$log2FC <- log2(ratio)
-    count.plot <- ggplot(resTab, aes(x=Input, y=label, fill=gene, color=log2FC)) +
-      geom_col(linewidth=2.5) +
+    if (is.null(combined.resList)){
+      genesToKeep <- setdiff(label, NA)
+      # Add some information needed for the bar plot.
+      count.df$gene <- rownames(count.df)
+      count.df$pattern <- xlab
+      # 'pattern' will be used to show the baseline value from the genes.
+      count.df$label <- gsub(gene, "", count.df$gene)
+      # The 'gene' is just TRAV, TRAJ, ..., while count.df$gene is TRAV5-4 for
+      # example. We remove the TRAV, ... info from the label to only keep the
+      # digits/code following these names.
+      count.df$log2FC <- log2(ratio+1e-5)
+      if (ret.resList){
+        count.df$model <- paste0(info[4], " (", n, ")")
+        return(list(count.df=count.df, genesToKeep=genesToKeep, gene=gene))
+      }
+
+    } else {
+      count.df <- combined.resList$count.df
+      genesToKeep <- combined.resList$genesToKeep
+      gene <- combined.resList$gene
+    }
+    count.df <- count.df[count.df$gene %in% genesToKeep,,drop=T]
+    count.df <- count.df[order(count.df$log2FC, decreasing = T),,drop=F]
+    # Order genes based on the log2FC between input and baseline to show
+    # most important ones on top.
+
+    count.df$label <- factor(count.df$label, levels=rev(unique(count.df$label)))
+    # Use a factor with given levels to keep the order constructed above
+    # (otherwise it'd order those labels alphabetically) - we use rev to make
+    # the most important genes on top of the plot.
+
+    if (is.null(combined.resList)){
+      # count.plot <- ggplot(count.df, aes(x=Y, y=label, fill=gene, linewidth=log2FC)) +
+      #   geom_col(color="gray10")
+      count.plot <- ggplot(count.df, aes(x=Y, y=label, fill=gene)) +
+        geom_col(color="gray10", linewidth=1.5)
+
+      figTitle <- paste0(gene, " (", n, ")")
+    } else {
+      count.plot <- ggplot(count.df, aes(x=Y, y=label, fill=gene, color=model)) +
+        geom_col(position="dodge", linewidth=1.5)
+      figTitle <- gene
+    }
+
+    count.plot <- count.plot +
+      # scale_linewidth_continuous(range=c(1, 4), guide="none") +
       scale_fill_manual(values=TCRgene2color[[sp]], guide="none") +
-      scale_color_gradient2(low="gray90", mid="gray10", high="black", midpoint=4,
-        limits=c(0, max(c(resTab$log2FC, 5))), oob=scales::squish) +
-      # gradient2 to make grayscale colors around the boxes based on log2FC.
-      ggpattern::geom_col_pattern(aes(x=Baseline, pattern=pattern), fill=NA,
+      scale_color_manual(values=setNames(palette.colors(palette="Okabe-Ito"), nm=NULL)) +
+      ggpattern::geom_col_pattern(aes(x=X, pattern=pattern), fill=NA,
         pattern_density=0.5, color="gray80", pattern_fill="gray80",
-        pattern_alpha=0.4, pattern_angle=45, linewidth=0.5) +
-      ggtitle(paste0(gene, " (", n, ")")) + xlab("Frequency") + ylab(NULL) +
+        pattern_alpha=0.4, pattern_angle=45, linewidth=0.5, position="dodge") +
+      ggtitle(figTitle) + xlab("Frequency") + ylab(NULL) +
       scale_x_continuous(expand=expansion(mult=c(0, 0.05))) +
       # Make the x-axis isn't expanded on the left and is expanded as usual on
       # the right.
@@ -353,55 +396,85 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
   }
 
   return(count.plot)
-
 }
 
 
+# ret.resList when T indicates to return a list of the results instead of
+# the plots directly (in this case, the "info" should have a 4th element,
+# indicating the model name).
+# And when combined.resList isn't NULL, we'll use the results from this list
+# to plot the results (from multiple models combined together).
+plotLD <- function(countL.es, countL.rep,info, plot.oneline, ret.resList=F,
+  combined.resList=NULL){
 
-plotLD <- function(countL.es, countL.rep,info, plot.oneline){
+  if (is.null(combined.resList)){
+    L.es <- as.numeric(lapply(names(countL.es), function(x){unlist(strsplit(x,split="_"))[2]}))
+    L.rep <- as.numeric(lapply(names(countL.rep), function(x){unlist(strsplit(x,split="_"))[2]}))
 
+    L.all <- unique(c(L.es, L.rep))
+    L.all <- min(L.all):max(L.all)
 
-  L.es <- as.numeric(lapply(names(countL.es), function(x){unlist(strsplit(x,split="_"))[2]}))
-  L.rep <- as.numeric(lapply(names(countL.rep), function(x){unlist(strsplit(x,split="_"))[2]}))
+    ct <- 1
+    ld.es <- c()
+    ld.rep <- c()
 
-  L.all <- unique(c(L.es, L.rep))
-  L.all <- min(L.all):max(L.all)
+    for(lg in L.all){
+      lc <- paste("L",lg,sep="_")
+      if(!is.na(countL.es[lc])){ ld.es[ct] <- countL.es[lc]} else {ld.es[ct] <- 0}
+      if(!is.na(countL.rep[lc])){ld.rep[ct] <- countL.rep[lc]} else {ld.rep[ct] <- 0}
+      ct <- ct+1
+    }
+    if(sum(ld.es)>0){
+      ld.es <- ld.es/sum(ld.es)
+    }
+    if(sum(ld.rep)>0){
+      ld.rep <- ld.rep/sum(ld.rep)
+    }
 
-  ct <- 1
-  ld.es <- c()
-  ld.rep <- c()
+    ##########
+    #Plot the comparison for length distribution
+    ##########
 
-  for(lg in L.all){
-    lc <- paste("L",lg,sep="_")
-    if(!is.na(countL.es[lc])){ ld.es[ct] <- countL.es[lc]} else {ld.es[ct] <- 0}
-    if(!is.na(countL.rep[lc])){ld.rep[ct] <- countL.rep[lc]} else {ld.rep[ct] <- 0}
-    ct <- ct+1
+    v1 <- c(L.all,L.all);
+    v2 <- c(ld.es, ld.rep);
+    v3 <- c( rep(info[2], length(L.all)), rep(info[3], length(L.all))) ;
+    ld.df <- data.frame(v1,v2,v3)
+    ld.df$v3 <- factor(ld.df$v3, levels=c(info[2], info[3]))
+
+    if (ret.resList){
+      if (length(info) < 4){
+        stop("The 'info' vector given in plotLD input should have 4 elements ",
+          "when ret.resList is T.")
+      }
+      ld.df$model <- paste0(info[4], gsub(".*( \\(\\d+\\))", "\\1", info[2]))
+      levels(ld.df$v3) <- gsub("(.*) \\(\\d+\\)", "\\1", levels(ld.df$v3))
+      # The number of sequences is inputted in info[2] (saved in v3 column of
+      # lf.df). We instead indicate this information in the model column when
+      # combining results from multiple models.
+      return(list(ld.df=ld.df, info=info[1]))
+      # Return the data.frame, as well as info (but only 1st element as the other
+      # are already encode in ld.df).
+    }
+
+    legend.size <- 12
+    if(plot.oneline!=0){
+      if(nchar(info[2])>23){legend.size=11}
+      if(nchar(info[2])>25){legend.size=10}
+    }
+    ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3))
+    # The rest of the plot is the same if combined.resList was NULL or if showing
+    # the results from multiple models combined, so we'll draw it below.
+
+  } else {
+    ld.df <- combined.resList$ld.df
+    info <- combined.resList$info
+    legend.size <- 10
+    ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=model, linetype=v3))
   }
-  if(sum(ld.es)>0){
-    ld.es <- ld.es/sum(ld.es)
-  }
-  if(sum(ld.rep)>0){
-    ld.rep <- ld.rep/sum(ld.rep)
-  }
 
-  ##########
-  #Plot the comparison for length distribution
-  ##########
-
-  v1 <- c(L.all,L.all);
-  v2 <- c(ld.es, ld.rep);
-  v3 <- c( rep(info[2], length(L.all)), rep(info[3], length(L.all))) ;
-  ld.df <- data.frame(v1,v2,v3)
-  ld.df$v3 <- factor(ld.df$v3, levels=c(info[2], info[3]))
-
-  legend.size <- 12
-  if(plot.oneline!=0){
-    if(nchar(info[2])>23){legend.size=11}
-    if(nchar(info[2])>25){legend.size=10}
-  }
-  ld.plot <-  ggplot(ld.df) + geom_point(aes(x=v1, y=v2, color=v3)) + #ggtitle(paste("N =",sum(countL.es))) +
-    geom_line(aes(x=v1, y=v2, color=v3)) +
-    theme(legend.key.size = unit(0.2, 'cm'), legend.position="top", legend.title=element_blank(),  legend.text=element_text(size=legend.size)) +
+  ld.plot <- ld.plot + geom_point() + geom_line() +
+    theme(legend.key.size = unit(0.2, 'cm'), legend.position="top",
+      legend.title=element_blank(), legend.text=element_text(size=legend.size)) +
     xlab(paste("Length_CDR3",info[1],sep="")) + ylab("") +
     guides(color = guide_legend(nrow = 2)) +
     theme(axis.text=element_text(size=12), axis.title=element_text(size=14), plot.title = element_text(size=15,hjust = 0.5))
