@@ -272,7 +272,14 @@ MixTCRviz <- function(input1, output.path,
 
   #Take samples where there is at least one chain with enough data
 
-  md <- unique(es.all[,"model"])
+  if (is.factor(es.all$model)){
+    md <- levels(es.all$model)
+    # When this model is given as a factor, we keep this order (this is useful
+    # only for the plot.modelsCombined=TRUE option, to have the models in this
+    # order instead of 'random' order).
+  } else {
+    md <- unique(es.all[,"model"])
+  }
   st <- lapply(md, function(x){
     i <- which(es.all[,"model"]==x);
     nA <- length(which(!is.na(es.all[i,"TRAV"]) & !is.na(es.all[i,"TRAJ"]) & !is.na(es.all[i,"cdr3_TRA"]) ))
@@ -781,12 +788,22 @@ MixTCRviz <- function(input1, output.path,
           combined.resList=resSp[[chain]]$J)
         CDR3_logos <- ggarrange(plotlist=resSp[[chain]]$CDR3, ncol=1)
 
+        VJ.plot <- ggarrange(countV.plot, countJ.plot, nrow=1,
+          common.legend=T, legend="right")
+        # We arrange them together, keeping a single legend as it's the same.
+        Sys.sleep(0.1)
+        # Added this to let time to build the legend as otherwise the 'baseline'
+        # legend sometimes remained blank.
+        ld_CDR3logo_plot <- ggarrange(ld.plot, CDR3_logos, nrow=1)
+
         if(plot.oneline==0){
-          pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, CDR3_logos, ncol=2, nrow=2)
+          pg.all[[chain]] <- ggarrange(VJ.plot, ld_CDR3logo_plot, nrow=2,
+            heights=c(1.3, 1))
+          # Make that bar plots are slightly bigger than CDR3 ld and motif.
         } else if(plot.oneline==1){
-          pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, CDR3_logos, ncol=4, nrow=1)
+          pg.all[[chain]] <- ggarrange(VJ.plot, ld_CDR3logo_plot, nrow=1)
         } else if(plot.oneline==2){
-          pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, ncol=3, nrow=1)
+          pg.all[[chain]] <- ggarrange(VJ.plot, ld.plot, nrow=1, widths=c(2, 1))
         }
       }
 
@@ -794,16 +811,19 @@ MixTCRviz <- function(input1, output.path,
       if(chain.list.output=="AB"){  pg.both <- ggarrange(pg.all[[chain.list[1]]], pg.all[[chain.list[2]]], ncol=2); div=1  }
 
       fig <- pg.both
+      nModels_sp <- max(purrr::map_int(resSp, ~length(.x$CDR3)))
 
       if(plot.oneline==0){
         width <- 15
-        height <- 8
+        height <- 5 + 1 * nModels_sp
+        # We adapt the size of the figure based on the number of models present
+        # as it'll need more bars and more CDR3 motifs.
       } else if(plot.oneline==1){
         width <- 20
-        height <- 3
+        height <- 3 + 0.5 * nModels_sp
       } else if(plot.oneline==2){
         width <- 15
-        height <- 3
+        height <- 3 + 0.5 * nModels_sp
       }
       filename <- paste0(output.path,"/plots/", modelsCombinded_name)
       if (length(comb_res) > 1){

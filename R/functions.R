@@ -348,6 +348,9 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
 
     } else {
       count.df <- combined.resList$count.df
+      count.df$model <- factor(count.df$model, levels=unique(count.df$model))
+      # Make it as a factor so that the order in which the models were obtained
+      # is kept.
       genesToKeep <- combined.resList$genesToKeep
       gene <- combined.resList$gene
     }
@@ -370,14 +373,15 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
       figTitle <- paste0(gene, " (", n, ")")
     } else {
       count.plot <- ggplot(count.df, aes(x=Y, y=label, fill=gene, color=model)) +
-        geom_col(position="dodge", linewidth=1.5)
+        geom_col(position="dodge", linewidth=1.5) +
+        scale_color_manual(values=set_model_colPals(levels(count.df$model)),
+          guide=guide_legend(ncol=1, order=1))
       figTitle <- gene
     }
 
     count.plot <- count.plot +
       # scale_linewidth_continuous(range=c(1, 4), guide="none") +
       scale_fill_manual(values=TCRgene2color[[sp]], guide="none") +
-      scale_color_manual(values=setNames(palette.colors(palette="Okabe-Ito"), nm=NULL)) +
       ggpattern::geom_col_pattern(aes(x=X, pattern=pattern), fill=NA,
         pattern_density=0.5, color="gray80", pattern_fill="gray80",
         pattern_alpha=0.4, pattern_angle=45, linewidth=0.5, position="dodge") +
@@ -385,14 +389,13 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
       scale_x_continuous(expand=expansion(mult=c(0, 0.05))) +
       # Make the x-axis isn't expanded on the left and is expanded as usual on
       # the right.
-      ggpattern::scale_pattern_manual(values="stripe") +
-      labs(pattern="Pattern") +
+      ggpattern::scale_pattern_manual(values="stripe", guide=guide_legend(order=2)) +
       theme_minimal() +
       theme(plot.title = element_text(size = 14, hjust=0.5),
         axis.text=element_text(size=12), axis.title=element_text(size=14),
         panel.grid.major.y=element_blank(),
         axis.text.y=element_text(size=22, face="bold", color="black"),
-        legend.position="top")
+        legend.position="top", legend.title=element_blank())
   }
 
   return(count.plot)
@@ -467,17 +470,21 @@ plotLD <- function(countL.es, countL.rep,info, plot.oneline, ret.resList=F,
 
   } else {
     ld.df <- combined.resList$ld.df
+    ld.df$model <- factor(ld.df$model, levels=unique(ld.df$model))
     info <- combined.resList$info
     legend.size <- 10
-    ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=model, linetype=v3))
+    ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=model, linetype=v3)) +
+      scale_color_manual(values=set_model_colPals(levels(ld.df$model))) +
+      guides(linetype=guide_legend(ncol=1, order=2))
   }
 
   ld.plot <- ld.plot + geom_point() + geom_line() +
     theme(legend.key.size = unit(0.2, 'cm'), legend.position="top",
       legend.title=element_blank(), legend.text=element_text(size=legend.size)) +
     xlab(paste("Length_CDR3",info[1],sep="")) + ylab("") +
-    guides(color = guide_legend(nrow = 2)) +
-    theme(axis.text=element_text(size=12), axis.title=element_text(size=14), plot.title = element_text(size=15,hjust = 0.5))
+    guides(color = guide_legend(ncol = 1, order=1)) +
+    theme(axis.text=element_text(size=12), axis.title=element_text(size=14),
+      plot.title = element_text(size=15,hjust = 0.5))
 
   return(ld.plot)
 
@@ -1122,3 +1129,28 @@ add_alleles <- function(TCR, segment.list=c("TRAV", "TRAJ", "TRBV", "TRBJ"), spe
   return(TCR)
 }
 
+
+#' Defines the color palette for plots with models showed together.
+#'
+#' Little function that defines the color palette to use for the different
+#' models that are combined together when plot.modelsCombined is T.
+#' These are the colors used around the bars and for the length distribution plots.
+#  In case a 'Trash' model is found, its color is set as light gray.
+#'
+#' @param models A vector of the models that are currently used in the figure.
+#' @return A named vector of the colors to use for each model.
+set_model_colPals <- function(models){
+  colPal_modelsCombined <- c(palette.colors(palette="Okabe-Ito"),
+    palette.colors(palette="Tableau 10"), palette.colors(palette="Polychrome 36"))
+  # Make it large, but will likely never use all its colors
+  if (length(models) > length(colPal_modelsCombined)){
+    colPal_modelsCombined <- c(colPal_modelsCombined,
+      rainbow(n=length(models)-length(colPal_modelsCombined), alpha=NULL))
+  }
+  colPal_modelsCombined <- colPal_modelsCombined[1:length(models)]
+  names(colPal_modelsCombined) <- models
+  if (any(grepl("Trash", models))){
+    colPal_modelsCombined[grep("Trash", models)] <- "gray70"
+  }
+  return(colPal_modelsCombined)
+}
