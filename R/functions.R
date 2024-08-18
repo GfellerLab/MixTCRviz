@@ -3,6 +3,7 @@
 # Define some function
 #####
 
+#' @export
 build_stat <- function(es, chain.list=c("TRA","TRB"), sp="HomoSapiens", comp.VJL=0){
 
   # comp.VJL=1 means we are computing length distributions and motifs knowing VJ
@@ -574,6 +575,7 @@ check_input <- function(es.all, chain.list.output="AB", name="input1", species.d
 
 }
 
+#' @export
 clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.strain=0, chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, verbose=1){
   
   ####
@@ -702,6 +704,7 @@ clean_input <- function(es.all, use.allele=0, correct.gene.names=1, use.mouse.st
   
 }
 
+#' @export
 check_cdr3 <- function(es.all, chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, verbose=1){
   
   # Clean the CDR3 based on the V and J usage.
