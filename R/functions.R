@@ -166,6 +166,7 @@ build_cdr12_motif <- function(cdr.seq, keep.gap=0){
 # Compute the weighted average of motifs for different V/J usage
 # This is important since the choice of V/J has huge influence on the CDR3 motif.
 # By considering V/J usage in baseline, it helps identifying what is specific to the input TCR
+#' @export
 weighted_countCDR3 <- function(countCDR3.VJL.baseline, countVJ.L.es){
 
   countCDR3 <- list()
@@ -202,6 +203,7 @@ weighted_countCDR3 <- function(countCDR3.VJL.baseline, countVJ.L.es){
 
 # Compute the weighted average of CDR3 length for the observed V/J usage
 # This is important since CDR3 length is primarily determined by the length of the V and J segments
+#' @export
 weighted_countL <- function(countL.VJ.baseline, countVJ.es){
 
 
