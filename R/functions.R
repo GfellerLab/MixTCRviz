@@ -348,13 +348,13 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
 
     } else {
       count.df <- combined.resList$count.df
-      count.df$model <- factor(count.df$model, levels=unique(count.df$model))
+      count.df$model <- factor(count.df$model, levels=rev(unique(count.df$model)))
       # Make it as a factor so that the order in which the models were obtained
       # is kept.
       genesToKeep <- combined.resList$genesToKeep
       gene <- combined.resList$gene
     }
-    count.df <- count.df[count.df$gene %in% genesToKeep,,drop=T]
+    count.df <- count.df[count.df$gene %in% genesToKeep,,drop=F]
     count.df <- count.df[order(count.df$log2FC, decreasing = T),,drop=F]
     # Order genes based on the log2FC between input and baseline to show
     # most important ones on top.
@@ -368,14 +368,14 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
       # count.plot <- ggplot(count.df, aes(x=Y, y=label, fill=gene, linewidth=log2FC)) +
       #   geom_col(color="gray10")
       count.plot <- ggplot(count.df, aes(x=Y, y=label, fill=gene)) +
-        geom_col(color="gray10", linewidth=1.5)
+        geom_col(color="gray10", linewidth=1)
 
       figTitle <- paste0(gene, " (", n, ")")
     } else {
       count.plot <- ggplot(count.df, aes(x=Y, y=label, fill=gene, color=model)) +
-        geom_col(position="dodge", linewidth=1.5) +
-        scale_color_manual(values=set_model_colPals(levels(count.df$model)),
-          guide=guide_legend(ncol=1, order=1))
+        geom_col(position="dodge", linewidth=1, width=0.8) +
+        scale_color_manual(values=set_model_colPals(rev(levels(count.df$model))),
+          guide=guide_legend(ncol=1, order=1, reverse=T))
       figTitle <- gene
     }
 
@@ -383,8 +383,11 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
       # scale_linewidth_continuous(range=c(1, 4), guide="none") +
       scale_fill_manual(values=TCRgene2color[[sp]], guide="none") +
       ggpattern::geom_col_pattern(aes(x=X, pattern=pattern), fill=NA,
-        pattern_density=0.5, color="gray80", pattern_fill="gray80",
-        pattern_alpha=0.4, pattern_angle=45, linewidth=0.5, position="dodge") +
+        pattern_angle=45, linewidth=0.5, position="dodge",
+        pattern_density=0.25, pattern_spacing=0.08,
+        pattern_color="gray40", color="gray80", pattern_fill="gray80",
+        width=ifelse(is.null(combined.resList), 0.9, 0.8),
+        pattern_key_scale_factor=0.4) +
       ggtitle(figTitle) + xlab("Frequency") + ylab(NULL) +
       scale_x_continuous(expand=expansion(mult=c(0, 0.05))) +
       # Make the x-axis isn't expanded on the left and is expanded as usual on

@@ -791,9 +791,6 @@ MixTCRviz <- function(input1, output.path,
         VJ.plot <- ggarrange(countV.plot, countJ.plot, nrow=1,
           common.legend=T, legend="right")
         # We arrange them together, keeping a single legend as it's the same.
-        Sys.sleep(0.1)
-        # Added this to let time to build the legend as otherwise the 'baseline'
-        # legend sometimes remained blank.
         ld_CDR3logo_plot <- ggarrange(ld.plot, CDR3_logos, nrow=1)
 
         if(plot.oneline==0){
@@ -833,7 +830,7 @@ MixTCRviz <- function(input1, output.path,
       }
       filename <- paste0(filename, ".", output.format)
       ggsave(fig, filename=filename, device=output.format,
-        width = width/div, height = height)
+        width = width/div, height = height, bg="white")
     })
 
   }

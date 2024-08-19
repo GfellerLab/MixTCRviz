@@ -10,13 +10,22 @@ plotVJ(
   info,
   comp.baseline,
   as.bars = F,
-  sp = "HomoSapiens"
+  sp = "HomoSapiens",
+  ret.resList = F,
+  combined.resList = NULL
 )
 }
 \arguments{
 \item{as.bars}{When T, we plot the enrichment as bar plot instead of scatter plot.}
 
 \item{sp}{Tells the species, which is used for bar colors when as.bars=T.}
+
+\item{ret.resList}{when T indicates to return a list of the results instead of
+the plots directly (in this case, the "info" should have a 4th element,
+indicating the model name).}
+
+\item{combined.resList}{When this isn't NULL, we'll use the results from
+this list to plot the results (from multiple models combined together).}
 }
 \description{
 We should have different criteria for selecting the labels for the ES versus Pred.

@@ -27,6 +27,7 @@ MixTCRviz(
   plot.logo.length = 0,
   plot.cdr3.norm = 0,
   plot.VJ.as.bars = FALSE,
+  plot.modelsCombined = FALSE,
   chain.list.output = "AB",
   input1.name = "Input",
   input2.name = "",
@@ -175,6 +176,15 @@ In case the input contains the "model" column, model.default is not considered.}
 \itemize{
 \item FALSE: Show the VJ usage as a scatter plot.
 \item TRUE: Show the VJ usage as a bar plot.
+}}
+
+\item{plot.modelsCombined}{(default=FALSE)
+\itemize{
+\item FALSE or empty string: Show the data for each model separately.
+\item TRUE or a string: Show the data for all models combined in a single
+figure (based on the format plot.VJ.as.bars=TRUE). When given as a
+logical, the default name "modCombined" is used. Otherwise, the string
+is used for the resulting figure filename.
 }}
 
 \item{chain.list.output}{(default="AB")
