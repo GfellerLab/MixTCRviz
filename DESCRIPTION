@@ -19,9 +19,10 @@ Imports:
     ggrepel,
     ggseqlogo (>= 0.1),
     mgcv,
-    seqinr,
-    ggpattern
+    seqinr
 Remotes: 
     gfellerlab/ggseqlogo
 Depends: 
     R (>= 4.0.2)
+Suggests: 
+    ggpattern
