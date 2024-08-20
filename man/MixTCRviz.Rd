@@ -7,8 +7,8 @@
 MixTCRviz(
   input1,
   output.path,
-  input2 = "",
-  baseline.file = "",
+  input2 = NULL,
+  baseline.file = NULL,
   use.allele = 0,
   correct.gene.names = 1,
   use.mouse.strain = 0,
@@ -16,8 +16,8 @@ MixTCRviz(
   renormVJ = 1,
   N.min = 10,
   output.stat = 1,
-  set.cdr3a.length = "",
-  set.cdr3b.length = "",
+  set.cdr3a.length = NA,
+  set.cdr3b.length = NA,
   species.default = "HomoSapiens",
   model.default = "Model_default",
   verbose = 1,
@@ -28,7 +28,7 @@ MixTCRviz(
   plot.cdr3.norm = 0,
   chain.list.output = "AB",
   input1.name = "Input",
-  input2.name = "",
+  input2.name = NULL,
   output.format = "pdf"
 )
 }
@@ -51,7 +51,7 @@ If missing, all TCRs will be considered as coming from the same species, which c
 \item{output.path}{name of the output directory (if not already existing, it
 will be created). If existing the files with the same name will be overwritten.}
 
-\item{input2}{(default=""): csv file or data.frame containing the second set of
+\item{input2}{(default=NULL): csv file or data.frame containing the second set of
 TCRs to be used in comparisons. Same format as input1.
 In particular, the set of models in the "model" field need to be the same as in input1
 so that comparisons are performed for each model separately.
@@ -59,7 +59,7 @@ If no "model" is given, all TCRs will be considered as coming from the same mode
 If input2 is provided, the comparisons is performed with this second input, and not the baseline
 repertoire.}
 
-\item{baseline.file}{(default="") .rds or .rda file containing all data about the
+\item{baseline.file}{(default=NULL) .rds or .rda file containing all data about the
 baseline repertoire to be used, in the same format as the default repertoires.
 If .rda file, the object containing the data about the repertoires must be called 'baseline'.
 If empty, the default baseline repertoires are used.}
@@ -116,10 +116,10 @@ one chain. This number is computed after cleaning the data.}
 This includes countL, countV, countJ, countCDR3.L, etc. for each chain used in input.
 Create also a processed_data/ folder with the data for each model after the different processing (e.g., removing alleles, correcting V/J names, removing inconsistent CDR3)}
 
-\item{set.cdr3a.length}{(default="") Length for the CDR3a motif to be shown in the main plot.
+\item{set.cdr3a.length}{(default=NA) Length for the CDR3a motif to be shown in the main plot.
 By default the value corresponding to the most frequent CDR3a length in input1 (and also present in input2 if input2 is given) is chosen.}
 
-\item{set.cdr3b.length}{(default="") Length for the CDR3b motif to be shown in the main plot.
+\item{set.cdr3b.length}{(default=NA) Length for the CDR3b motif to be shown in the main plot.
 By default the value corresponding to the most frequent CDR3b length in input1 (and also present in input2 if input2 is given) is chosen.}
 
 \item{species.default}{(default="HomoSapiens"). Option to provide the species for all the TCR in input.
@@ -147,13 +147,14 @@ In case the input contains the "model" column, model.default is not considered.}
 \item{plot.cdr12.motif}{(default=0)
 \itemize{
 \item 0: Only show motifs for CDR3.
-\item 1: Include sequence motifs for CDR1 and CDR2.
+\item 1: Include sequence motifs for CDR1 and CDR2. With this choice, plot.oneline is set to 0.
 }}
 
 \item{plot.oneline}{(default=0)
 \itemize{
 \item 0: Show the data on two lines (better for clarity).
 \item 1: Show all plots in a single line (can be useful to compare different models).
+\item 2: Show only V/J usage and length (i.e., do not show CDR3 motifs)
 }}
 
 \item{plot.logo.length}{(default=0)
@@ -180,8 +181,8 @@ In case the input contains the "model" column, model.default is not considered.}
 the input TCRs in the plots (e.g., Epitope Specific). Avoid names with more
 than 20 characters}
 
-\item{input2.name}{(default="Input2"): If a second set of TCRs is provided
-(i.e., input2 != ""), Provide a generic name for the input2 TCRs in the
+\item{input2.name}{(default=NULL): If a second set of TCRs is provided
+(i.e., input2 != NULL), Provide a generic name for the input2 TCRs in the
 plots. Avoid names with more than 20 characters.}
 
 \item{output.format}{(default="pdf"): Choose the format for the output

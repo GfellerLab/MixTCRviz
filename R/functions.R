@@ -367,7 +367,7 @@ plotLD <- function(countL.es, countL.rep,info, plot.oneline){
 
 plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info, 
                      comp.baseline, plot.oneline=0, plot.logo.length=0,
-                     plot.cdr3.subtract.baseline=0, set.cdr3.length=""){
+                     plot.cdr3.subtract.baseline=0, set.cdr3.length=NA){
   
   L.es <- as.numeric(lapply(names(countL.es), function(x){unlist(strsplit(x,split="_"))[2]}))
   L.rep <- as.numeric(lapply(names(countL.rep), function(x){unlist(strsplit(x,split="_"))[2]}))
@@ -384,7 +384,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
     
     tl <- countL.es[paste("L",L.TR,sep="_")]
     
-    if(set.cdr3.length==""){
+    if(is.na(set.cdr3.length)){
       lmax <- as.numeric(unlist(strsplit(names(tl[which.max(tl)]), split="_"))[2])
     } else {
       if(set.cdr3.length %in% L.TR){

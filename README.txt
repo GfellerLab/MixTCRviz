@@ -17,6 +17,9 @@
 # For scientific questions, please contact David Gfeller (David.Gfeller@unil.ch)
 #
 # Copyright (2024) David Gfeller
+#
+# CONFIDENTIAL - DO NOT SHARE OUTSIDE OF THE GFELLER LAB
+#
 ###############
 
 
@@ -107,7 +110,7 @@ Mandatory parameters:
 - output.path name of the output directory (if not already existing, it
    will be created). If existing the files with the same name will be overwritten.
 
-- input2 (default=""): csv file or data.frame containing the second set of
+- input2 (default=NULL): csv file or data.frame containing the second set of
    TCRs to be used in comparisons. Same format as input1.
    In particular, the set of models in the "model" field need to be the same as in input1
    so that comparisons are performed for each model separately.
@@ -115,7 +118,7 @@ Mandatory parameters:
    If input2 is provided, the comparisons is performed with this second input, and not the baseline
    repertoire.
 
-- baseline.file (default="") .rda file containing information about
+- baseline.file (default=NULL) .rda file containing information about
    baseline repertoire. If empty, the default baseline repertoires are used.
 
 Optional parameters:
@@ -150,10 +153,10 @@ Optional parameters:
    This is useful if your input does not contain a "model" column.
    In case the input contains the "model" column, model.default is not considered.
 
-- set.cdr3a.length (default="") Length for the CDR3a motif to be shown in the main plot.
+- set.cdr3a.length (default=NA) Length for the CDR3a motif to be shown in the main plot.
    By default the value corresponding to the most frequent CDR3a length in input1 (and also present in input2 if input2 is given) is chosen.
 
-- set.cdr3b.length (default="") Length for the CDR3b motif to be shown in the main plot.
+- set.cdr3b.length (default=NA) Length for the CDR3b motif to be shown in the main plot.
    By default the value corresponding to the most frequent CDR3b length in input1 (and also present in input2 if input2 is given) is chosen.
 
 - N.min (default=10) Minimum number of TCR (i.e., V-J-CDR3) for at least
@@ -215,8 +218,8 @@ Optional parameters:
    the input TCRs in the plots (e.g., Epitope Specific). Avoid names with more
    than 20 characters
 
-- input2.name (default="Input2"): If a second set of TCRs is provided
-   (i.e., input2 != ""), Provide a generic name for the input2 TCRs in the
+- input2.name (default="NULL"): If a second set of TCRs is provided
+   (i.e., input2 != NULL), Provide a generic name for the input2 TCRs in the
    plots. Avoid names with more than 20 characters.
 
 

@@ -18,14 +18,14 @@
 #'   If missing, all TCRs will be considered as coming from the same species, which can be specified in the MixTCRviz function (species.default, default value is HomoSapiens).
 #' @param output.path name of the output directory (if not already existing, it
 #'   will be created). If existing the files with the same name will be overwritten.
-#' @param input2 (default=""): csv file or data.frame containing the second set of
+#' @param input2 (default=NULL): csv file or data.frame containing the second set of
 #'   TCRs to be used in comparisons. Same format as input1. 
 #'   In particular, the set of models in the "model" field need to be the same as in input1
 #'   so that comparisons are performed for each model separately.
 #'   If no "model" is given, all TCRs will be considered as coming from the same model ("Model_default").
 #'   If input2 is provided, the comparisons is performed with this second input, and not the baseline
 #'   repertoire.
-#' @param baseline.file (default="") .rds or .rda file containing all data about the
+#' @param baseline.file (default=NULL) .rds or .rda file containing all data about the
 #'   baseline repertoire to be used, in the same format as the default repertoires. 
 #'   If .rda file, the object containing the data about the repertoires must be called 'baseline'.
 #'   If empty, the default baseline repertoires are used. 
@@ -54,9 +54,9 @@
 #' @param model.default (default="Model_default") Option to provide the model for all the TCR in input, which is also used as the name of the output files. 
 #'   This is useful if your input does not contain a "model" column.
 #'   In case the input contains the "model" column, model.default is not considered.
-#' @param set.cdr3a.length (default="") Length for the CDR3a motif to be shown in the main plot.
+#' @param set.cdr3a.length (default=NA) Length for the CDR3a motif to be shown in the main plot.
 #'   By default the value corresponding to the most frequent CDR3a length in input1 (and also present in input2 if input2 is given) is chosen.
-#' @param set.cdr3b.length (default="") Length for the CDR3b motif to be shown in the main plot.
+#' @param set.cdr3b.length (default=NA) Length for the CDR3b motif to be shown in the main plot.
 #'   By default the value corresponding to the most frequent CDR3b length in input1 (and also present in input2 if input2 is given) is chosen.
 #' @param N.min (default=10) Minimum number of TCR (i.e., V-J-CDR3) for at least
 #'   one chain. This number is computed after cleaning the data.
@@ -105,35 +105,35 @@
 #' @param input1.name (default="Input"): Provide a generic name for
 #'   the input TCRs in the plots (e.g., Epitope Specific). Avoid names with more
 #'   than 20 characters
-#' @param input2.name (default="Input2"): If a second set of TCRs is provided
-#'   (i.e., input2 != ""), Provide a generic name for the input2 TCRs in the
+#' @param input2.name (default=NULL): If a second set of TCRs is provided
+#'   (i.e., input2 != NULL), Provide a generic name for the input2 TCRs in the
 #'   plots. Avoid names with more than 20 characters.
 #'
 #' @returns Nothing.
 #' @export
 MixTCRviz <- function(input1, output.path,
-                      input2="", baseline.file="",
+                      input2=NULL, baseline.file=NULL,
                       use.allele=0, correct.gene.names=1, use.mouse.strain=0, check.cdr3.mode=1,
-                      renormVJ=1, N.min=10, output.stat=1, set.cdr3a.length="", set.cdr3b.length="",
+                      renormVJ=1, N.min=10, output.stat=1, set.cdr3a.length=NA, set.cdr3b.length=NA,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
-                      chain.list.output="AB", input1.name="Input", input2.name="", output.format="pdf"){
+                      chain.list.output="AB", input1.name="Input", input2.name=NULL, output.format="pdf"){
   
   
   #######
   # Choose some parameters
   #######
   
-  if(set.cdr3a.length != ""){
+  if(!is.na(set.cdr3a.length)){
     if(is.numeric(set.cdr3a.length)==F | set.cdr3a.length < Lmin | set.cdr3a.length > Lmax | set.cdr3a.length%%1 != 0){
       print(paste("Invalid value for set.cdr3a.length",". Default value will be used.", sep=""))
-      set.cdr3a.length=""
+      set.cdr3a.length=NA
     }
   }
-  if(set.cdr3b.length != ""){
+  if(!is.na(set.cdr3b.length)){
     if(is.numeric(set.cdr3b.length)==F | set.cdr3b.length < Lmin | set.cdr3b.length > Lmax | set.cdr3b.length%%1 != 0){
       print(paste("Invalid value for set.cdr3b.length=",set.cdr3b.length,". Default value will be used.", sep=""))
-      set.cdr3b.length=""
+      set.cdr3b.length=NA
     }
   }
   
@@ -147,8 +147,9 @@ MixTCRviz <- function(input1, output.path,
     chain.list <- c("TRA","TRB"); 
     set.cdr3.length <- c(set.cdr3a.length, set.cdr3b.length)
   } else { 
-    stop(paste("chain.list.output ", chain.list.output, " not supported by mixTCRviz", sep=""))
+    stop(paste("chain.list.output ", chain.list.output, " not supported by MixTCRviz", sep=""))
   }
+
   names(set.cdr3.length) <- chain.list
   
   col.TCR <- c(); segment.list <- c()
@@ -196,17 +197,27 @@ MixTCRviz <- function(input1, output.path,
   }
   es.name <- input1.name
   
-  if(is.character(input2)==T){  #Either empty, or a filename
-    if(input2 == ""){  #Compare to the baseline
-      if(input2.name == ""){ baseline.name <- "Baseline"}
-      comp.baseline <- 1
+  
+  if(is.null(input2)){
+    comp.baseline <- 1
+    if(is.null(input2.name)){
+      baseline.name <- "Baseline"
+    } else if(is.character(input2.name)){ 
+      baseline.name <- input2.name
     } else {
-      comp.baseline <- 0
-      if(input2.name == ""){ baseline.name <- "Input2"} else { baseline.name <- input2.name }
+      stop("Invalid value for input2.name. Should be a character or NULL")
     }
-  } else if(is.data.frame(input2)==T){
+  } else if(is.character(input2) | is.data.frame(input2)) {
     comp.baseline <- 0
-    if(input2.name == ""){ baseline.name <- "Input2"} else { baseline.name <- input2.name }
+    if(is.null(input2.name)){ 
+      baseline.name <- "Input2"
+    } else if(is.character(input2.name)){ 
+      baseline.name <- input2.name
+    } else {
+      stop("Invalid value for input2.name. Should be a character or NULL")
+    }
+  } else {
+    stop("Invalid format for input2. Should be a filename or a data.frame, or left empty")
   }
   
   ############################
@@ -214,9 +225,15 @@ MixTCRviz <- function(input1, output.path,
   ############################
   
   if(is.character(input1)==T){
-    es.all <- read.csv(input1)
+    if(file.exists(input1)){
+      es.all <- read.csv(input1)
+    } else {
+      stop("Missing file for input1")
+    }
   } else if(is.data.frame(input1)==T){
     es.all <- input1
+  } else {
+    stop("Invalid value for input1. Should be a .csv filename or a data.frame")
   }
   
 
@@ -231,7 +248,11 @@ MixTCRviz <- function(input1, output.path,
   
   if(comp.baseline==0){
     if(is.character(input2)==T){
-      es2.all <- read.csv(input2)
+      if(file.exists(input2)){
+        es2.all <- read.csv(input2)
+      } else {
+        stop("Missing file for input2")
+      }
     } else if (is.data.frame(input2)==T){
       es2.all <- input2
     }
@@ -342,7 +363,7 @@ MixTCRviz <- function(input1, output.path,
         # Load the baseline repertoire corresponding to the species
         #####
         
-        if(baseline.file==""){
+        if(is.null(baseline.file)){
           
           #These are the default repertoires.
           if(sp=="HomoSapiens"){
@@ -362,14 +383,18 @@ MixTCRviz <- function(input1, output.path,
             }
           }
         } else {
-          
-          st <- unlist(strsplit(baseline.file, split=".", fixed = T))
-          if(st[length(st)]=="rds"){
-            baseline <- readRDS(file=baseline.file)
-          } else if(st[length(st)]=="rda" | st[length(st)]=="rdata"){
-            load(baseline.file)
+          if(file.exists(baseline.file)){
+            st <- unlist(strsplit(baseline.file, split=".", fixed = T))
+            if(st[length(st)]=="rds"){
+              baseline <- readRDS(file=baseline.file)
+            } else if(st[length(st)]=="rda" | st[length(st)]=="rdata"){
+              load(baseline.file)
+            } else{
+              stop("Unsupported format for baseline.file. Should be .rds, .rda or .rdata")
+            }
+          } else {
+            stop("Missing baseline file")
           }
-          
         }
         
         L.baseline <- baseline$L

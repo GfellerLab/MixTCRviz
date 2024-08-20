@@ -2,8 +2,8 @@
 % Please edit documentation in R/MixTCRviz-package.R
 \docType{package}
 \name{MixTCRviz.package}
-\alias{MixTCRviz}
 \alias{MixTCRviz-package}
+\alias{MixTCRviz.package}
 \title{MixTCRviz: Visualize important properties of a set of TCRs}
 \description{
 What the package does (one paragraph).
