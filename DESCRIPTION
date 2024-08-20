@@ -24,5 +24,3 @@ Remotes:
     gfellerlab/ggseqlogo
 Depends: 
     R (>= 4.0.2)
-Suggests: 
-    ggpattern

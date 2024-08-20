@@ -386,27 +386,16 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
       scale_x_continuous(expand=expansion(mult=c(0, 0.05))) +
       # Make the x-axis isn't expanded on the left and is expanded as usual on
       # the right.
+      geom_col(aes(x=X, alpha=pattern),
+        position="dodge", width=ifelse(is.null(combined.resList), 0.9, 0.8),
+        linewidth=0.5, color="gray60", fill="gray80") +
+      scale_alpha_manual(values=0.7, guide=guide_legend(order=2)) +
       theme_minimal() +
       theme(plot.title = element_text(size = 14, hjust=0.5),
         axis.text=element_text(size=12), axis.title=element_text(size=14),
         panel.grid.major.y=element_blank(),
         axis.text.y=element_text(size=22, face="bold", color="black"),
         legend.position="top", legend.title=element_blank())
-    if (requireNamespace("ggpattern", quietly = TRUE)){
-      count.plot <- count.plot +
-        ggpattern::geom_col_pattern(aes(x=X, pattern=pattern), fill=NA,
-          pattern_angle=45, linewidth=0.5, position="dodge",
-          pattern_density=0.25, pattern_spacing=0.08,
-          pattern_color="gray40", color="gray80", pattern_fill="gray80",
-          width=ifelse(is.null(combined.resList), 0.9, 0.8),
-          pattern_key_scale_factor=0.4) +
-        ggpattern::scale_pattern_manual(values="stripe", guide=guide_legend(order=2))
-    } else {
-      count.plot <- count.plot + geom_col(aes(x=X, alpha=pattern),
-        position="dodge", width=ifelse(is.null(combined.resList), 0.9, 0.8),
-        linewidth=0.5, color="gray60", fill="gray80") +
-        scale_alpha_manual(values=0.7, guide=guide_legend(order=2))
-    }
   }
 
   return(count.plot)
