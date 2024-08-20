@@ -119,12 +119,7 @@ MixTCRviz <- function(input1, output.path,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
                       chain.list.output="AB", input1.name="Input", input2.name=NULL, output.format="pdf"){
   
-  if(is.null(input1)){
-    stop("Missing input 1")
-  }
-  if(is.null(output.path)){
-    stop("Missing output.path")
-  }
+
   #######
   # Choose some parameters
   #######
