@@ -51,7 +51,6 @@ There are different ways of "installing" MixTCRviz:
     then simply:<br />
     ` r` <br />
     `devtools::load_all()` <br />
-
     You can reuse this command everytime changes are made to the code so that
     the updates are directly available in the R environment. (You need to reuse
     this load_all in every new R session to use this in dev code instead of the
