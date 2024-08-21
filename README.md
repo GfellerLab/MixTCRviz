@@ -61,11 +61,11 @@ There are different ways of "installing" MixTCRviz:
 
 You may be prompted to install several packages.
 
-Testing the INSTALLATION:
+### Testing the INSTALLATION:
 
 In the MixTCRviz directory run:
 
-Rscript test_MixTCRviz.R
+`Rscript test_MixTCRviz.R`
 
 Alternatively, you can run the code test_MixTCRviz.R in Rstudio (or any R interface)
 
@@ -81,11 +81,9 @@ parameters (e.g., MixTCRviz::MixTCRviz(input1=input, output.path=output)).
 version from above or if you used library(MixTCRviz)).
 
 
-Input parameters of MixTCRviz:
-
 ## Mandatory parameters:
 
-- input1 csv files or data.frame with the input TCRs. Columns should
+- input1: .csv files or data.frame with the input TCRs. Columns should
    ideally include: TRAV, TRAJ, cdr3_TRA, TRBV, TRBJ, cdr3_TRB, model, species
    * The "TRAV", "TRAJ", "TRBV", "TRBJ" should follow the IMGT nomenclature, with or without allele (see below for potential name correction).
    If a column is missing, empty values will be used.
@@ -97,7 +95,7 @@ Input parameters of MixTCRviz:
    * The "species" column indicates the species of the TCR (e.g., NOT the source organism of the epitope). It should be "HomoSapiens" or "MusMusculus"
    If missing, all TCRs will be considered as coming from the same species, which can be specified in the MixTCRviz function (species.default, default value is HomoSapiens).
 
-- output.path name of the output directory (if not already existing, it
+- output.path: name of the output directory (if not already existing, it
    will be created). If existing the files with the same name will be overwritten.
 
 ## Optional parameters:
@@ -110,15 +108,15 @@ Input parameters of MixTCRviz:
    If input2 is provided, the comparisons is performed with this second input, and not the baseline
    repertoire.
 
-- baseline.file (default=NULL) .rda file containing information about
+- baseline.file (default=NULL): .rda file containing information about
    baseline repertoire. If empty, the default baseline repertoires are used.
 
-- use.allele (default=0)
+- use.allele (default=0):
     * 0: All V/J alleles are merged at the gene level (recommended).
     * 1: Alleles are kept, including mouse TRAV genes from different strains.
    Currently, use.allele is fixed to 0 for mouse TCRs.
 
-- use.mouse.strain (default=0)
+- use.mouse.strain (default=0):
     * 0: Merge the different TRAV genes corresponding to different mouse strains (e.g., TRAV10D, TRAVN10 and TRAV10 become all TRAV10).
    This is recommended since differences between input TCRs and baseline TCRs
    may result from the use of different mouse strains, and not be related to
@@ -127,40 +125,40 @@ Input parameters of MixTCRviz:
    enrichment in one of them versus the baseline.
     * 1: The different TRAV segments (e.g., TRAV10D, TRAVN10 and TRAV10) are treated separately.
 
-- renormVJ (default=1)
+- renormVJ (default=1):
     * 0: Compare CDR3 length distribution and motif with those from the baseline repertoire or input2
     * 1: Compare CDR3 length distribution and motif with those from the baseline repertoire or input2 with the V-J
    usage observed in the input TCRs. In the plots the mark " | VJ" is used to
    indicate that CDR3 length distributions and motifs correspond to those
    expected with the V-J usage in the input TCRs.
 
-- species.default (default="HomoSapiens"). Option to provide the species for all the TCR in input.
+- species.default (default="HomoSapiens"): Option to provide the species for all the TCR in input.
    This is useful if your input does not contain a "species" column.
    In case the input contains the "species" column, species.default is not considered.
    Should be either "HomoSapiens" or "MusMusculus"
 
-- model.default (default="Model_default") Option to provide the model for all the TCR in input, which is also used as the name of the output files.
+- model.default (default="Model_default"): Option to provide the model for all the TCR in input, which is also used as the name of the output files.
    This is useful if your input does not contain a "model" column.
    In case the input contains the "model" column, model.default is not considered.
 
-- set.cdr3a.length (default=NA) Length for the CDR3a motif to be shown in the main plot.
+- set.cdr3a.length (default=NA): Length for the CDR3a motif to be shown in the main plot.
    By default the value corresponding to the most frequent CDR3a length in input1 (and also present in input2 if input2 is given) is chosen.
 
-- set.cdr3b.length (default=NA) Length for the CDR3b motif to be shown in the main plot.
+- set.cdr3b.length (default=NA): Length for the CDR3b motif to be shown in the main plot.
    By default the value corresponding to the most frequent CDR3b length in input1 (and also present in input2 if input2 is given) is chosen.
 
-- N.min (default=10) Minimum number of TCR (i.e., V-J-CDR3) for at least
+- N.min (default=10): Minimum number of TCR (i.e., V-J-CDR3) for at least
    one chain. This number is computed after cleaning the data.
 
-- output.stat (default=1) Create a stat/ folder with .rds objects summarizing the raw statistics for each model.
+- output.stat (default=1): Create a stat/ folder with .rds objects summarizing the raw statistics for each model.
    Create also a processed_data/ folder with the data for each model after the different processing
    (e.g., removing alleles, correcting V/J names, removing inconsistent CDR3, etc.)
 
-- correct.gene.names (default=1)
+- correct.gene.names (default=1):
     * 0: Do not attempt to correct V/J gene names. Put to NA genes not in IMGT.
     * 1: Attempt to correct V/J gene names not in IMGT based on our internal dictionary. Put to NA genes that could not be corrected
 
-- check.cdr3.mode (default=1)
+- check.cdr3.mode (default=1):
     * 0: Keep all CDR3 without any correction.
     * 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment;
         Remove J and CDR3 when the last two amino acids are not compatible with the J segments.
@@ -170,33 +168,33 @@ Input parameters of MixTCRviz:
             1: several PCR / sequencing / TCR reconstruction errors are removed, but only based on the first and last amino acids in CDR3.
             2: most PCR / sequencing / TCR reconstruction errors are removed.
 
-- verbose (default=1)
+- verbose (default=1):
     * 0: Do not write any QC in the output
     * 1: Write max 10 examples of putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
     * 2: Write all the putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
 
-- plot (default=1)
+- plot (default=1):
     * 0: only create .rds object with the statistics
     * 1: Plot the data in output.path/plots/ and create .rds object with the statistics for each model in output.path/stats/.
 
-- plot.cdr12.motif (default=0)
+- plot.cdr12.motif (default=0):
     * 0: Only show motifs for CDR3.
     * 1: Include sequence motifs for CDR1 and CDR2. With this choice, plot.oneline is set to 0.
 
-- plot.oneline (default=0)
+- plot.oneline (default=0):
     * 0: Show the data on two lines (better for clarity).
     * 1: Show all plots in a single line (can be useful to compare different models).
 
-- plot.logo.length (default=0)
+- plot.logo.length (default=0):
     * 0: Show only the CDR3 motifs for the most frequent CDR3 length.
     * 1: Show in a separate plot the V usage, J usage and CDR3 motifs for all CDR3 length, for both alpha and beta chains.
 
-- plot.cdr3.norm (default=0)
+- plot.cdr3.norm (default=0):
     * 0: Show the CDR3 motifs of the baseline repertoire.
     * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
     * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
 
-- chain.list.output (default="AB")
+- chain.list.output (default="AB"):
     * A: Only the alpha chain is plotted in output;
     * B: only the beta chain is plotted in output;
     * AB both chains are plotted in output
@@ -238,7 +236,7 @@ In case of inconsistencies, both the J and the CDR3 sequence are put to NA.
 * As with all motif visualisation tools, limited numbers of TCRs have a big impact on the interpretation of the results.
 Therefore, it is hilghly recommanded to use sets of TCRs with enough sequences to be able to interpret frequencies
 
-** When comparing to baseline TCR repertoire, we encourage to use renormVJ=1,
+* When comparing to baseline TCR repertoire, we encourage to use renormVJ=1,
 so that the comparisons of CDR3 length distributions and motifs are not biased by the V/J usage in the input TCRs.
 With renormVJ=1, the baseline CDR3 length distributions and motifs will be different for different inputs/models.
 With renormVJ=0, some of the differences between the model-specific and the baseline CDR3 length distributions and motifs
@@ -258,7 +256,7 @@ In case you are using the same model (e.g.,MHC_peptide) with both human and mous
 
 * When chosing plot.logo.length=1, the baseline/reference V and J usage (x-axis) correspond to those of TCRs with the given lengths. Hence the exact values change for different lengths.
 
-* When usinge use.allele=1, it is important to realize that presence/absence of specific alleles in a given sample also reflects the genetic background of the donor.
+* When using use.allele=1, it is important to realize that presence/absence of specific alleles in a given sample also reflects the genetic background of the donor.
 For these reasons, some alleles may appear to be enriched in the input TCRs versus default baseline repertoires, but this enrichment may not be linked to any signal of specificity (e.g., epitope specificity).
 In addition, determining the correct allele from TCR-Seq data can be challenging, and sequencing errors can easily result in wrong allele calls.
 We therefore recommend analyzing data at the gene level (use.allele=0) to avoid confounding factors related to genetic background/TCR reconstruction issues.
