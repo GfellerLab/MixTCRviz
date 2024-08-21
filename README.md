@@ -6,9 +6,9 @@ MixTCRviz can be used freely by academic groups for non-commercial purposes (see
 The product is provided free of charge, and, therefore, on an "as is"
 basis, without warranty of any kind.
 
-### FOR-PROFIT USERS
+**FOR-PROFIT USERS**
 If you plan to use MixTCRviz or any data provided with the script in any for-profit
-application, you are required to obtain a separate  license.
+application, you are required to obtain a separate license.
 To do so, please contact Nadette Bulgin (nbulgin@lcr.org) at the Ludwig Institute for Cancer Research Ltd.
 
 For scientific questions, please contact David Gfeller (David.Gfeller@unil.ch)
@@ -33,24 +33,24 @@ TCR binding motifs enable users to rapidly understand what is the basis of speci
 There are different ways of "installing" MixTCRviz:
   1) It can be directly installed from the GitHub page (you need to have
     credentials correctly set so that Rstudio can access the private repository):<br />
-    ``` r``` <br />
-    # install.packages("devtools") # Only needed if you don't already have devtools``` <br />
-    ```devtools::install_github("GfellerLab/MixTCRviz")``` <br />
+    ` r` <br />
+    `# install.packages("devtools") # Only needed if you don't already have devtools` <br />
+    `devtools::install_github("GfellerLab/MixTCRviz")` <br />
 
   2) You can download the MixTCRviz directory from the GitHub page and then open
     Rstudio setting its working directory as MixTCRviz folder. Then you can
     compile it and install it:<br />
-    ``` r``` <br />
-    ```devtools::build()``` <br />
-    ```install.packages("../MixTCRviz_0.0.1.tar.gz", repos=NULL)``` <br />
+    ` r` <br />
+    `devtools::build()` <br />
+    `install.packages("../MixTCRviz_0.0.1.tar.gz", repos=NULL)` <br />
 
 
   3) If you don't need to use it through Rscript and are in process of developing
     the package, it would be tiring to always build it, install it, reload it,
     etc. Instead, you can set the working directory to the MixTCRviz folder and
     then simply:<br />
-    ``` r``` <br />
-    ```devtools::load_all()``` <br />
+    ` r` <br />
+    `devtools::load_all()` <br />
 
     You can reuse this command everytime changes are made to the code so that
     the updates are directly available in the R environment. (You need to reuse
