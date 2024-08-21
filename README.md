@@ -263,7 +263,7 @@ We therefore recommend analyzing data at the gene level (use.allele=0) to avoid 
 Alternatively, the baseline TCR repertoire can also be sequenced in each patient, and used as input for MixTCRviz (baseline.file parameter).
 
 * The .rds objects in the output.path/stats/ directory contain a summary of the statistics for each model for each chain.
-This is provided as a list with the following entries:
+This is provided as a list with the following elements:
 - "L": list of CDR3 length
 - "countL": Number of TCRs for each CDR3 length
 - "countV": Number of TCRs with each V segment
