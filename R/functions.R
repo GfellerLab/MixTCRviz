@@ -647,6 +647,7 @@ clean_input <- function(input, use.allele=0, correct.gene.names=1, use.mouse.str
   }
   if(correct.gene.names==0){
     for(sp in sp.list){
+      
       if(use.species.default==0){
         ind.sp <- which(input[,"species"]==sp)
       } else {
