@@ -149,6 +149,9 @@ usethis::use_data(gene.allele.list, gene.list, allele.default,
   chain.small, gap, Lmin, Lmax, species.list, TCRgene2color,
   overwrite=T, internal=T)
 
+usethis::use_data(gene.allele.list, gene.list, allele.default,
+  merge.mouse.TRAV, map, cdr123, Jseq, overwrite=T, internal=F)
+
 # usethis::use_data(gene.allele.list, gene.list, allele.default,
 #   merge.mouse.TRAV, map, cdr123, Jseq, th, yl, aa, aa.list, N.aa,
 #   chain.small, gap, Lmin, Lmax, species.list, overwrite=F, internal=F)

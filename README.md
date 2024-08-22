@@ -1,62 +1,56 @@
 
-###############
-# MixTCRviz is a tool to visualize important properties of a set of TCRs (e.g., epitope-specific TCRs).
-#
-# MixTCRviz can be used freely by academic groups for non-commercial purposes (see license).
-# The product is provided free of charge, and, therefore, on an "as is"
-#  basis, without warranty of any kind.
-#
-# FOR-PROFIT USERS
-# If you plan to use MixTCRviz or any data provided with the script in any for-profit
-# application, you are required to obtain a separate  license.
-# To do so, please contact Nadette Bulgin (nbulgin@lcr.org) at the Ludwig Institute for Cancer Research Ltd.
-#
-# If you use MixTCRviz in a publication, please cite:
-# xxx
-#
-# For scientific questions, please contact David Gfeller (David.Gfeller@unil.ch)
-#
-# Copyright (2024) David Gfeller
-###############
+# MixTCRviz
+R package to visualize TCR binding motifs.
+
+MixTCRviz can be used freely by academic groups for non-commercial purposes (see license).
+The product is provided free of charge, and, therefore, on an "as is"
+basis, without warranty of any kind.
+
+**FOR-PROFIT USERS**
+If you plan to use MixTCRviz or any data provided with the script in any for-profit
+application, you are required to obtain a separate license.
+To do so, please contact Nadette Bulgin (nbulgin@lcr.org) at the Ludwig Institute for Cancer Research Ltd.
+
+For scientific questions, please contact David Gfeller (David.Gfeller@unil.ch)
+
+Copyright (2024) David Gfeller
+
+*STILL CONFIDENTIAL - DO NOT SHARE OUTSIDE OF THE GFELLER LAB*
 
 
-############
-INTRODUCTION
-############
 
-MixTCRviz is a tool to visualize important properties of a set of TCRs (e.g., epitope-specific TCRs).
-It focuses on V usage, J usage, CDR3 length distribution and CDR3 motifs, for both alpha and beta chain.
+# INTRODUCTION
 
-By default, properties of the input TCRs are compared to those of a "baseline" TCR repertoire (mouse or human).
-Alternatively, users can choose to compare with another set of TCRs ("reference").
+MixTCRviz is a tool to visualize important properties of a set of TCRs (e.g., epitope-specific TCRs). It focuses on V usage, J usage, CDR3 length distribution and CDR3 motifs, for both the alpha and the beta chains. These define the so-called TCR-binding motifs.
 
-############
-INSTALLATION
-############
+By default, properties of the input TCRs are compared to those of a "baseline" TCR repertoire (mouse or human). Alternatively, users can choose to compare with another set of TCRs ("reference").
+
+TCR binding motifs enable users to rapidly visualize and understand what are the key determinants of specificity within a set of TCRs, such as those binding to a given epitope.
+
+
+# INSTALLATION
 
 There are different ways of "installing" MixTCRviz:
   1) It can be directly installed from the GitHub page (you need to have
-    credentials correctly set so that Rstudio can access the private repository):
-    ``` r
-    # install.packages("devtools") # Only needed if you don't already have devtools
-    devtools::install_github("GfellerLab/MixTCRviz")
-    ```
+    credentials correctly set so that Rstudio can access the private repository):<br />
+    ` r` <br />
+    `# install.packages("devtools") # Only needed if you don't already have devtools` <br />
+    `devtools::install_github("GfellerLab/MixTCRviz")` <br />
+
   2) You can download the MixTCRviz directory from the GitHub page and then open
     Rstudio setting its working directory as MixTCRviz folder. Then you can
-    compile it and install it:
-    ``` r
-    devtools::build()
-    install.packages("../MixTCRviz_0.0.1.tar.gz", repos=NULL)
-    ```
+    compile it and install it:<br />
+    ` r` <br />
+    `devtools::build()` <br />
+    `install.packages("../MixTCRviz_0.0.1.tar.gz", repos=NULL)` <br />
+
 
   3) If you don't need to use it through Rscript and are in process of developing
     the package, it would be tiring to always build it, install it, reload it,
     etc. Instead, you can set the working directory to the MixTCRviz folder and
-    then simply:
-    ``` r
-    devtools::load_all()
-    # Could also give the path to MixTCRviz folder if not in the working directory
-    ```
+    then simply:<br />
+    ` r` <br />
+    `devtools::load_all()` <br />
     You can reuse this command everytime changes are made to the code so that
     the updates are directly available in the R environment. (You need to reuse
     this load_all in every new R session to use this in dev code instead of the
@@ -67,19 +61,18 @@ There are different ways of "installing" MixTCRviz:
 
 You may be prompted to install several packages.
 
-Testing the INSTALLATION:
+### Testing the INSTALLATION:
 
 In the MixTCRviz directory run:
 
-Rscript test_MixTCRviz.R
+`Rscript test_MixTCRviz.R`
 
 Alternatively, you can run the code test_MixTCRviz.R in Rstudio (or any R interface)
 
 The output in test/out should be the same as in test/out_compare
 
-############
-RUNNING
-############
+# RUNNING
+
 
 MixTCRviz should be primarily run in R, by calling the MixTCRviz function. To
 this end, in R, you need to call the MixTCRviz function with the mandatory
@@ -88,11 +81,9 @@ parameters (e.g., MixTCRviz::MixTCRviz(input1=input, output.path=output)).
 version from above or if you used library(MixTCRviz)).
 
 
-Input parameters of MixTCRviz:
+## Mandatory parameters:
 
-Mandatory parameters:
-
-- input1 csv files or data.frame with the input TCRs. Columns should
+- input1: .csv files or data.frame with the input TCRs. Columns should
    ideally include: TRAV, TRAJ, cdr3_TRA, TRBV, TRBJ, cdr3_TRB, model, species
    * The "TRAV", "TRAJ", "TRBV", "TRBJ" should follow the IMGT nomenclature, with or without allele (see below for potential name correction).
    If a column is missing, empty values will be used.
@@ -104,10 +95,12 @@ Mandatory parameters:
    * The "species" column indicates the species of the TCR (e.g., NOT the source organism of the epitope). It should be "HomoSapiens" or "MusMusculus"
    If missing, all TCRs will be considered as coming from the same species, which can be specified in the MixTCRviz function (species.default, default value is HomoSapiens).
 
-- output.path name of the output directory (if not already existing, it
+- output.path: name of the output directory (if not already existing, it
    will be created). If existing the files with the same name will be overwritten.
 
-- input2 (default=""): csv file or data.frame containing the second set of
+## Optional parameters:
+
+- input2 (default=NULL): csv file or data.frame containing the second set of
    TCRs to be used in comparisons. Same format as input1.
    In particular, the set of models in the "model" field need to be the same as in input1
    so that comparisons are performed for each model separately.
@@ -115,17 +108,15 @@ Mandatory parameters:
    If input2 is provided, the comparisons is performed with this second input, and not the baseline
    repertoire.
 
-- baseline.file (default="") .rda file containing information about
+- baseline.file (default=NULL): .rda file containing information about
    baseline repertoire. If empty, the default baseline repertoires are used.
 
-Optional parameters:
-
-- use.allele (default=0)
+- use.allele (default=0):
     * 0: All V/J alleles are merged at the gene level (recommended).
     * 1: Alleles are kept, including mouse TRAV genes from different strains.
    Currently, use.allele is fixed to 0 for mouse TCRs.
 
-- use.mouse.strain (default=0)
+- use.mouse.strain (default=0):
     * 0: Merge the different TRAV genes corresponding to different mouse strains (e.g., TRAV10D, TRAVN10 and TRAV10 become all TRAV10).
    This is recommended since differences between input TCRs and baseline TCRs
    may result from the use of different mouse strains, and not be related to
@@ -134,40 +125,40 @@ Optional parameters:
    enrichment in one of them versus the baseline.
     * 1: The different TRAV segments (e.g., TRAV10D, TRAVN10 and TRAV10) are treated separately.
 
-- renormVJ (default=1)
+- renormVJ (default=1):
     * 0: Compare CDR3 length distribution and motif with those from the baseline repertoire or input2
     * 1: Compare CDR3 length distribution and motif with those from the baseline repertoire or input2 with the V-J
    usage observed in the input TCRs. In the plots the mark " | VJ" is used to
    indicate that CDR3 length distributions and motifs correspond to those
    expected with the V-J usage in the input TCRs.
 
-- species.default (default="HomoSapiens"). Option to provide the species for all the TCR in input.
+- species.default (default="HomoSapiens"): Option to provide the species for all the TCR in input.
    This is useful if your input does not contain a "species" column.
    In case the input contains the "species" column, species.default is not considered.
    Should be either "HomoSapiens" or "MusMusculus"
 
-- model.default (default="Model_default") Option to provide the model for all the TCR in input, which is also used as the name of the output files.
+- model.default (default="Model_default"): Option to provide the model for all the TCR in input, which is also used as the name of the output files.
    This is useful if your input does not contain a "model" column.
    In case the input contains the "model" column, model.default is not considered.
 
-- set.cdr3a.length (default="") Length for the CDR3a motif to be shown in the main plot.
+- set.cdr3a.length (default=NA): Length for the CDR3a motif to be shown in the main plot.
    By default the value corresponding to the most frequent CDR3a length in input1 (and also present in input2 if input2 is given) is chosen.
 
-- set.cdr3b.length (default="") Length for the CDR3b motif to be shown in the main plot.
+- set.cdr3b.length (default=NA): Length for the CDR3b motif to be shown in the main plot.
    By default the value corresponding to the most frequent CDR3b length in input1 (and also present in input2 if input2 is given) is chosen.
 
-- N.min (default=10) Minimum number of TCR (i.e., V-J-CDR3) for at least
+- N.min (default=10): Minimum number of TCR (i.e., V-J-CDR3) for at least
    one chain. This number is computed after cleaning the data.
 
-- output.stat (default=1) Create a stat/ folder with .rds objects summarizing the raw statistics for each model.
+- output.stat (default=1): Create a stat/ folder with .rds objects summarizing the raw statistics for each model.
    Create also a processed_data/ folder with the data for each model after the different processing
    (e.g., removing alleles, correcting V/J names, removing inconsistent CDR3, etc.)
 
-- correct.gene.names (default=1)
+- correct.gene.names (default=1):
     * 0: Do not attempt to correct V/J gene names. Put to NA genes not in IMGT.
     * 1: Attempt to correct V/J gene names not in IMGT based on our internal dictionary. Put to NA genes that could not be corrected
 
-- check.cdr3.mode (default=1)
+- check.cdr3.mode (default=1):
     * 0: Keep all CDR3 without any correction.
     * 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment;
         Remove J and CDR3 when the last two amino acids are not compatible with the J segments.
@@ -177,33 +168,33 @@ Optional parameters:
             1: several PCR / sequencing / TCR reconstruction errors are removed, but only based on the first and last amino acids in CDR3.
             2: most PCR / sequencing / TCR reconstruction errors are removed.
 
-- verbose (default=1)
+- verbose (default=1):
     * 0: Do not write any QC in the output
     * 1: Write max 10 examples of putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
     * 2: Write all the putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
 
-- plot (default=1)
+- plot (default=1):
     * 0: only create .rds object with the statistics
     * 1: Plot the data in output.path/plots/ and create .rds object with the statistics for each model in output.path/stats/.
 
-- plot.cdr12.motif (default=0)
+- plot.cdr12.motif (default=0):
     * 0: Only show motifs for CDR3.
     * 1: Include sequence motifs for CDR1 and CDR2. With this choice, plot.oneline is set to 0.
 
-- plot.oneline (default=0)
+- plot.oneline (default=0):
     * 0: Show the data on two lines (better for clarity).
     * 1: Show all plots in a single line (can be useful to compare different models).
 
-- plot.logo.length (default=0)
+- plot.logo.length (default=0):
     * 0: Show only the CDR3 motifs for the most frequent CDR3 length.
     * 1: Show in a separate plot the V usage, J usage and CDR3 motifs for all CDR3 length, for both alpha and beta chains.
 
-- plot.cdr3.norm (default=0)
+- plot.cdr3.norm (default=0):
     * 0: Show the CDR3 motifs of the baseline repertoire.
     * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
     * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
 
-- chain.list.output (default="AB")
+- chain.list.output (default="AB"):
     * A: Only the alpha chain is plotted in output;
     * B: only the beta chain is plotted in output;
     * AB both chains are plotted in output
@@ -215,68 +206,64 @@ Optional parameters:
    the input TCRs in the plots (e.g., Epitope Specific). Avoid names with more
    than 20 characters
 
-- input2.name (default="Input2"): If a second set of TCRs is provided
-   (i.e., input2 != ""), Provide a generic name for the input2 TCRs in the
+- input2.name (default="NULL"): If a second set of TCRs is provided
+   (i.e., input2 != NULL), Provide a generic name for the input2 TCRs in the
    plots. Avoid names with more than 20 characters.
 
 
-#############
-OUTPUT
-#############
+# OUTPUT
+
 
 MixTCRviz creates a directory (output.path). The output.path/plots/ directory contains the plots for each model.
 The output.path/stats/ contains .rds objects summarizing the data for each model.
 If plot.logo.length==1, the output.path/plots/CDR3_length/ directory shows the V/J usage and CDR3 motifs for multiple lengths for both chains.
 
 
-#############
-OTHER INFORMATION
-#############
 
-** V/J genes are key to the TCR binding motifs of MixTCRviz and only V/J names compatible with the IMGT nomenclature can be considered.
+# OTHER INFORMATION
+
+* V/J genes are key to the TCR binding motifs of MixTCRviz and only V/J names compatible with the IMGT nomenclature can be considered.
 If correct.gene.names==1, we will attempt to correct as many V/J gene names
 Cases which could not be corrected are put to NA, and not considered in any statistics.
 
-** PCR / Sequencing / TCR reconstruction errors frequently occur when analysing TCR-Seq data. Different stringencies are offered in MixTCRviz.
+* PCR / Sequencing / TCR reconstruction errors frequently occur when analysing TCR-Seq data. Different stringencies are offered in MixTCRviz.
 If check.cdr3.mode = 0, no filtering is performed.
 If check.cdr3.mode = 1, the first amino acid of the CDR3 is compared to the one expecte based on the V gene.
 In case of inconsistencies, both the V and the CDR3 sequence are put to NA.
 Similarly, the last two amino acids of the CDR3 are compared wiht those expeted based on the J genes.
 In case of inconsistencies, both the J and the CDR3 sequence are put to NA.
 
+* As with all motif visualisation tools, limited numbers of TCRs have a big impact on the interpretation of the results.
+Therefore, it is hilghly recommanded to use sets of TCRs with enough sequences to be able to interpret frequencies
 
-** As with all motif visualisation tools, limited numbers of TCRs have a big impact on the interpretation of the results.
-Therefore, it is hilghly recommanded to not interpret
-
-** When comparing to baseline TCR repertoire, we encourage to use renormVJ=1,
+* When comparing to baseline TCR repertoire, we encourage to use renormVJ=1,
 so that the comparisons of CDR3 length distributions and motifs are not biased by the V/J usage in the input TCRs.
 With renormVJ=1, the baseline CDR3 length distributions and motifs will be different for different inputs/models.
 With renormVJ=0, some of the differences between the model-specific and the baseline CDR3 length distributions and motifs
 will be redundant with the differences observed in V/J usage.
 
-** For a given model, MixTCRviz requires at least 10 TCR (V-J-CDR3) for at least one chain. Missing data (e.g., only one chain) will result in empty plots.
+* For a given model, MixTCRviz requires at least 10 TCR (V-J-CDR3) for at least one chain. Missing data (e.g., only one chain) will result in empty plots.
 
-** By default, the minimum number of sequences (i.e. V-J-CDR3) for at least one chain is 10.
+* By default, the minimum number of sequences (i.e. V-J-CDR3) for at least one chain is 10.
 Using less data is possible by changing the N.min parameter. However the plots of MixTCRviz will no longer be much meaningful with too little data to perform meanigful statistics.
 
-** Although we have compiled several frequent issues with V/J gene names, as well as a way to correct some of them,
+* Although we have compiled several frequent issues with V/J gene names, as well as a way to correct some of them,
 we strongly recommend using V/J genes from IMGT. If other V/J gene names are used, it is likely that several entries will not be considered by MixTCRviz.
 
-** The information about the species is important to choose an appropriate baseline.
+* The information about the species is important to choose an appropriate baseline.
 In case you are using the same model (e.g.,MHC_peptide) with both human and mouse TCRs, we recommend distinguishing both cases in the model column
 (e.g., A0201_LLWNGPMAV_HomoSapiens and A0201_LLWNGPMAV_MusMusculus) and indicating the species in the appropriate column.
 
-** When chosing plot.logo.length=1, the baseline/reference V and J usage (x-axis) correspond to those of TCRs with the given lengths.
-Hence the exact values change for different lengths.
+* When chosing plot.logo.length=1, the baseline/reference V and J usage (x-axis) correspond to those of TCRs with the given lengths. Hence the exact values change for different lengths.
 
-** When usinge use.allele=1, it is important to realize that presence/absence of specific alleles in a given sample also reflects the genetic background of the donor.
+* When using use.allele=1, it is important to realize that presence/absence of specific alleles in a given sample also reflects the genetic background of the donor.
 For these reasons, some alleles may appear to be enriched in the input TCRs versus default baseline repertoires, but this enrichment may not be linked to any signal of specificity (e.g., epitope specificity).
 In addition, determining the correct allele from TCR-Seq data can be challenging, and sequencing errors can easily result in wrong allele calls.
 We therefore recommend analyzing data at the gene level (use.allele=0) to avoid confounding factors related to genetic background/TCR reconstruction issues.
 Alternatively, the baseline TCR repertoire can also be sequenced in each patient, and used as input for MixTCRviz (baseline.file parameter).
 
-** The .rds objects in the output.path/stats/ directory contain a summary of the statistics for each model for each chain.
-This is provided as a list with the following entries:
+* The .rds objects in the output.path/stats/ directory contain a summary of the statistics for each model for each chain.
+This is provided as a list with the following elements:
 - "L": list of CDR3 length
 - "countL": Number of TCRs for each CDR3 length
 - "countV": Number of TCRs with each V segment
