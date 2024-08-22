@@ -193,6 +193,19 @@ version from above or if you used library(MixTCRviz)).
     * 0: Show the CDR3 motifs of the baseline repertoire.
     * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
     * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
+    
+- plot.VJ.switch (default=1)
+    * 1: Show the VJ usage as a scatter plot.
+    * 1.2: Show the VJ usage as a scatter plot with the points colored based
+        on the TCR gene.
+    * 2: Show the VJ usage as a bar plot.
+
+- plot.modelsCombined (default=FALSE)
+    * FALSE or empty string: Show the data for each model separately.
+    * TRUE or a string: Show the data for all models combined in a single
+        figure (based on the format plot.VJ.switch=2). When given as a
+        logical, the default name "modCombined" is used. Otherwise, the string
+        is used for the resulting figure filename.
 
 - chain.list.output (default="AB"):
     * A: Only the alpha chain is plotted in output;
