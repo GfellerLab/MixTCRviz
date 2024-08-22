@@ -96,13 +96,15 @@
 #'    * 0: Show the CDR3 motifs of the baseline repertoire.
 #'    * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
 #'    * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
-#' @param plot.VJ.as.bars (default=FALSE)
-#'    * FALSE: Show the VJ usage as a scatter plot.
-#'    * TRUE: Show the VJ usage as a bar plot.
+#' @param plot.VJ.switch (default=1)
+#'    * 1: Show the VJ usage as a scatter plot.
+#'    * 1.2: Show the VJ usage as a scatter plot with the points colored based
+#'        on the TCR gene.
+#'    * 2: Show the VJ usage as a bar plot.
 #' @param plot.modelsCombined (default=FALSE)
 #'    * FALSE or empty string: Show the data for each model separately.
 #'    * TRUE or a string: Show the data for all models combined in a single
-#'        figure (based on the format plot.VJ.as.bars=TRUE). When given as a
+#'        figure (based on the format plot.VJ.switch=2). When given as a
 #'        logical, the default name "modCombined" is used. Otherwise, the string
 #'        is used for the resulting figure filename.
 #' @param chain.list.output (default="AB")
@@ -126,14 +128,14 @@ MixTCRviz <- function(input1, output.path,
                       renormVJ=1, N.min=10, output.stat=1, set.cdr3a.length=NA, set.cdr3b.length=NA,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
-                      plot.VJ.as.bars=FALSE, plot.modelsCombined=FALSE,
+                      plot.VJ.switch=1, plot.modelsCombined=FALSE,
                       chain.list.output="AB", input1.name="Input", input2.name=NULL, output.format="pdf"){
-  
+
 
   #######
   # Choose some parameters
   #######
-  
+
   if(!is.na(set.cdr3a.length)){
     if(is.numeric(set.cdr3a.length)==F | set.cdr3a.length < Lmin | set.cdr3a.length > Lmax | set.cdr3a.length%%1 != 0){
       print(paste("Invalid value for set.cdr3a.length",". Default value will be used.", sep=""))
@@ -156,7 +158,7 @@ MixTCRviz <- function(input1, output.path,
   } else if(chain.list.output=="AB"){
     chain.list <- c("TRA","TRB");
     set.cdr3.length <- c(set.cdr3a.length, set.cdr3b.length)
-  } else { 
+  } else {
     stop(paste("chain.list.output ", chain.list.output, " not supported by MixTCRviz", sep=""))
   }
 
@@ -184,6 +186,10 @@ MixTCRviz <- function(input1, output.path,
     print(paste("plot.oneline=",plot.oneline," not supported, using default plot.oneline=0", sep=""))
     plot.oneline <- 0
   }
+  if (!plot.VJ.switch %in% c(1, 1.2, 2)){
+    stop("plot.VJ.switch=", plot.VJ.switch, " not supported, should use ",
+      "one of 1, 1.2 or 2.")
+  }
 
   modelsCombinded_name <- "modCombined"
   if (is.character(plot.modelsCombined)){
@@ -194,11 +200,11 @@ MixTCRviz <- function(input1, output.path,
       plot.modelsCombined <- T
     }
   }
-  if (plot.modelsCombined && !plot.VJ.as.bars){
-    warning("plot.modelsCombined is set to TRUE, and plot.VJ.as.bars was FALSE.",
-      "Setting plot.VJ.as.bars to TRUE as other VJ plot format is not available",
+  if (plot.modelsCombined && !(plot.VJ.switch %in% c(2))){
+    warning("plot.modelsCombined is set to TRUE, and plot.VJ.switch wasn't '2'.",
+      "Setting plot.VJ.switch=2 as other VJ plot format is not available",
       "when combining results from all models in a single plot.")
-    plot.VJ.as.bars <- TRUE
+    plot.VJ.switch <- 2
   }
 
   keep.gap.pwm <- 0 # 1: means that 'g' (gaps in CDR1/2) are treated as an additional aa in the logos. 0: means that 'g' are treated as unspecific (i.e., 0.05) in the logos
@@ -221,21 +227,21 @@ MixTCRviz <- function(input1, output.path,
     dir.create(output.path, recursive = TRUE);
   }
 
-  
+
   if(is.null(input2)){
     comp.baseline <- 1
     if(is.null(input2.name)){
       baseline.name <- "Baseline"
-    } else if(is.character(input2.name)){ 
+    } else if(is.character(input2.name)){
       baseline.name <- input2.name
     } else {
       stop("Invalid value for input2.name. Should be a character or NULL")
     }
   } else if(is.character(input2) | is.data.frame(input2)) {
     comp.baseline <- 0
-    if(is.null(input2.name)){ 
+    if(is.null(input2.name)){
       baseline.name <- "Input2"
-    } else if(is.character(input2.name)){ 
+    } else if(is.character(input2.name)){
       baseline.name <- input2.name
     } else {
       stop("Invalid value for input2.name. Should be a character or NULL")
@@ -265,7 +271,7 @@ MixTCRviz <- function(input1, output.path,
   print("Check input1")
   input1 <- check_input(input1, chain.list.output, "input1", species.default, model.default)
   input1 <- clean_input(input1, use.allele, correct.gene.names, use.mouse.strain, chain.list.output, species.default, check.cdr3.mode, verbose)
-  
+
   #############
   # Load input2
   #############
@@ -336,7 +342,7 @@ MixTCRviz <- function(input1, output.path,
     ######
     # Select the input models with enough data
     ######
-    
+
     input1.es <- input1[which(input1[,"model"]==model),]
     sp <- unique(input1.es[,"species"])
     if(length(sp)>1){
@@ -350,16 +356,16 @@ MixTCRviz <- function(input1, output.path,
       print("Alleles currently not supported in mouse. The data will be treated at the gene level")
       use.allele.es <- 0
     }
-  
+
     es <- build_stat(input1.es, chain.list=chain.list, sp=sp, comp.VJL=0)
-  
+
     s <- unlist(strsplit(model, split="_"))
     MHC <- s[1]
     epitope <- s[2]
 
     info <- c(model,sp,MHC,epitope)
     names(info) <- c("model", "species", "MHC", "epitope")
-    
+
     summary <- list(info, es$L, es$countL, es$countV, es$countJ, es$countV.L, es$countJ.L, es$countCDR1, es$countCDR2, es$countCDR3.L, es$countVJ, es$countVJ.L)
     names(summary) <- c("info", "L", "countL", "countV", "countJ", "countV.L", "countJ.L", "countCDR1", "countCDR2", "countCDR3.L", "countVJ", "countVJ.L")
     if(output.stat==1){
@@ -382,9 +388,9 @@ MixTCRviz <- function(input1, output.path,
         #####
         # Load the baseline repertoire corresponding to the species
         #####
-        
+
         if(is.null(baseline.file)){
-          
+
           #These are the default repertoires.
           if(sp=="HomoSapiens"){
             if(use.allele.es==1){
@@ -416,7 +422,7 @@ MixTCRviz <- function(input1, output.path,
             stop("Missing baseline file")
           }
         }
-        
+
       } else {
 
         #####
@@ -433,9 +439,9 @@ MixTCRviz <- function(input1, output.path,
         } else {
           input2.es <- input2[ind,]
         }
-        
+
         baseline <- build_stat(input2.es, chain.list=chain.list, sp=sp, comp.VJL=renormVJ)
-        
+
       }
 
       for(chain in chain.list){
@@ -460,7 +466,7 @@ MixTCRviz <- function(input1, output.path,
 
         #Make sure there are CDR3 sequences
         if(length(es$countL[[chain]])>0){
-          
+
           if(verbose>0){
             if(length(es$countV[[chain]])==0){
               print(paste("WARNING: No ", chain,"V segment in input1", sep=""))
@@ -510,10 +516,10 @@ MixTCRviz <- function(input1, output.path,
           infoJ <- c(paste(chain,"J", sep=""), input1.name, baseline.name, model)
 
           countV.plot <- plotVJ(es$countV[[chain]], baseline$countV[[chain]],
-            infoV, comp.baseline, as.bars=plot.VJ.as.bars, sp=sp,
+            infoV, comp.baseline, pType=plot.VJ.switch, sp=sp,
             ret.resList=plot.modelsCombined)
           countJ.plot <- plotVJ(es$countJ[[chain]], baseline$countJ[[chain]],
-            infoJ, comp.baseline, as.bars=plot.VJ.as.bars, sp=sp,
+            infoJ, comp.baseline, pType=plot.VJ.switch, sp=sp,
             ret.resList=plot.modelsCombined)
 
           #######
@@ -659,10 +665,10 @@ MixTCRviz <- function(input1, output.path,
                 #Add the comparison of V/J usage
                 plotV.L <- plotVJ(es$countV.L[[chain]][[t]], baseline$countV.L[[chain]][[t]],
                   c(paste(chain,"V", sep=""), input1.name, baseline.name), comp.baseline,
-                  as.bars=plot.VJ.as.bars, sp=sp)
+                  pType=plot.VJ.switch, sp=sp)
                 plotJ.L <- plotVJ(es$countJ.L[[chain]][[t]], baseline$countJ.L[[chain]][[t]],
                   c(paste(chain,"J", sep=""), input1.name, baseline.name), comp.baseline,
-                  as.bars=plot.VJ.as.bars, sp=sp)
+                  pType=plot.VJ.switch, sp=sp)
 
                 plotVJ.L[[ct]] <- ggarrange(plotV.L, plotJ.L, ncol=2, nrow=1)
 
@@ -764,9 +770,9 @@ MixTCRviz <- function(input1, output.path,
       for (chain in chain.list){
         # The 2nd level of comb_res is the chain.
         ld.plot <- plotLD(combined.resList=resSp[[chain]]$ld)
-        countV.plot <- plotVJ(as.bars=plot.VJ.as.bars, sp=sp,
+        countV.plot <- plotVJ(pType=plot.VJ.switch, sp=sp,
           combined.resList=resSp[[chain]]$V)
-        countJ.plot <- plotVJ(as.bars=plot.VJ.as.bars, sp=sp,
+        countJ.plot <- plotVJ(pType=plot.VJ.switch, sp=sp,
           combined.resList=resSp[[chain]]$J)
         CDR3_logos <- ggarrange(plotlist=resSp[[chain]]$CDR3, ncol=1)
 

@@ -255,15 +255,16 @@ find_mhc <- function(m){
 #'
 #' We should have different criteria for selecting the labels for the ES versus Pred.
 #'
-#' @param as.bars When T, we plot the enrichment as bar plot instead of scatter plot.
-#' @param sp Tells the species, which is used for bar colors when as.bars=T.
+#' @param pType Switch telling the type of plot to use. See plot.VJ.switch
+#'     option from MixTCRviz.
+#' @param sp Tells the species, which is used for gene colors in the plots.
 #' @param ret.resList when T indicates to return a list of the results instead of
 #'    the plots directly (in this case, the "info" should have a 4th element,
 #'   indicating the model name).
 #' @param combined.resList When this isn't NULL, we'll use the results from
 #'    this list to plot the results (from multiple models combined together).
 
-plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
+plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1,
   sp="HomoSapiens", ret.resList=F, combined.resList=NULL){
   if (is.null(combined.resList)){
     if (length(count.es) == 0){
@@ -306,7 +307,7 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
     label[count.df[,"Y"] < 0.05 & count.df[,"X"] < 0.05] <- NA
     ratio <- count.df[,"Y"]/(count.df[,"X"]+0.001)
     label[which(ratio < 1.5 & count.df[,"X"] < 0.3 & count.df[,"Y"] < 0.3) ] <- NA
-    n_lab_max <- ifelse(as.bars, 15, 8)
+    n_lab_max <- ifelse(pType==2, 15, 8)
     #If there are too many labels, show only those with FC > 2 (bar plot can
     #accomodate more labels before it gets too confusing visually).
     if(length(which(!is.na(label)))> n_lab_max){
@@ -319,13 +320,18 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
   }
 
   #Plot the comparison between input and repertoires
-  if (!as.bars){
+  if (pType %in% c(1, 1.2)){
     if (ret.resList || !is.null(combined.resList)){
-      stop("Didn't implement the use of combined.ResList when as.bars=F")
+      stop("Didn't implement the use of combined.ResList when pType %in% c(1, 1.2)")
     }
-    count.plot <- list()
-    count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) +
-      geom_point() +
+    count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label))
+    if (pType == 1){
+      count.plot <- count.plot + geom_point()
+    } else {
+      count.plot <- count.plot + geom_point(aes(color=gene)) +
+        scale_color_manual(values=TCRgene2color[[sp]], guide="none")
+    }
+    count.plot <- count.plot +
       geom_abline(col="orange",linetype="dashed",linewidth=1) +
       ggtitle(gene) +
       xlim(0, lim.x) + ylim(0,lim.y) +

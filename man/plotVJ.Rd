@@ -9,16 +9,17 @@ plotVJ(
   count.rep,
   info,
   comp.baseline,
-  as.bars = F,
+  pType = 1,
   sp = "HomoSapiens",
   ret.resList = F,
   combined.resList = NULL
 )
 }
 \arguments{
-\item{as.bars}{When T, we plot the enrichment as bar plot instead of scatter plot.}
+\item{pType}{Switch telling the type of plot to use. See plot.VJ.switch
+option from MixTCRviz.}
 
-\item{sp}{Tells the species, which is used for bar colors when as.bars=T.}
+\item{sp}{Tells the species, which is used for gene colors in the plots.}
 
 \item{ret.resList}{when T indicates to return a list of the results instead of
 the plots directly (in this case, the "info" should have a 4th element,
