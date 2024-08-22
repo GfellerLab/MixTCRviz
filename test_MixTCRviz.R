@@ -1,5 +1,5 @@
 
-#Run it from the MixTCRviz folder
+#Run it from the MixTCRviz/ folder
 
 #Do this if you do not want to install the package
 devtools::load_all(".")
