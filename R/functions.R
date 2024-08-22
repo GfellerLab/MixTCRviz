@@ -40,7 +40,7 @@ build_stat <- function(input, chain.list=c("TRA","TRB"), sp="HomoSapiens", comp.
     L[[chain]] <- as.numeric(names(countL[[chain]]))
     if(length(countL[[chain]])>0){
       names(countL[[chain]]) <- paste("L",names(countL[[chain]]),sep="_")
-    }  
+    }
     countVJ[[chain]] <- table(input[,Vn], input[,Jn])
 
     countV.L[[chain]] <- list()
@@ -66,7 +66,7 @@ build_stat <- function(input, chain.list=c("TRA","TRB"), sp="HomoSapiens", comp.
       }
       for(V in names(countV[[chain]])){
         indv <- which(input[,Vn]==V)
-        
+
         for(J in names(countJ[[chain]])){
           indj <- which(input[indv,Jn]==J)
           ind <- indv[indj]
@@ -292,6 +292,7 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
     count <- scale(count, center=F, scale=colSums(count))
     count.df <- data.frame(count)
     colnames(count.df) <- c("Y","X")
+    count.df$gene <- rownames(count.df)
 
     lim.y <- max(count[,c(type1)] )*1.3
     lim.x <- max(count[,c(type2)] )*1.3
@@ -324,11 +325,14 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
     }
     count.plot <- list()
     count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) +
-      geom_point() + geom_abline(col="orange",linetype="dashed",linewidth=1) +
+      geom_point() +
+      geom_abline(col="orange",linetype="dashed",linewidth=1) +
       ggtitle(gene) +
       xlim(0, lim.x) + ylim(0,lim.y) +
       theme(plot.title = element_text(size = 14, hjust=0.5), axis.text=element_text(size=10), axis.title=element_text(size=14)) +
-      geom_label_repel(size = 3, nudge_y=0.02, box.padding = 0.15) +
+      geom_label_repel(aes(fill=gene), size = 3, nudge_y=0.02, box.padding = 0.15,
+        show.legend=F) +
+      scale_fill_manual(values=TCRgene2color[[sp]]) +
       xlab(xlab) + ylab(ylab)
   } else {
     # Show results as bar plots. Will only keep most significant genes and
@@ -336,7 +340,6 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, as.bars=F,
     if (is.null(combined.resList)){
       genesToKeep <- setdiff(label, NA)
       # Add some information needed for the bar plot.
-      count.df$gene <- rownames(count.df)
       count.df$pattern <- xlab
       # 'pattern' will be used to show the baseline value from the genes.
       count.df$label <- gsub(gene, "", count.df$gene)
@@ -497,7 +500,7 @@ plotLD <- function(countL.es, countL.rep, info, plot.oneline, ret.resList=F,
 plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
                      comp.baseline, plot.oneline=0, plot.logo.length=0,
                      plot.cdr3.subtract.baseline=0, set.cdr3.length=NA){
-  
+
   L.es <- as.numeric(lapply(names(countL.es), function(x){unlist(strsplit(x,split="_"))[2]}))
   L.rep <- as.numeric(lapply(names(countL.rep), function(x){unlist(strsplit(x,split="_"))[2]}))
 
@@ -512,7 +515,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
   if(length(L.TR)>0){
 
     tl <- countL.es[paste("L",L.TR,sep="_")]
-    
+
     if(is.na(set.cdr3.length)){
       lmax <- as.numeric(unlist(strsplit(names(tl[which.max(tl)]), split="_"))[2])
     } else {
@@ -702,19 +705,19 @@ check_input <- function(input, chain.list.output="AB", name="input1", species.de
     colnames(input) <- c(cn, "model")
     print(paste("using",model.default,"as model for all entries"))
   }
-  return(input) 
+  return(input)
 
 }
 
 #' @export
 clean_input <- function(input, use.allele=0, correct.gene.names=1, use.mouse.strain=0, chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, verbose=1){
-  
+
   ####
   # Clean the input by removing CDR3 with weird characters, longer than Lmax or shorter than Lmin
   # Correct VJ genes based on our dictionary
   # species.default is only used if input does not contain the "species" column
   ####
-  
+
   if("species" %in% colnames(input)){
     sp.list <- unique(input[,"species"])
     use.species.default <- 0
@@ -750,7 +753,7 @@ clean_input <- function(input, use.allele=0, correct.gene.names=1, use.mouse.str
   for(cdr3 in cdr3.list){
     ind <- which(nchar(input[,cdr3]) < Lmin | nchar(input[,cdr3]) > Lmax |
                    grepl('X|x|Z|z|-|_|\\.|\\*', input[,cdr3]) == T)
-    
+
     input[ind,cdr3] <- NA
   }
 
@@ -776,7 +779,7 @@ clean_input <- function(input, use.allele=0, correct.gene.names=1, use.mouse.str
   }
   if(correct.gene.names==0){
     for(sp in sp.list){
-      
+
       if(use.species.default==0){
         ind.sp <- which(input[,"species"]==sp)
       } else {
@@ -831,14 +834,14 @@ clean_input <- function(input, use.allele=0, correct.gene.names=1, use.mouse.str
   #Remove empty lines
   #ind <- apply(es.all,1,function(x){ s <- length(which(is.na(x[col])==F)); return(s)})
   #es.all <- es.all[which(ind>0),]
-  
+
   return(input)
-  
+
 }
 
 #' @export
 check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, verbose=1){
-  
+
   # Clean the CDR3 based on the V and J usage.
   # This should be applied after correcting the gene names, and adding the species if needed
   # species.default is only used if es.all does not contain the "species" column
@@ -886,11 +889,11 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
         first <- substr(input[ind.sp,cdr3], 1, start.lg)
         V.end <- cdr123[[sp]][[chain]][,"CDR3"]
         ref.first <- substr(V.end,1,start.lg); names(ref.first) <- rownames(cdr123[[sp]][[chain]])
-        
+
         last <- substr(input[ind.sp,cdr3], nchar(input[ind.sp,cdr3])-end.lg+1, nchar(input[ind.sp,cdr3]))
         J.start <- Jseq[[sp]][[chain]][,"CDR3"]
         ref.last <- substr(J.start, nchar(J.start)-end.lg+1, nchar(J.start));  names(ref.last) <- rownames(Jseq[[sp]][[chain]])
-      
+
         ind.first <- which( (first != ref.first[input[ind.sp,V]] ) & ref.first[input[ind.sp,V]]!="" & is.na(ref.first[input[ind.sp,V]])==F ) #Missing data appear as NA, so not problem
         ind.last <- which( (last != ref.last[input[ind.sp,J]] ) & ref.last[input[ind.sp,J]]!="" & is.na(ref.last[input[ind.sp,J]])==F ) #Missing data appear as NA, so not problem
       }
@@ -935,19 +938,19 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           cat("\n")
         }
       }
-      
+
       input[ind.sp[ind.first],c(V,cdr3)] <- NA
       input[ind.sp[ind.last],c(J,cdr3)] <- NA
-    
+
     }
   }
-  
+
   return(input)
 }
 
 
 correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), species.default="HomoSapiens", use.allele=0, verbose=1){
-  
+
   if("species" %in% colnames(input)){
     sp.list <- unique(input[,"species"])
   } else {
@@ -962,7 +965,7 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
 
   for(sp in sp.list){
     for(s in segment.list){
-      
+
       if("species" %in% colnames(input)){
         ind <- which(input[,s] %in% name.list[[sp]]==F & input[,"species"]==sp)
       } else {
@@ -979,7 +982,7 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
         if(verbose>0){
           i <- which(input[ind,s] != ga & is.na(ga)==F)
           if(length(i)>0){
-            
+
             m.cor <- data.frame(original.name = input[ind[i],s], corrected.name = ga[i],row.names = NULL)
             m.cor <- m.cor[!duplicated(m.cor),]
             if(verbose>0){
@@ -1010,7 +1013,7 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
             cat("\n")
           }
         }
-        
+
         input[ind,s] <- ga
       }
     }
@@ -1025,26 +1028,26 @@ merge_mouse_TRAV <- function(input){
   # If the "species" field is present, it takes only "MusMusculus" entries
   # If not, it assumes all entries are "MusMusculus"
   # It also assumes that alleles have been removed
-  
+
   if("TRAV" %in% colnames(input)){
-    
+
     if("species" %in% colnames(input)){
       ind <- which(input[,"species"]=="MusMusculus")
     } else {
       ind <- 1:dim(input)[1]
     }
-    
+
     v.cor <- as.character(unlist(lapply(input[["TRAV"]][ind], function(y){  # WARNING: I don't understand why not using es[ind,"TRAV"]
       if (y %in% names(merge.mouse.TRAV)){
         y <- merge.mouse.TRAV[y]
       }
       return(y)
     })))
-    
+
     input[ind,"TRAV"] <- v.cor
   }
   return(input)
-  
+
 }
 
 #' Take the gene + allele.
