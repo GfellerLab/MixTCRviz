@@ -389,7 +389,7 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
       outerWidth <- 0.5
 
       count.plot <- count.plot + geom_point(aes(fill=gene, shape=shape_color,
-        color=shape_color), stroke=outerWidth) +
+        color=shape_color), stroke=outerWidth, size=2.5) +
         scale_color_manual(values=outerColorScale, guide="none") +
         scale_shape_manual(values=shapeScale, guide="none")
     }
@@ -398,7 +398,7 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
       xlim(0, lim.x) + ylim(0,lim.y) +
       theme(plot.title = element_text(size = 14, hjust=0.5),
         axis.text=element_text(size=10), axis.title=element_text(size=14)) +
-      geom_label_repel(aes(fill=gene), size = 3, nudge_y=0.02, box.padding = 0.15,
+      geom_label_repel(aes(fill=gene), size = 3, nudge_y=0.02, box.padding = 0.25,
         show.legend=F) +
       scale_fill_manual(values=colorScale, guide="none") +
       xlab(xlab) + ylab(ylab)
