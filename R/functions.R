@@ -319,11 +319,51 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
     ylab <- paste(type1," (",n,")", sep="")
 
     if(comp.baseline==1){  xlab <- type2 } else {xlab <- paste(type2," (",n.rep,")", sep="")}
+
+    if (floor(pType) == 1){
+      count.df$label <- label
+    } else {
+      count.df$label <- count.df$name
+    }
+    # When using scatter plots, the labels not to show have NAs, while for the
+    # bar plots, we keep all labels here but will subset count.df below to only
+    # keep genes of interest (we keep all labels as needed for the
+    # combined.resList case).
+
+    # # If we don't want to show the TRAV/TRAJ/... info in the label, we can
+    # # uncomment below line:
+    # count.df$label <- gsub(gene, "", count.df$label)
+    # # The 'gene' is just TRAV, TRAJ, ..., while count.df$name and
+    # # count.df$gene are TRAV5-4 for example (with allele name possibly present
+    # # in $name). We could thus remove the TRAV, ... info from the label to
+    # # only keep the digits/code following these names.
+
+    # And add/define some information needed for the bar plot.
+    namesToKeep <- setdiff(label, NA)
+    count.df$pattern <- xlab
+    # 'pattern' will be used to show the baseline value from the genes in the
+    # bar plot.
+    count.df$log2FC <- log2(ratio+1e-5)
+
+    if (ret.resList){
+      count.df$model <- paste0(info[4], " (", n, ")")
+      return(list(count.df=count.df, namesToKeep=namesToKeep, gene=gene))
+    }
+  } else {
+    count.df <- combined.resList$count.df
+    count.df$model <- factor(count.df$model, levels=rev(unique(count.df$model)))
+    # Make it as a factor so that the order in which the models were obtained
+    # is kept.
+    namesToKeep <- combined.resList$namesToKeep
+    gene <- combined.resList$gene
+  }
+
+  colorScale <- TCRgene2color[[sp]]
   }
 
   #Plot the comparison between input and repertoires
-  if (pType %in% c(1, 1.2)){
-    if (ret.resList || !is.null(combined.resList)){
+  if (floor(pType) == 1){
+    if (!is.null(combined.resList)){
       stop("Didn't implement the use of combined.ResList when pType %in% c(1, 1.2)")
     }
     count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label))
@@ -331,47 +371,22 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
       count.plot <- count.plot + geom_point()
     } else {
       count.plot <- count.plot + geom_point(aes(color=gene)) +
-        scale_color_manual(values=TCRgene2color[[sp]], guide="none")
+        scale_color_manual(values=colorScale, guide="none")
     }
     count.plot <- count.plot +
       geom_abline(col="orange",linetype="dashed",linewidth=1) +
       ggtitle(gene) +
       xlim(0, lim.x) + ylim(0,lim.y) +
-      theme(plot.title = element_text(size = 14, hjust=0.5), axis.text=element_text(size=10), axis.title=element_text(size=14)) +
+      theme(plot.title = element_text(size = 14, hjust=0.5),
+        axis.text=element_text(size=10), axis.title=element_text(size=14)) +
       geom_label_repel(aes(fill=gene), size = 3, nudge_y=0.02, box.padding = 0.15,
         show.legend=F) +
-      scale_fill_manual(values=TCRgene2color[[sp]]) +
+      scale_fill_manual(values=colorScale) +
       xlab(xlab) + ylab(ylab)
   } else {
     # Show results as bar plots. Will only keep most significant genes and
     # rework a bit the data.
-    if (is.null(combined.resList)){
-      namesToKeep <- setdiff(label, NA)
-      # Add some information needed for the bar plot.
-      count.df$pattern <- xlab
-      # 'pattern' will be used to show the baseline value from the genes.
-      count.df$label <- count.df$name
-      # To use full gene name for the bar labels. Or below to use only the digit
-      # part:
-      # count.df$label <- gsub(gene, "", count.df$name)
-      # # The 'gene' is just TRAV, TRAJ, ..., while count.df$name and
-      # # count.df$gene are TRAV5-4 for example (with allele name possibly present
-      # # in $name). We could thus remove the TRAV, ... info from the label to
-      # # only keep the digits/code following these names.
-      count.df$log2FC <- log2(ratio+1e-5)
-      if (ret.resList){
-        count.df$model <- paste0(info[4], " (", n, ")")
-        return(list(count.df=count.df, namesToKeep=namesToKeep, gene=gene))
-      }
 
-    } else {
-      count.df <- combined.resList$count.df
-      count.df$model <- factor(count.df$model, levels=rev(unique(count.df$model)))
-      # Make it as a factor so that the order in which the models were obtained
-      # is kept.
-      namesToKeep <- combined.resList$namesToKeep
-      gene <- combined.resList$gene
-    }
     count.df <- count.df[count.df$name %in% namesToKeep,,drop=F]
     count.df <- count.df[order(count.df$log2FC, decreasing = T),,drop=F]
     # Order genes based on the log2FC between input and baseline to show
@@ -383,8 +398,6 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
     # the most important genes on top of the plot.
 
     if (is.null(combined.resList)){
-      # count.plot <- ggplot(count.df, aes(x=Y, y=label, fill=gene, linewidth=log2FC)) +
-      #   geom_col(color="gray10")
       count.plot <- ggplot(count.df, aes(x=Y, y=label, fill=gene)) +
         geom_col(color="gray10", linewidth=1)
 
@@ -398,8 +411,7 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
     }
 
     count.plot <- count.plot +
-      # scale_linewidth_continuous(range=c(1, 4), guide="none") +
-      scale_fill_manual(values=TCRgene2color[[sp]], guide="none") +
+      scale_fill_manual(values=colorScale, guide="none") +
       ggtitle(figTitle) + xlab("Frequency") + ylab(NULL) +
       scale_x_continuous(expand=expansion(mult=c(0, 0.05))) +
       # Make the x-axis isn't expanded on the left and is expanded as usual on
