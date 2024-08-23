@@ -131,6 +131,56 @@ for (tsp in species.list){
   }
 }
 
+# If we want to make figures showing the color/shape from each gene.
+if (FALSE){
+  for (cScheme in 1:2){
+    for (tsp in species.list){
+      gg <- list()
+      for (s in segment.list){
+        cGenes <- names(TCRgene2aes[[tsp]][[s]][[paste0("color", cScheme)]])
+        nGenes <- length(cGenes)
+        cTab <- data.frame(gene = cGenes,
+          x = rep(1:3, each=ceiling(nGenes/3))[1:nGenes],
+          y = -rep(1:ceiling(nGenes/3), length.out=nGenes))
+        colorScale <- TCRgene2aes[[tsp]][[s]][[paste0("color", cScheme)]]
+        if (paste0("shape", cScheme) %in% names(TCRgene2aes[[tsp]][[s]])){
+          shapeScale <- TCRgene2aes[[tsp]][[s]][[paste0("shape", cScheme)]]
+        } else {
+          shapeScale <- rep(21, nGenes)
+        }
+        if (paste0("outerColor", cScheme) %in% names(TCRgene2aes[[tsp]][[s]])){
+          outerColorScale <- TCRgene2aes[[tsp]][[s]][[paste0("outerColor", cScheme)]]
+        } else {
+          outerColorScale <- rep("gray20", nGenes)
+        }
+        gg[[s]] <- ggplot(cTab, aes(x, y)) +
+          geom_point(aes(shape = gene, fill=gene, color=gene), stroke=1.5,
+            size=ifelse(nGenes <= 60, 5, 3)) +
+          geom_text(aes(label = gene), hjust = 0, nudge_x = 0.15) +
+          scale_fill_manual(values=colorScale) +
+          scale_shape_manual(values=shapeScale) +
+          scale_color_manual(values=outerColorScale) +
+          scale_x_continuous(limits=c(1,3.5)) +
+          theme_void() +
+          theme(legend.position = "none") +
+          ggtitle(s) +
+          theme(plot.title = element_text(size = 16, hjust=0.5, face="bold"),
+            plot.background=element_rect(color="gray30"))
+      }
+      fig <- ggarrange(plotlist=gg, nrow=2, ncol=2)
+      fig <- ggpubr::annotate_figure(fig,
+        top = text_grob(paste0(tsp, " - colorScheme ", cScheme),
+          color = "black", face = "bold", size = 16))
+      dir <- paste("figures/", sep="")
+      if (!dir.exists(dir)){
+        dir.create(dir)
+      }
+      filename=paste0(dir, "TCR_genes_tables_scheme", cScheme, "_", tsp, ".pdf")
+      ggsave(fig, filename=filename, device="pdf",
+        width = 15, height = 20)
+    }
+  }
+}
 
 # Defining other parameters -----------------------------------------------
 # This initiates a few values and load the mapping of CDR1/2 sequences from
