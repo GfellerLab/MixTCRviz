@@ -26,7 +26,7 @@ MixTCRviz(
   plot.oneline = 0,
   plot.logo.length = 0,
   plot.cdr3.norm = 0,
-  plot.VJ.switch = 1,
+  plot.VJ.switch = 1.2,
   plot.modelsCombined = FALSE,
   chain.list.output = "AB",
   input1.name = "Input",
@@ -172,7 +172,7 @@ In case the input contains the "model" column, model.default is not considered.}
 \item 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
 }}
 
-\item{plot.VJ.switch}{(default=1)
+\item{plot.VJ.switch}{(default=1.2)
 \itemize{
 \item 1: Show the VJ usage as a scatter plot.
 \item 1.2: Show the VJ usage as a scatter plot with the points colored based

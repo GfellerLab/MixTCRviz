@@ -264,7 +264,7 @@ find_mhc <- function(m){
 #' @param combined.resList When this isn't NULL, we'll use the results from
 #'    this list to plot the results (from multiple models combined together).
 
-plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1,
+plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
   sp="HomoSapiens", ret.resList=F, combined.resList=NULL){
   if (is.null(combined.resList)){
     if (length(count.es) == 0){
@@ -293,7 +293,9 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1,
     count <- scale(count, center=F, scale=colSums(count))
     count.df <- data.frame(count)
     colnames(count.df) <- c("Y","X")
-    count.df$gene <- rownames(count.df)
+    count.df$name <- rownames(count.df)
+    count.df$gene <- gsub("\\*.*$", "", count.df$name)
+    # gsub is used to possible remove the allele information from the 'name'.
 
     lim.y <- max(count[,c(type1)] )*1.3
     lim.x <- max(count[,c(type2)] )*1.3
@@ -307,7 +309,7 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1,
     label[count.df[,"Y"] < 0.05 & count.df[,"X"] < 0.05] <- NA
     ratio <- count.df[,"Y"]/(count.df[,"X"]+0.001)
     label[which(ratio < 1.5 & count.df[,"X"] < 0.3 & count.df[,"Y"] < 0.3) ] <- NA
-    n_lab_max <- ifelse(pType==2, 15, 8)
+    n_lab_max <- ifelse(pType==2, 12, 8)
     #If there are too many labels, show only those with FC > 2 (bar plot can
     #accomodate more labels before it gets too confusing visually).
     if(length(which(!is.na(label)))> n_lab_max){
@@ -344,18 +346,22 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1,
     # Show results as bar plots. Will only keep most significant genes and
     # rework a bit the data.
     if (is.null(combined.resList)){
-      genesToKeep <- setdiff(label, NA)
+      namesToKeep <- setdiff(label, NA)
       # Add some information needed for the bar plot.
       count.df$pattern <- xlab
       # 'pattern' will be used to show the baseline value from the genes.
-      count.df$label <- gsub(gene, "", count.df$gene)
-      # The 'gene' is just TRAV, TRAJ, ..., while count.df$gene is TRAV5-4 for
-      # example. We remove the TRAV, ... info from the label to only keep the
-      # digits/code following these names.
+      count.df$label <- count.df$name
+      # To use full gene name for the bar labels. Or below to use only the digit
+      # part:
+      # count.df$label <- gsub(gene, "", count.df$name)
+      # # The 'gene' is just TRAV, TRAJ, ..., while count.df$name and
+      # # count.df$gene are TRAV5-4 for example (with allele name possibly present
+      # # in $name). We could thus remove the TRAV, ... info from the label to
+      # # only keep the digits/code following these names.
       count.df$log2FC <- log2(ratio+1e-5)
       if (ret.resList){
         count.df$model <- paste0(info[4], " (", n, ")")
-        return(list(count.df=count.df, genesToKeep=genesToKeep, gene=gene))
+        return(list(count.df=count.df, namesToKeep=namesToKeep, gene=gene))
       }
 
     } else {
@@ -363,10 +369,10 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1,
       count.df$model <- factor(count.df$model, levels=rev(unique(count.df$model)))
       # Make it as a factor so that the order in which the models were obtained
       # is kept.
-      genesToKeep <- combined.resList$genesToKeep
+      namesToKeep <- combined.resList$namesToKeep
       gene <- combined.resList$gene
     }
-    count.df <- count.df[count.df$gene %in% genesToKeep,,drop=F]
+    count.df <- count.df[count.df$name %in% namesToKeep,,drop=F]
     count.df <- count.df[order(count.df$log2FC, decreasing = T),,drop=F]
     # Order genes based on the log2FC between input and baseline to show
     # most important ones on top.
@@ -406,7 +412,7 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1,
       theme(plot.title = element_text(size = 14, hjust=0.5),
         axis.text=element_text(size=12), axis.title=element_text(size=14),
         panel.grid.major.y=element_blank(),
-        axis.text.y=element_text(size=22, face="bold", color="black"),
+        axis.text.y=element_text(size=14, face="bold", color="black"),
         legend.position="top", legend.title=element_blank())
   }
 

@@ -96,7 +96,7 @@
 #'    * 0: Show the CDR3 motifs of the baseline repertoire.
 #'    * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
 #'    * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
-#' @param plot.VJ.switch (default=1)
+#' @param plot.VJ.switch (default=1.2)
 #'    * 1: Show the VJ usage as a scatter plot.
 #'    * 1.2: Show the VJ usage as a scatter plot with the points colored based
 #'        on the TCR gene.
@@ -128,7 +128,7 @@ MixTCRviz <- function(input1, output.path,
                       renormVJ=1, N.min=10, output.stat=1, set.cdr3a.length=NA, set.cdr3b.length=NA,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
-                      plot.VJ.switch=1, plot.modelsCombined=FALSE,
+                      plot.VJ.switch=1.2, plot.modelsCombined=FALSE,
                       chain.list.output="AB", input1.name="Input", input2.name=NULL, output.format="pdf"){
 
 
@@ -628,14 +628,14 @@ MixTCRviz <- function(input1, output.path,
               comb_res[[sp]][[chain]]$V$count.df, countV.plot$count.df)
             comb_res[[sp]][[chain]]$V$gene <- union(
               comb_res[[sp]][[chain]]$V$gene, countV.plot$gene)
-            comb_res[[sp]][[chain]]$V$genesToKeep <- union(
-              comb_res[[sp]][[chain]]$V$genesToKeep, countV.plot$genesToKeep)
+            comb_res[[sp]][[chain]]$V$namesToKeep <- union(
+              comb_res[[sp]][[chain]]$V$namesToKeep, countV.plot$namesToKeep)
             comb_res[[sp]][[chain]]$J$count.df <- dplyr::bind_rows(
               comb_res[[sp]][[chain]]$J$count.df, countJ.plot$count.df)
             comb_res[[sp]][[chain]]$J$gene <- union(
               comb_res[[sp]][[chain]]$J$gene, countJ.plot$gene)
-            comb_res[[sp]][[chain]]$J$genesToKeep <- union(
-              comb_res[[sp]][[chain]]$J$genesToKeep, countJ.plot$genesToKeep)
+            comb_res[[sp]][[chain]]$J$namesToKeep <- union(
+              comb_res[[sp]][[chain]]$J$namesToKeep, countJ.plot$namesToKeep)
             comb_res[[sp]][[chain]]$ld$ld.df <- dplyr::bind_rows(
               comb_res[[sp]][[chain]]$ld$ld.df, ld.plot$ld.df)
             comb_res[[sp]][[chain]]$ld$info <- union(
