@@ -196,7 +196,8 @@ version from above or if you used library(MixTCRviz)).
     
 - plot.VJ.switch (default=1)
     * 1: Show the VJ usage as a scatter plot.
-    * 1.2: Show the VJ usage as a scatter plot with the points colored based
+    * 1.2: Same as 1 with the points additionaly colored based on the TCR gene.
+    * 1.3: Same as 1 with the different color and shapes of the points based
         on the TCR gene.
     * 2: Show the VJ usage as a bar plot.
 

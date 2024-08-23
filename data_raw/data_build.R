@@ -62,16 +62,16 @@ map[["MusMusculus"]] <- mp[pos.m,2]
 names(map[["MusMusculus"]]) <- mp[pos.m,1]
 
 
-# Defining a color map for TCR genes --------------------------------------
-TCRgene2color <- list()
+# Defining color/shape maps for TCR genes ----------------------------------
+TCRgene2aes <- list()
+# Different color for each gene per segment
 for (tsp in species.list){
-  TCRgene2color[[tsp]] <- c()
   for (s in segment.list){
     cGenes <- grep(s, gene.list[[tsp]], value=TRUE)
     cols <- hcl.colors(n=length(cGenes), palette="Set 2")
-    TCRgene2color[[tsp]] <- c(TCRgene2color[[tsp]], setNames(cols, cGenes))
+    TCRgene2aes[[tsp]][[s]]$color1 <- setNames(cols, cGenes)
     # If we want to show the set of colors used (didn't indicate corresponding
-    # gene name))
+    # gene name)
     if (FALSE){
       nG <- length(cGenes)
       quartz()
@@ -80,6 +80,54 @@ for (tsp in species.list){
       rect(0:(nG-1), 0, 1:nG, 1, col = cols, border = "black")
       title(main=paste0(s, " - ", tsp))
     }
+  }
+}
+
+# Combining color with shape and outer shape color
+for (tsp in species.list){
+  for (s in segment.list){
+    cGenes <- grep(s, gene.list[[tsp]], value=TRUE)
+    genesCode <- sort(unique(gsub("TR(A|B)(V|J)", "", cGenes)))
+    shapes <- 21:25 # Shapes with outer colors can only take values 21:25
+    n_diffShapes <- length(shapes)
+
+    g1 <- gsub("-(.*)$", "", genesCode)
+    g2 <- stringr::str_replace(string=genesCode, pattern=g1, replacement="")
+    # g1 is the first part of gene names before the "-" and g2 is the 2nd
+    # part of this name (either "" when there isn't such 2nd part, "-1", "-2", ...).
+    g2 <- gsub("^$", "none", g2)
+    # Replace empty strings by none to be able to call them by name below.
+    g1u <- sort(unique(g1))
+    g2u <- setdiff(sort(unique(g2)), "none")
+    # The cases with "none" will be considered with same shape/color as first case.
+
+    if (length(unique(g2)) == 1){
+      # When there weren't any gene names with "-" in them, we'll instead
+      # combine the color, shape and outer color for all the genes (I'll
+      # consider here 2 different outer colors, and the number of inner color
+      # will be determined based on number needed to distinguish all cases).
+      n_grays <- 2
+      g1 <- paste0("l", (rep(1:ceiling(length(g1) / (n_grays*n_diffShapes)),
+        each=n_grays*n_diffShapes)[1:length(g1)]))
+      g2 <- paste0("l", (rep(1 : (n_grays*n_diffShapes), length.out=length(g2))))
+      # Use paste to make sure these are characters to avoid issue as we'll use
+      # these as names below.
+      g1u <- unique(g1)
+      g2u <- unique(g2)
+    }
+
+    cols <- hcl.colors(n=length(g1u), palette="Set 2")
+    names(cols) <- g1u
+    shapes <- rep(shapes, length.out=length(g2u))
+    cols_out <- gray(seq(0, 0.5, length.out=ceiling(length(g2u) / n_diffShapes)))
+    cols_out <- rep(cols_out, each=n_diffShapes)[1:length(g2u)]
+    shapes <- c(shapes[1], shapes)
+    cols_out <- c(cols_out[1], cols_out)
+    names(shapes) <- names(cols_out) <- c("none", g2u)
+
+    TCRgene2aes[[tsp]][[s]]$color2 <- setNames(cols[g1], cGenes)
+    TCRgene2aes[[tsp]][[s]]$shape2 <- setNames(shapes[g2], cGenes)
+    TCRgene2aes[[tsp]][[s]]$outerColor2 <- setNames(cols_out[g2], cGenes)
   }
 }
 
@@ -146,7 +194,7 @@ for(species in species.list){
 
 usethis::use_data(gene.allele.list, gene.list, allele.default,
   merge.mouse.TRAV, map, cdr123, Jseq, th, yl, aa, aa.list, N.aa,
-  chain.small, gap, Lmin, Lmax, species.list, TCRgene2color,
+  chain.small, gap, Lmin, Lmax, species.list, TCRgene2aes,
   overwrite=T, internal=T)
 
 usethis::use_data(gene.allele.list, gene.list, allele.default,

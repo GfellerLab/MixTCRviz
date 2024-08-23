@@ -175,7 +175,8 @@ In case the input contains the "model" column, model.default is not considered.}
 \item{plot.VJ.switch}{(default=1.2)
 \itemize{
 \item 1: Show the VJ usage as a scatter plot.
-\item 1.2: Show the VJ usage as a scatter plot with the points colored based
+\item 1.2: Same as 1 with the points additionaly colored based on the TCR gene.
+\item 1.3: Same as 1 with the different color and shapes of the points based
 on the TCR gene.
 \item 2: Show the VJ usage as a bar plot.
 }}

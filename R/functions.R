@@ -358,29 +358,38 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
     gene <- combined.resList$gene
   }
 
-  colorScale <- TCRgene2color[[sp]]
-  
-
+  if (pType != 1.3){
+    colorScale <- TCRgene2aes[[sp]][[gene]]$color1
+  } else {
+    colorScale <- TCRgene2aes[[sp]][[gene]]$color2
+  }
 
   #Plot the comparison between input and repertoires
   if (floor(pType) == 1){
     if (!is.null(combined.resList)){
-      stop("Didn't implement the use of combined.ResList when pType %in% c(1, 1.2)")
+      stop("Didn't implement the use of combined.ResList when floor(pType) == 1")
     }
-    # Define parameters to have a thin line around the points in scatter plot.
-    shape <- "common"
-    shapeScale <- 21
-    outerColor <- "common"
-    outerColorScale <- "gray20"
-    outerWidth <- 0.5
 
     count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) +
       geom_abline(col="orange",linetype="dashed",linewidth=1)
     if (pType == 1){
       count.plot <- count.plot + geom_point()
     } else {
-      count.plot <- count.plot + geom_point(aes(fill=gene, shape=shape,
-        color=outerColor), stroke=outerWidth) +
+      # Define parameters to have a thin line around the points in scatter plot.
+      if (pType == 1.2){
+        shape_color <- "common"
+        shapeScale <- 21
+        outerColorScale <- "gray20"
+      } else if (pType == 1.3){
+        shape_color <- count.df$gene
+        shapeScale <- TCRgene2aes[[sp]][[gene]]$shape2
+        outerColorScale <- TCRgene2aes[[sp]][[gene]]$outerColor2
+
+      }
+      outerWidth <- 0.5
+
+      count.plot <- count.plot + geom_point(aes(fill=gene, shape=shape_color,
+        color=shape_color), stroke=outerWidth) +
         scale_color_manual(values=outerColorScale, guide="none") +
         scale_shape_manual(values=shapeScale, guide="none")
     }

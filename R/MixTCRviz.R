@@ -98,8 +98,9 @@
 #'    * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
 #' @param plot.VJ.switch (default=1.2)
 #'    * 1: Show the VJ usage as a scatter plot.
-#'    * 1.2: Show the VJ usage as a scatter plot with the points colored based
-#'        on the TCR gene.
+#'    * 1.2: Same as 1 with the points additionaly colored based on the TCR gene.
+#'    * 1.3: Same as 1 with the different color and shapes of the points based
+#'       on the TCR gene.
 #'    * 2: Show the VJ usage as a bar plot.
 #' @param plot.modelsCombined (default=FALSE)
 #'    * FALSE or empty string: Show the data for each model separately.
@@ -186,9 +187,9 @@ MixTCRviz <- function(input1, output.path,
     print(paste("plot.oneline=",plot.oneline," not supported, using default plot.oneline=0", sep=""))
     plot.oneline <- 0
   }
-  if (!plot.VJ.switch %in% c(1, 1.2, 2)){
+  if (!plot.VJ.switch %in% c(1, 1.2, 1.3, 2)){
     stop("plot.VJ.switch=", plot.VJ.switch, " not supported, should use ",
-      "one of 1, 1.2 or 2.")
+      "one of 1, 1.2, 1.3 or 2.")
   }
 
   modelsCombinded_name <- "modCombined"
