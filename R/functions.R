@@ -359,29 +359,39 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
   }
 
   colorScale <- TCRgene2color[[sp]]
-  }
+  
+
 
   #Plot the comparison between input and repertoires
   if (floor(pType) == 1){
     if (!is.null(combined.resList)){
       stop("Didn't implement the use of combined.ResList when pType %in% c(1, 1.2)")
     }
-    count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label))
+    # Define parameters to have a thin line around the points in scatter plot.
+    shape <- "common"
+    shapeScale <- 21
+    outerColor <- "common"
+    outerColorScale <- "gray20"
+    outerWidth <- 0.5
+
+    count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) +
+      geom_abline(col="orange",linetype="dashed",linewidth=1)
     if (pType == 1){
       count.plot <- count.plot + geom_point()
     } else {
-      count.plot <- count.plot + geom_point(aes(color=gene)) +
-        scale_color_manual(values=colorScale, guide="none")
+      count.plot <- count.plot + geom_point(aes(fill=gene, shape=shape,
+        color=outerColor), stroke=outerWidth) +
+        scale_color_manual(values=outerColorScale, guide="none") +
+        scale_shape_manual(values=shapeScale, guide="none")
     }
     count.plot <- count.plot +
-      geom_abline(col="orange",linetype="dashed",linewidth=1) +
       ggtitle(gene) +
       xlim(0, lim.x) + ylim(0,lim.y) +
       theme(plot.title = element_text(size = 14, hjust=0.5),
         axis.text=element_text(size=10), axis.title=element_text(size=14)) +
       geom_label_repel(aes(fill=gene), size = 3, nudge_y=0.02, box.padding = 0.15,
         show.legend=F) +
-      scale_fill_manual(values=colorScale) +
+      scale_fill_manual(values=colorScale, guide="none") +
       xlab(xlab) + ylab(ylab)
   } else {
     # Show results as bar plots. Will only keep most significant genes and
