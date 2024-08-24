@@ -44,9 +44,9 @@
 #' @param renormVJ (default=1)
 #'    * 0: Compare CDR3 length distribution and motif with those from the baseline repertoire or input2
 #'    * 1: Compare CDR3 length distribution and motif with those from the baseline repertoire or input2 with the V-J
-#'   usage observed in the input TCRs. In the plots the mark " | VJ" is used to
+#'   usage observed in the input TCRs. In the plots the mark " | P(VJ)" is used to
 #'   indicate that CDR3 length distributions and motifs correspond to those
-#'   expected with the V-J usage in the input TCRs.
+#'   expected with the V-J usage in the TCRs used for training.
 #' @param species.default (default="HomoSapiens"). Option to provide the species for all the TCR in input.
 #'   This is useful if your input does not contain a "species" column.
 #'   In case the input contains the "species" column, species.default is not considered.
@@ -494,7 +494,7 @@ MixTCRviz <- function(input1, output.path,
 
           if(renormVJ==1){
             if(length(es$countVJ[[chain]])>0){
-              info[3] <- paste(info[3], "VJ",sep=" | ")
+              info[3] <- paste(info[3], "P(VJ)",sep=" | ")
               bs <- weighted_countL(baseline$countL.VJ[[chain]], es$countVJ[[chain]])
             } else {
               print(paste("No V-J information to compute baseline CDR3",chain.small[chain]," length distribution | VJ. Check your data or use renormVJ=0", sep=""))
@@ -575,7 +575,7 @@ MixTCRviz <- function(input1, output.path,
           #Here we include a correction based on VJ usage for each length.
           if(renormVJ==1){
             if(max(sapply(es$countVJ.L[[chain]],length))>0){  #Make sure we have V-J pairs for at least one length
-              info[3] <- paste(info[3], "VJ",sep=" | ")
+              info[3] <- paste(info[3], "P(VJ)",sep=" | ")
               bs <- weighted_countCDR3(baseline$countCDR3.VJL[[chain]], es$countVJ.L[[chain]])
             } else {
               print(paste("No V-J information to compute baseline CDR3",chain.small[chain]," motif | VJ. Check your data or use renormVJ=0",sep=""))
