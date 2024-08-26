@@ -340,13 +340,13 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
 
     # And add/define some information needed for the bar plot.
     namesToKeep <- setdiff(label, NA)
-    count.df$pattern <- xlab
-    # 'pattern' will be used to show the baseline value from the genes in the
+    count.df$baselineName <- xlab
+    # 'baselineName' will be used to show the baseline value from the genes in the
     # bar plot.
     count.df$log2FC <- log2(ratio+1e-5)
+    count.df$model <- paste0(info[4], " (", n, ")")
 
     if (ret.resList){
-      count.df$model <- paste0(info[4], " (", n, ")")
       return(list(count.df=count.df, namesToKeep=namesToKeep, gene=gene))
     }
   } else {
@@ -403,13 +403,21 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
       scale_fill_manual(values=colorScale, guide="none") +
       xlab(xlab) + ylab(ylab)
   } else {
-    # Show results as bar plots. Will only keep most significant genes and
-    # rework a bit the data.
+    # Show results as bar plots. Will only keep most significant genes, summing
+    # together all the other and rework a bit the data.
+    count_other <- count.df[!count.df$name %in% namesToKeep,,drop=F] %>%
+      dplyr::summarize(Y=sum(Y), X=0, name="Other", gene="Other",
+        label="Other", log2FC=NA, baselineName=count.df$baselineName[1],
+        .by=model)
+    # All baselineName should be the same value (and we put a value of 0
+    # for the 'baseline' of these other, so that no baseline value is showed
+    # there).
 
     count.df <- count.df[count.df$name %in% namesToKeep,,drop=F]
     count.df <- count.df[order(count.df$log2FC, decreasing = T),,drop=F]
     # Order genes based on the log2FC between input and baseline to show
     # most important ones on top.
+    count.df <- dplyr::bind_rows(count.df, count_other)
 
     count.df$label <- factor(count.df$label, levels=rev(unique(count.df$label)))
     # Use a factor with given levels to keep the order constructed above
@@ -432,17 +440,18 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
     count.plot <- count.plot +
       scale_fill_manual(values=colorScale, guide="none") +
       ggtitle(figTitle) + xlab("Frequency") + ylab(NULL) +
-      scale_x_continuous(expand=expansion(mult=c(0, 0.05))) +
+      scale_x_continuous(expand=expansion(mult=c(0, 0.05)), n.breaks=3) +
       # Make the x-axis isn't expanded on the left and is expanded as usual on
       # the right.
-      geom_col(aes(x=X, alpha=pattern),
+      geom_col(aes(x=X, alpha=baselineName),
         position="dodge", width=ifelse(is.null(combined.resList), 0.9, 0.8),
         linewidth=0.5, color="gray60", fill="gray80") +
       scale_alpha_manual(values=0.7, guide=guide_legend(order=2)) +
       theme_minimal() +
       theme(plot.title = element_text(size = 14, hjust=0.5),
-        axis.text=element_text(size=12), axis.title=element_text(size=14),
+        axis.title=element_text(size=14),
         panel.grid.major.y=element_blank(),
+        axis.text.x=element_text(size=10),
         axis.text.y=element_text(size=14, face="bold", color="black"),
         legend.position="top", legend.title=element_blank())
   }
