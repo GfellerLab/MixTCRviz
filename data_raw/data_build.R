@@ -64,22 +64,18 @@ names(map[["MusMusculus"]]) <- mp[pos.m,1]
 
 # Defining color/shape maps for TCR genes ----------------------------------
 TCRgene2aes <- list()
+segment.list <- c("TRAV", "TRBV", "TRAJ", "TRBJ")
 # Different color for each gene per segment
 for (tsp in species.list){
   for (s in segment.list){
     cGenes <- grep(s, gene.list[[tsp]], value=TRUE)
     cols <- hcl.colors(n=length(cGenes), palette="Set 2")
+    cGenes <- c(cGenes, "Other")
+    cols <- c(cols, "gray90")
+    # Add a light gray for the "Other" corresponding to the sum of the genes
+    # not showed in the bar plot.
     TCRgene2aes[[tsp]][[s]]$color1 <- setNames(cols, cGenes)
-    # If we want to show the set of colors used (didn't indicate corresponding
-    # gene name)
-    if (FALSE){
-      nG <- length(cGenes)
-      quartz()
-      plot.new()
-      plot.window(c(0, nG), c(0, 1))
-      rect(0:(nG-1), 0, 1:nG, 1, col = cols, border = "black")
-      title(main=paste0(s, " - ", tsp))
-    }
+
   }
 }
 
@@ -138,6 +134,9 @@ if (FALSE){
       gg <- list()
       for (s in segment.list){
         cGenes <- names(TCRgene2aes[[tsp]][[s]][[paste0("color", cScheme)]])
+        cGenes <- setdiff(cGenes, "Other")
+        # Won't show the color used for "Other" in this plot as doesn't
+        # correspond to a gene.
         nGenes <- length(cGenes)
         cTab <- data.frame(gene = cGenes,
           x = rep(1:3, each=ceiling(nGenes/3))[1:nGenes],

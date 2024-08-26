@@ -106,9 +106,9 @@ Remove J and CDR3 when the last two amino acids are not compatible with the J se
 \itemize{
 \item 0: Compare CDR3 length distribution and motif with those from the baseline repertoire or input2
 \item 1: Compare CDR3 length distribution and motif with those from the baseline repertoire or input2 with the V-J
-usage observed in the input TCRs. In the plots the mark " | VJ" is used to
+usage observed in the input TCRs. In the plots the mark " | P(VJ)" is used to
 indicate that CDR3 length distributions and motifs correspond to those
-expected with the V-J usage in the input TCRs.
+expected with the V-J usage in the TCRs used for training.
 }}
 
 \item{N.min}{(default=10) Minimum number of TCR (i.e., V-J-CDR3) for at least

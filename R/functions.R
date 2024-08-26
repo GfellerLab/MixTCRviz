@@ -340,13 +340,13 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
 
     # And add/define some information needed for the bar plot.
     namesToKeep <- setdiff(label, NA)
-    count.df$pattern <- xlab
-    # 'pattern' will be used to show the baseline value from the genes in the
+    count.df$baselineName <- xlab
+    # 'baselineName' will be used to show the baseline value from the genes in the
     # bar plot.
     count.df$log2FC <- log2(ratio+1e-5)
+    count.df$model <- paste0(info[4], " (", n, ")")
 
     if (ret.resList){
-      count.df$model <- paste0(info[4], " (", n, ")")
       return(list(count.df=count.df, namesToKeep=namesToKeep, gene=gene))
     }
   } else {
@@ -403,13 +403,21 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
       scale_fill_manual(values=colorScale, guide="none") +
       xlab(xlab) + ylab(ylab)
   } else {
-    # Show results as bar plots. Will only keep most significant genes and
-    # rework a bit the data.
+    # Show results as bar plots. Will only keep most significant genes, summing
+    # together all the other and rework a bit the data.
+    count_other <- count.df[!count.df$name %in% namesToKeep,,drop=F] %>%
+      dplyr::summarize(Y=sum(Y), X=0, name="Other", gene="Other",
+        label="Other", log2FC=NA, baselineName=count.df$baselineName[1],
+        .by=model)
+    # All baselineName should be the same value (and we put a value of 0
+    # for the 'baseline' of these other, so that no baseline value is showed
+    # there).
 
     count.df <- count.df[count.df$name %in% namesToKeep,,drop=F]
     count.df <- count.df[order(count.df$log2FC, decreasing = T),,drop=F]
     # Order genes based on the log2FC between input and baseline to show
     # most important ones on top.
+    count.df <- dplyr::bind_rows(count.df, count_other)
 
     count.df$label <- factor(count.df$label, levels=rev(unique(count.df$label)))
     # Use a factor with given levels to keep the order constructed above
@@ -432,17 +440,18 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
     count.plot <- count.plot +
       scale_fill_manual(values=colorScale, guide="none") +
       ggtitle(figTitle) + xlab("Frequency") + ylab(NULL) +
-      scale_x_continuous(expand=expansion(mult=c(0, 0.05))) +
+      scale_x_continuous(expand=expansion(mult=c(0, 0.05)), n.breaks=3) +
       # Make the x-axis isn't expanded on the left and is expanded as usual on
       # the right.
-      geom_col(aes(x=X, alpha=pattern),
+      geom_col(aes(x=X, alpha=baselineName),
         position="dodge", width=ifelse(is.null(combined.resList), 0.9, 0.8),
         linewidth=0.5, color="gray60", fill="gray80") +
       scale_alpha_manual(values=0.7, guide=guide_legend(order=2)) +
       theme_minimal() +
       theme(plot.title = element_text(size = 14, hjust=0.5),
-        axis.text=element_text(size=12), axis.title=element_text(size=14),
+        axis.title=element_text(size=14),
         panel.grid.major.y=element_blank(),
+        axis.text.x=element_text(size=10),
         axis.text.y=element_text(size=14, face="bold", color="black"),
         legend.position="top", legend.title=element_blank())
   }
@@ -513,30 +522,29 @@ plotLD <- function(countL.es, countL.rep, info, plot.oneline, ret.resList=F,
       if(nchar(info[2])>23){legend.size=11}
       if(nchar(info[2])>25){legend.size=10}
     }
-    ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3))
+    ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3)) +
+      guides(color = guide_legend(ncol = 1, order=1))
     # The rest of the plot is the same if combined.resList was NULL or if showing
     # the results from multiple models combined, so we'll draw it below.
-
   } else {
     ld.df <- combined.resList$ld.df
     ld.df$model <- factor(ld.df$model, levels=unique(ld.df$model))
     info <- combined.resList$info
     legend.size <- 10
     ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=model, linetype=v3)) +
+      facet_grid(rows=vars(model), scales="free_y") +
       scale_color_manual(values=set_model_colPals(levels(ld.df$model))) +
-      guides(linetype=guide_legend(ncol=1, order=2))
+      guides(linetype=guide_legend(nrow=1, order=2), color="none")
   }
 
   ld.plot <- ld.plot + geom_point() + geom_line() +
     theme(legend.key.size = unit(0.2, 'cm'), legend.position="top",
       legend.title=element_blank(), legend.text=element_text(size=legend.size)) +
     xlab(paste("Length_CDR3",info[1],sep="")) + ylab("") +
-    guides(color = guide_legend(ncol = 1, order=1)) +
     theme(axis.text=element_text(size=12), axis.title=element_text(size=14),
       plot.title = element_text(size=15,hjust = 0.5))
 
   return(ld.plot)
-
 }
 
 

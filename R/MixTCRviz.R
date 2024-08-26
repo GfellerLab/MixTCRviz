@@ -665,11 +665,11 @@ MixTCRviz <- function(input1, output.path,
 
                 #Add the comparison of V/J usage
                 plotV.L <- plotVJ(es$countV.L[[chain]][[t]], baseline$countV.L[[chain]][[t]],
-                  c(paste(chain,"V", sep=""), input1.name, baseline.name), comp.baseline,
-                  pType=plot.VJ.switch, sp=sp)
+                  c(paste(chain,"V", sep=""), input1.name, baseline.name, model),
+                  comp.baseline, pType=plot.VJ.switch, sp=sp)
                 plotJ.L <- plotVJ(es$countJ.L[[chain]][[t]], baseline$countJ.L[[chain]][[t]],
-                  c(paste(chain,"J", sep=""), input1.name, baseline.name), comp.baseline,
-                  pType=plot.VJ.switch, sp=sp)
+                  c(paste(chain,"J", sep=""), input1.name, baseline.name, model),
+                  comp.baseline, pType=plot.VJ.switch, sp=sp)
 
                 plotVJ.L[[ct]] <- ggarrange(plotV.L, plotJ.L, ncol=2, nrow=1)
 
