@@ -262,7 +262,11 @@ MixTCRviz <- function(input1, output.path,
       stop("Missing file for input1")
     }
   } else if(is.data.frame(input1)==T){
-    input1 <- input1
+    input1 <- as.data.frame(input1)
+    # Use as.data.frame because a tibble is also a data.frame but some of the
+    # code has issues if input is a tibble instead of "simpler" data.frame (due
+    # to column indexing by a single column that keep it as a tibble while it is
+    # transforming it to a vector if a data.frame).
   } else {
     stop("Invalid value for input1. Should be a .csv filename or a data.frame")
   }
@@ -284,7 +288,10 @@ MixTCRviz <- function(input1, output.path,
       } else {
         stop("Missing file for input2")
       }
-    } else if ( !is.data.frame(input2) ){
+    } else if(is.data.frame(input2)){
+      input2 <- as.data.frame(input2)
+      # See comment for input1
+    } else {
       stop("Invalid value for input2. Should be a .csv filename or a data.frame")
     }
     print("Check input2")
