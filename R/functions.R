@@ -264,7 +264,7 @@ find_mhc <- function(m){
 #' @param combined.resList When this isn't NULL, we'll use the results from
 #'    this list to plot the results (from multiple models combined together).
 
-plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
+plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.3,
   sp="HomoSapiens", ret.resList=F, combined.resList=NULL){
   if (is.null(combined.resList)){
     if (length(count.es) == 0){
@@ -371,7 +371,8 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
     }
 
     count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) +
-      geom_abline(col="orange",linetype="dashed",linewidth=1)
+      geom_abline(col="orange",linetype="dashed",linewidth=1) #+
+      #geom_errorbarh(aes(xmax=X+0.1*X, xmin=X-0.1*X), height=0, color="azure4")
     if (pType == 1){
       count.plot <- count.plot + geom_point()
     } else {
@@ -401,7 +402,7 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.2,
       geom_label_repel(aes(fill=gene), size = 3, nudge_y=0.02, box.padding = 0.25,
         show.legend=F) +
       scale_fill_manual(values=colorScale, guide="none") +
-      xlab(xlab) + ylab(ylab)
+      xlab(xlab) + ylab(ylab) 
   } else {
     # Show results as bar plots. Will only keep most significant genes, summing
     # together all the other and rework a bit the data.
