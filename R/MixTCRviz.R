@@ -129,7 +129,7 @@ MixTCRviz <- function(input1, output.path,
                       renormVJ=1, N.min=10, output.stat=1, set.cdr3a.length=NA, set.cdr3b.length=NA,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
-                      plot.VJ.switch=1.2, plot.modelsCombined=FALSE,
+                      plot.VJ.switch=1.3, plot.modelsCombined=FALSE,
                       chain.list.output="AB", input1.name="Input", input2.name=NULL, output.format="pdf"){
 
 

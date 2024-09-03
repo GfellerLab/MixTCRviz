@@ -65,11 +65,12 @@ names(map[["MusMusculus"]]) <- mp[pos.m,1]
 # Defining color/shape maps for TCR genes ----------------------------------
 TCRgene2aes <- list()
 segment.list <- c("TRAV", "TRBV", "TRAJ", "TRBJ")
+palette <- "Set 3"
 # Different color for each gene per segment
 for (tsp in species.list){
   for (s in segment.list){
     cGenes <- grep(s, gene.list[[tsp]], value=TRUE)
-    cols <- hcl.colors(n=length(cGenes), palette="Set 2")
+    cols <- hcl.colors(n=length(cGenes), palette=palette)
     cGenes <- c(cGenes, "Other")
     cols <- c(cols, "gray90")
     # Add a light gray for the "Other" corresponding to the sum of the genes
@@ -112,7 +113,7 @@ for (tsp in species.list){
       g2u <- unique(g2)
     }
 
-    cols <- hcl.colors(n=length(g1u), palette="Set 2")
+    cols <- hcl.colors(n=length(g1u), palette=palette)
     names(cols) <- g1u
     shapes <- rep(shapes, length.out=length(g2u))
     cols_out <- gray(seq(0, 0.5, length.out=ceiling(length(g2u) / n_diffShapes)))
@@ -128,7 +129,7 @@ for (tsp in species.list){
 }
 
 # If we want to make figures showing the color/shape from each gene.
-if (FALSE){
+if (TRUE){
   for (cScheme in 1:2){
     for (tsp in species.list){
       gg <- list()
@@ -154,7 +155,7 @@ if (FALSE){
         }
         gg[[s]] <- ggplot(cTab, aes(x, y)) +
           geom_point(aes(shape = gene, fill=gene, color=gene), stroke=1.5,
-            size=ifelse(nGenes <= 60, 5, 3)) +
+            size=ifelse(nGenes <= 60, 6, 5)) +
           geom_text(aes(label = gene), hjust = 0, nudge_x = 0.15) +
           scale_fill_manual(values=colorScale) +
           scale_shape_manual(values=shapeScale) +
