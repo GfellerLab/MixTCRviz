@@ -936,6 +936,8 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
         ind.last <- c()
       }
 
+      ind.traj38 <- c()
+      
       if(check.cdr3.mode==1){
         first <- substr(input[ind.sp,cdr3], 1, start.lg)
         V.end <- cdr123[[sp]][[chain]][,"CDR3"]
@@ -945,12 +947,36 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
         J.start <- Jseq[[sp]][[chain]][,"CDR3"]
         ref.last <- substr(J.start, nchar(J.start)-end.lg+1, nchar(J.start));  names(ref.last) <- rownames(Jseq[[sp]][[chain]])
 
+        #Correct TRAJ38 in human (issue with 10X data)
+        
+        if(sp=="HomoSapiens" & chain=="TRA"){
+          ind.traj38 <- which(input[ind.sp,"TRAJ"]=="TRAJ38" & last=="LI")
+          last[ind.traj38] <- "IW"
+          input[ind.sp[ind.traj38],"cdr3_TRA"] <- paste(input[ind.sp[ind.traj38],"cdr3_TRA"], "W", sep="")
+        }  
+        
         ind.first <- which( (first != ref.first[input[ind.sp,V]] ) & ref.first[input[ind.sp,V]]!="" & is.na(ref.first[input[ind.sp,V]])==F ) #Missing data appear as NA, so not problem
         ind.last <- which( (last != ref.last[input[ind.sp,J]] ) & ref.last[input[ind.sp,J]]!="" & is.na(ref.last[input[ind.sp,J]])==F ) #Missing data appear as NA, so not problem
       }
 
       if(verbose>0){
+        
+        if(length(ind.traj38)>0 & chain=="TRA"){
+          print("Adding W on CDR3a for TRAJ38 entries:")
+          if(verbose==1){
+            n <- min(10,length(ind.traj38))
+            print("Examples  (use verbose=2 to see them all):")
+          }
+          if(verbose==2){
+            n <- length(ind.traj38)
+          }
+          ti <- ind.sp[ind.traj38[1:n]]
+          print(input[ti,c(cdr3,J)])
+          
+        }
+        
         nt <- length(ind.sp)
+        
         if(length(ind.first)>0){
 
           print(paste("*** Likely inconsistencies between ",chain,"V gene and CDR3",chain.small[chain]," in ",length(ind.first)," entries (out of ",nt,") in ",sp,"- will be put to NA ***",sep=""))
