@@ -96,7 +96,7 @@
 #'    * 0: Show the CDR3 motifs of the baseline repertoire.
 #'    * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
 #'    * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
-#' @param plot.VJ.switch (default=1.2)
+#' @param plot.VJ.switch (default=1.3)
 #'    * 1: Show the VJ usage as a scatter plot.
 #'    * 1.2: Same as 1 with the points additionaly colored based on the TCR gene.
 #'    * 1.3: Same as 1 with the different color and shapes of the points based
@@ -120,6 +120,8 @@
 #' @param input2.name (default=NULL): If a second set of TCRs is provided
 #'   (i.e., input2 != NULL), Provide a generic name for the input2 TCRs in the
 #'   plots. Avoid names with more than 20 characters.
+#' @param simple.graphical.output (default=F): If T, only a single pdf file is produced in output.path directory
+#' This can be useful to go rapidly through several motifs.
 #'
 #' @returns Nothing.
 #' @export
@@ -129,7 +131,7 @@ MixTCRviz <- function(input1, output.path,
                       renormVJ=1, N.min=10, output.stat=1, set.cdr3a.length=NA, set.cdr3b.length=NA,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
-                      plot.VJ.switch=1.3, plot.modelsCombined=FALSE,
+                      plot.VJ.switch=1.3, plot.modelsCombined=FALSE, simple.graphical.output=F,
                       chain.list.output="AB", input1.name="Input", input2.name=NULL, output.format="pdf"){
 
 
@@ -376,7 +378,7 @@ MixTCRviz <- function(input1, output.path,
 
     summary <- list(info, es$L, es$countL, es$countV, es$countJ, es$countV.L, es$countJ.L, es$countCDR1, es$countCDR2, es$countCDR3.L, es$countVJ, es$countVJ.L)
     names(summary) <- c("info", "L", "countL", "countV", "countJ", "countV.L", "countJ.L", "countCDR1", "countCDR2", "countCDR3.L", "countVJ", "countVJ.L")
-    if(output.stat==1){
+    if(output.stat==1 & !simple.graphical.output){
       dir <- paste(output.path,"/stats/", sep="")
       if(!dir.exists(dir)){
         dir.create(dir);
@@ -709,10 +711,13 @@ MixTCRviz <- function(input1, output.path,
       } #End of the loop over both chains
 
 
-
-      dir <- paste(output.path,"/plots/", sep="")
-      if(!dir.exists(dir)){
-        dir.create(dir);
+      if(!simple.graphical.output){
+        dir <- paste(output.path,"/plots/", sep="")
+        if(!dir.exists(dir)){
+          dir.create(dir);
+        }
+      } else {
+        dir <- output.path
       }
 
       if (!plot.modelsCombined){
@@ -737,19 +742,19 @@ MixTCRviz <- function(input1, output.path,
             height <- 3
           }
         }
-        ggsave(fig, filename=paste(output.path,"/plots/",model,".", output.format, sep=""), device=output.format, width = width/div, height = height)
+        ggsave(fig, filename=paste(dir,"/",model,".", output.format, sep=""), device=output.format, width = width/div, height = height)
 
-        if(plot.logo.length==1){
-          dir <- paste(output.path,"/plots/CDR3_length/", sep="")
-          if(!dir.exists(dir)){
-            dir.create(dir);
+        if(plot.logo.length==1 & !simple.graphical.output){
+          dir.length <- paste(dir,"/CDR3_length/", sep="")
+          if(!dir.exists(dir.length)){
+            dir.create(dir.length);
           }
 
           for(chain in chain.list){
             g.final <- pg.length[[chain]];
             mx <- length(tl.logo[[chain]])
             if(mx>0){
-              ggsave(g.final, filename=paste(dir, model,"_",chain,".", output.format, sep=""), device=output.format, width = 20, height = 2.5*mx)
+              ggsave(g.final, filename=paste(dir.length, model,"_",chain,".", output.format, sep=""), device=output.format, width = 20, height = 2.5*mx)
             }
           }
         }

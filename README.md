@@ -193,7 +193,7 @@ version from above or if you used library(MixTCRviz)).
     * 0: Show the CDR3 motifs of the baseline repertoire.
     * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
     * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
-    
+
 - plot.VJ.switch (default=1)
     * 1: Show the VJ usage as a scatter plot.
     * 1.2: Same as 1 with the points additionaly colored based on the TCR gene.
@@ -223,6 +223,8 @@ version from above or if you used library(MixTCRviz)).
 - input2.name (default="NULL"): If a second set of TCRs is provided
    (i.e., input2 != NULL), Provide a generic name for the input2 TCRs in the
    plots. Avoid names with more than 20 characters.
+
+- simple.graphical.output (default=F): If T, only a single pdf file is produced in output.path directory. This can be useful to go rapidly through several motifs.
 
 
 # OUTPUT

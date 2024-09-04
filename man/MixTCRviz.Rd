@@ -26,8 +26,9 @@ MixTCRviz(
   plot.oneline = 0,
   plot.logo.length = 0,
   plot.cdr3.norm = 0,
-  plot.VJ.switch = 1.2,
+  plot.VJ.switch = 1.3,
   plot.modelsCombined = FALSE,
+  simple.graphical.output = F,
   chain.list.output = "AB",
   input1.name = "Input",
   input2.name = NULL,
@@ -172,7 +173,7 @@ In case the input contains the "model" column, model.default is not considered.}
 \item 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
 }}
 
-\item{plot.VJ.switch}{(default=1.2)
+\item{plot.VJ.switch}{(default=1.3)
 \itemize{
 \item 1: Show the VJ usage as a scatter plot.
 \item 1.2: Same as 1 with the points additionaly colored based on the TCR gene.
@@ -189,6 +190,9 @@ figure (based on the format plot.VJ.switch=2). When given as a
 logical, the default name "modCombined" is used. Otherwise, the string
 is used for the resulting figure filename.
 }}
+
+\item{simple.graphical.output}{(default=F): If T, only a single pdf file is produced in output.path directory
+This can be useful to go rapidly through several motifs.}
 
 \item{chain.list.output}{(default="AB")
 \itemize{
