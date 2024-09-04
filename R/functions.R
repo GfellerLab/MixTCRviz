@@ -9,23 +9,16 @@ build_stat <- function(input, chain.list=c("TRA","TRB"), sp="HomoSapiens", comp.
   # comp.VJL=1 means we are computing length distributions and motifs knowing VJ
   # It takes some time, but still reasonable.
 
-  L <- list()
-  countL <- list()
-  countV <- list()
-  countJ <- list()
-  countV.L <- list()
-  countJ.L <- list()
-  countVJ <- list()
-  countCDR1 <- list()
-  countCDR2 <- list()
-  countCDR3.L <- list()
-  countVJ.L <- list()
-  if(comp.VJL==1){
-    countCDR3.VL <- list()
-    countCDR3.JL <- list()
-    countCDR3.VJL <- list()
-    countL.VJ <- list()
+  es <- list()
+  if(comp.VJL==0){
+    stat.list <- c("L", "countL", "countV", "countJ", "countV.L", "countJ.L", "countCDR1", "countCDR2", "countCDR3.L", "countVJ", "countVJ.L")
+  } else {
+    stat.list <- c("L", "countL", "countV", "countJ", "countV.L", "countJ.L", "countL.VJ", "countCDR1", "countCDR2", "countCDR3.L", "countCDR3.VL", "countCDR3.JL", "countCDR3.VJL", "countVJ", "countVJ.L")
   }
+  for(s in stat.list){
+    es[[s]] <- list()
+  }
+ 
 
   for(chain in chain.list){
 
@@ -33,73 +26,67 @@ build_stat <- function(input, chain.list=c("TRA","TRB"), sp="HomoSapiens", comp.
     Jn <- paste(chain,"J", sep="")
     cdr3 <- paste("cdr3_",chain,sep="")
 
-    countV[[chain]] <- table(input[,Vn])
-    countJ[[chain]] <- table(input[,Jn])
+    es$countV[[chain]] <- table(input[,Vn])
+    es$countJ[[chain]] <- table(input[,Jn])
 
-    countL[[chain]] <- table(nchar(input[,cdr3]))
-    L[[chain]] <- as.numeric(names(countL[[chain]]))
-    if(length(countL[[chain]])>0){
-      names(countL[[chain]]) <- paste("L",names(countL[[chain]]),sep="_")
+    es$countL[[chain]] <- table(nchar(input[,cdr3]))
+    es$L[[chain]] <- as.numeric(names(es$countL[[chain]]))
+    if(length(es$countL[[chain]])>0){
+      names(es$countL[[chain]]) <- paste("L",names(es$countL[[chain]]),sep="_")
     }
-    countVJ[[chain]] <- table(input[,Vn], input[,Jn])
+    es$countVJ[[chain]] <- table(input[,Vn], input[,Jn])
 
-    countV.L[[chain]] <- list()
-    countJ.L[[chain]] <- list()
-    countVJ.L[[chain]] <- list()
-    for(lg in L[[chain]]){
+    es$countV.L[[chain]] <- list()
+    es$countJ.L[[chain]] <- list()
+    es$countVJ.L[[chain]] <- list()
+    for(lg in es$L[[chain]]){
       ind <- which(nchar(input[,cdr3])==lg)
       lg.c <- paste("L",lg,sep="_")
-      countV.L[[chain]][[lg.c]] <- table(input[ind,Vn])
-      countJ.L[[chain]][[lg.c]] <- table(input[ind,Jn])
-      countVJ.L[[chain]][[lg.c]] <- table(input[ind,Vn],input[ind,Jn])
+      es$countV.L[[chain]][[lg.c]] <- table(input[ind,Vn])
+      es$countJ.L[[chain]][[lg.c]] <- table(input[ind,Jn])
+      es$countVJ.L[[chain]][[lg.c]] <- table(input[ind,Vn],input[ind,Jn])
     }
 
     if(comp.VJL==1){
 
-      for(V in names(countV[[chain]])){
+      for(V in names(es$countV[[chain]])){
         indv <- which(input[,Vn]==V)
-        countCDR3.VL[[chain]][[V]] <- count_aa(input[indv,cdr3], keep.gap=0)
+        es$countCDR3.VL[[chain]][[V]] <- count_aa(input[indv,cdr3], keep.gap=0)
       }
-      for(J in names(countJ[[chain]])){
+      for(J in names(es$countJ[[chain]])){
         indj <- which(input[,Jn]==J)
-        countCDR3.JL[[chain]][[J]] <- count_aa(input[indj,cdr3], keep.gap=0)
+        es$countCDR3.JL[[chain]][[J]] <- count_aa(input[indj,cdr3], keep.gap=0)
       }
-      for(V in names(countV[[chain]])){
+      for(V in names(es$countV[[chain]])){
         indv <- which(input[,Vn]==V)
 
-        for(J in names(countJ[[chain]])){
+        for(J in names(es$countJ[[chain]])){
           indj <- which(input[indv,Jn]==J)
           ind <- indv[indj]
           s <- paste(V,J, sep="_")
           if(length(ind)>0){
-            countL.VJ[[chain]][[s]] <- table(nchar(input[ind,cdr3]))
-            if(length(countL.VJ[[chain]][[s]])>0){
-              names(countL.VJ[[chain]][[s]]) <- paste("L", names(countL.VJ[[chain]][[s]]),sep="_")
+            es$countL.VJ[[chain]][[s]] <- table(nchar(input[ind,cdr3]))
+            if(length(es$countL.VJ[[chain]][[s]])>0){
+              names(es$countL.VJ[[chain]][[s]]) <- paste("L", names(es$countL.VJ[[chain]][[s]]),sep="_")
             }
-            countCDR3.VJL[[chain]][[s]] <- count_aa(input[ind,cdr3], keep.gap=0)
+            es$countCDR3.VJL[[chain]][[s]] <- count_aa(input[ind,cdr3], keep.gap=0)
           } else {
-            countL.VJ[[chain]][[s]] <- table(NA)
-            countCDR3.VJL[[chain]][[s]] <- table(NA)
+            es$countL.VJ[[chain]][[s]] <- table(NA)
+            es$countCDR3.VJL[[chain]][[s]] <- table(NA)
           }
         }
       }
     }
-    if(length(countV[[chain]])>0){
-      countCDR1[[chain]] <- count_aa(cdr123[[sp]][[chain]][input[,Vn],"CDR1"], keep.gap=1)
-      countCDR2[[chain]] <- count_aa(cdr123[[sp]][[chain]][input[,Vn],"CDR2"], keep.gap=1)
+    if(length(es$countV[[chain]])>0){
+      es$countCDR1[[chain]] <- count_aa(cdr123[[sp]][[chain]][input[,Vn],"CDR1"], keep.gap=1)
+      es$countCDR2[[chain]] <- count_aa(cdr123[[sp]][[chain]][input[,Vn],"CDR2"], keep.gap=1)
     }
-    countCDR3.L[[chain]] <- count_aa(input[,cdr3], keep.gap=0)
+    es$countCDR3.L[[chain]] <- count_aa(input[,cdr3], keep.gap=0)
 
 
   }
-  if(comp.VJL==0){
-    count <- list(L, countL, countV, countJ, countV.L, countJ.L, countCDR1, countCDR2, countCDR3.L, countVJ, countVJ.L)
-    names(count) <- c("L", "countL", "countV", "countJ", "countV.L", "countJ.L", "countCDR1", "countCDR2", "countCDR3.L", "countVJ", "countVJ.L")
-  } else {
-    count <- list(L, countL, countV, countJ, countV.L, countJ.L, countL.VJ, countCDR1, countCDR2, countCDR3.L, countCDR3.VL, countCDR3.JL, countCDR3.VJL, countVJ, countVJ.L)
-    names(count) <- c("L", "countL", "countV", "countJ", "countV.L", "countJ.L", "countL.VJ", "countCDR1", "countCDR2", "countCDR3.L", "countCDR3.VL", "countCDR3.JL", "countCDR3.VJL", "countVJ", "countVJ.L")
-  }
-  return(count)
+  
+  return(es)
 
 }
 
