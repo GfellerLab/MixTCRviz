@@ -9,7 +9,7 @@ plotVJ(
   count.rep,
   info,
   comp.baseline,
-  pType = 1.2,
+  pType = 1.3,
   sp = "HomoSapiens",
   ret.resList = F,
   combined.resList = NULL
