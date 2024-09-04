@@ -28,7 +28,6 @@ MixTCRviz(
   plot.cdr3.norm = 0,
   plot.VJ.switch = 1.3,
   plot.modelsCombined = FALSE,
-  simple.graphical.output = F,
   label.neg = F,
   label.min.fr = c(0.05, 0.05),
   chain.list.output = "AB",
@@ -192,9 +191,6 @@ figure (based on the format plot.VJ.switch=2). When given as a
 logical, the default name "modCombined" is used. Otherwise, the string
 is used for the resulting figure filename.
 }}
-
-\item{simple.graphical.output}{(default=F): If T, only a single pdf file is produced in output.path directory
-This can be useful to go rapidly through several motifs.}
 
 \item{label.neg}{(default=F): If T, show also the labels of the genes most depleted in input1}
 

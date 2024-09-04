@@ -120,8 +120,6 @@
 #' @param input2.name (default=NULL): If a second set of TCRs is provided
 #'   (i.e., input2 != NULL), Provide a generic name for the input2 TCRs in the
 #'   plots. Avoid names with more than 20 characters.
-#' @param simple.graphical.output (default=F): If T, only a single pdf file is produced in output.path directory
-#' This can be useful to go rapidly through several motifs.
 #' @param label.neg (default=F): If T, show also the labels of the genes most depleted in input1
 #' @param label.min.fr (default=c(0.05,0.05)): Region (rectangle) of the left corner of V/J plots with no gene label
 #'
@@ -133,7 +131,7 @@ MixTCRviz <- function(input1, output.path,
                       renormVJ=1, N.min=10, output.stat=1, set.cdr3a.length=NA, set.cdr3b.length=NA,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
-                      plot.VJ.switch=1.3, plot.modelsCombined=FALSE, simple.graphical.output=F,label.neg=F, 
+                      plot.VJ.switch=1.3, plot.modelsCombined=FALSE, label.neg=F, 
                       label.min.fr=c(0.05,0.05),
                       chain.list.output="AB", input1.name="Input", input2.name=NULL, output.format="pdf"){
 
@@ -381,7 +379,7 @@ MixTCRviz <- function(input1, output.path,
 
     summary <- list(info, es$L, es$countL, es$countV, es$countJ, es$countV.L, es$countJ.L, es$countCDR1, es$countCDR2, es$countCDR3.L, es$countVJ, es$countVJ.L)
     names(summary) <- c("info", "L", "countL", "countV", "countJ", "countV.L", "countJ.L", "countCDR1", "countCDR2", "countCDR3.L", "countVJ", "countVJ.L")
-    if(output.stat==1 & !simple.graphical.output){
+    if(output.stat==1){
       dir <- paste(output.path,"/stats/", sep="")
       if(!dir.exists(dir)){
         dir.create(dir);
@@ -714,14 +712,11 @@ MixTCRviz <- function(input1, output.path,
       } #End of the loop over both chains
 
 
-      if(!simple.graphical.output){
-        dir <- paste(output.path,"/plots/", sep="")
+         dir <- paste(output.path,"/plots/", sep="")
         if(!dir.exists(dir)){
           dir.create(dir);
         }
-      } else {
-        dir <- output.path
-      }
+    
 
       if (!plot.modelsCombined){
         if(chain.list.output=="A" | chain.list.output=="B"){   pg.both <- pg.all[[chain.list[1]]]; div=2   }
@@ -747,7 +742,7 @@ MixTCRviz <- function(input1, output.path,
         }
         ggsave(fig, filename=paste(dir,"/",model,".", output.format, sep=""), device=output.format, width = width/div, height = height)
 
-        if(plot.logo.length==1 & !simple.graphical.output){
+        if(plot.logo.length==1){
           dir.length <- paste(dir,"/CDR3_length/", sep="")
           if(!dir.exists(dir.length)){
             dir.create(dir.length);

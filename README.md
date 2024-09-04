@@ -224,8 +224,6 @@ version from above or if you used library(MixTCRviz)).
    (i.e., input2 != NULL), Provide a generic name for the input2 TCRs in the
    plots. Avoid names with more than 20 characters.
 
-- simple.graphical.output (default=F): If T, only a single pdf file is produced in output.path directory. This can be useful to go rapidly through several motifs.
-
 - label.neg (default=F): If T, show also the labels of the genes most depleted in input1.
 
 - label.min.fr (default=c(0.05,0.05)): Region (rectangle) of the left corner of V/J plots with no gene label.
