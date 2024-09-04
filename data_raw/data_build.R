@@ -2,6 +2,7 @@
 # In this file we create and export some variables used by the package
 
 library(ggplot2)
+library(ggpubr)
 
 # Mapping of the gene names -----------------------------------------------
 segment.list <- c("TRAV", "TRBV", "TRAJ", "TRBJ")
@@ -86,25 +87,36 @@ for (tsp in species.list){
   for (s in segment.list){
     cGenes <- grep(s, gene.list[[tsp]], value=TRUE)
     genesCode <- sort(unique(gsub("TR(A|B)(V|J)", "", cGenes)))
-    shapes <- 21:25 # Shapes with outer colors can only take values 21:25
-    n_diffShapes <- length(shapes)
-
-    g1 <- gsub("-(.*)$", "", genesCode)
-    g2 <- stringr::str_replace(string=genesCode, pattern=g1, replacement="")
-    # g1 is the first part of gene names before the "-" and g2 is the 2nd
-    # part of this name (either "" when there isn't such 2nd part, "-1", "-2", ...).
-    g2 <- gsub("^$", "none", g2)
+   
+    if(s != "TRBJ"){
+      shapes <- 21:25 # Shapes with outer colors can only take values 21:25
+      n_diffShapes <- length(shapes)
+      g1 <- gsub("-(.*)$", "", genesCode)
+      g2 <- stringr::str_replace(string=genesCode, pattern=g1, replacement="")
+      # g1 is the first part of gene names before the "-" and g2 is the 2nd
+      # part of this name (either "" when there isn't such 2nd part, "-1", "-2", ...).
+      g2 <- gsub("^$", "none", g2)
+    } else {
+      shapes <- c(21,25) # Shapes with outer colors can only take values 21:25
+      n_diffShapes <- length(shapes)
+      g1 <- genesCode
+      g2 <- rep("none", length(g1))
+    }
     # Replace empty strings by none to be able to call them by name below.
     g1u <- sort(unique(g1))
     g2u <- setdiff(sort(unique(g2)), "none")
     # The cases with "none" will be considered with same shape/color as first case.
 
-    if (length(unique(g2)) == 1){
+    if (length(unique(g2)) == 1 ){
       # When there weren't any gene names with "-" in them, we'll instead
       # combine the color, shape and outer color for all the genes (I'll
       # consider here 2 different outer colors, and the number of inner color
       # will be determined based on number needed to distinguish all cases).
-      n_grays <- 2
+      if(s != "TRBJ"){
+        n_grays <- 2
+      } else {
+        n_grays <- 1
+      }
       g1 <- paste0("l", (rep(1:ceiling(length(g1) / (n_grays*n_diffShapes)),
         each=n_grays*n_diffShapes)[1:length(g1)]))
       g2 <- paste0("l", (rep(1 : (n_grays*n_diffShapes), length.out=length(g2))))
