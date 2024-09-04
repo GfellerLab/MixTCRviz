@@ -29,6 +29,8 @@ MixTCRviz(
   plot.VJ.switch = 1.3,
   plot.modelsCombined = FALSE,
   simple.graphical.output = F,
+  label.neg = F,
+  label.min.fr = c(0.05, 0.05),
   chain.list.output = "AB",
   input1.name = "Input",
   input2.name = NULL,
@@ -193,6 +195,10 @@ is used for the resulting figure filename.
 
 \item{simple.graphical.output}{(default=F): If T, only a single pdf file is produced in output.path directory
 This can be useful to go rapidly through several motifs.}
+
+\item{label.neg}{(default=F): If T, show also the labels of the genes most depleted in input1}
+
+\item{label.min.fr}{(default=c(0.05,0.05)): Region (rectangle) of the left corner of V/J plots with no gene label}
 
 \item{chain.list.output}{(default="AB")
 \itemize{

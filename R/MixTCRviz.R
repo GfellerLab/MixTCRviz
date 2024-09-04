@@ -122,6 +122,8 @@
 #'   plots. Avoid names with more than 20 characters.
 #' @param simple.graphical.output (default=F): If T, only a single pdf file is produced in output.path directory
 #' This can be useful to go rapidly through several motifs.
+#' @param label.neg (default=F): If T, show also the labels of the genes most depleted in input1
+#' @param label.min.fr (default=c(0.05,0.05)): Region (rectangle) of the left corner of V/J plots with no gene label
 #'
 #' @returns Nothing.
 #' @export
@@ -131,7 +133,8 @@ MixTCRviz <- function(input1, output.path,
                       renormVJ=1, N.min=10, output.stat=1, set.cdr3a.length=NA, set.cdr3b.length=NA,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
-                      plot.VJ.switch=1.3, plot.modelsCombined=FALSE, simple.graphical.output=F,
+                      plot.VJ.switch=1.3, plot.modelsCombined=FALSE, simple.graphical.output=F,label.neg=F, 
+                      label.min.fr=c(0.05,0.05),
                       chain.list.output="AB", input1.name="Input", input2.name=NULL, output.format="pdf"){
 
 
@@ -527,10 +530,10 @@ MixTCRviz <- function(input1, output.path,
 
           countV.plot <- plotVJ(es$countV[[chain]], baseline$countV[[chain]],
             infoV, comp.baseline, pType=plot.VJ.switch, sp=sp,
-            ret.resList=plot.modelsCombined)
+            ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr)
           countJ.plot <- plotVJ(es$countJ[[chain]], baseline$countJ[[chain]],
             infoJ, comp.baseline, pType=plot.VJ.switch, sp=sp,
-            ret.resList=plot.modelsCombined)
+            ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr)
 
           #######
           # Plot comparison of motifs for CDR1 and CDR2, but this is redundant with V/J plots
@@ -675,10 +678,10 @@ MixTCRviz <- function(input1, output.path,
                 #Add the comparison of V/J usage
                 plotV.L <- plotVJ(es$countV.L[[chain]][[t]], baseline$countV.L[[chain]][[t]],
                   c(paste(chain,"V", sep=""), input1.name, baseline.name, model),
-                  comp.baseline, pType=plot.VJ.switch, sp=sp)
+                  comp.baseline, pType=plot.VJ.switch, sp=sp, label.neg = label.neg, label.min.fr=label.min.fr)
                 plotJ.L <- plotVJ(es$countJ.L[[chain]][[t]], baseline$countJ.L[[chain]][[t]],
                   c(paste(chain,"J", sep=""), input1.name, baseline.name, model),
-                  comp.baseline, pType=plot.VJ.switch, sp=sp)
+                  comp.baseline, pType=plot.VJ.switch, sp=sp, label.neg = label.neg, label.min.fr=label.min.fr)
 
                 plotVJ.L[[ct]] <- ggarrange(plotV.L, plotJ.L, ncol=2, nrow=1)
 

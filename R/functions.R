@@ -250,9 +250,11 @@ find_mhc <- function(m){
 #'   indicating the model name).
 #' @param combined.resList When this isn't NULL, we'll use the results from
 #'    this list to plot the results (from multiple models combined together).
+#' @param label.neg (default=F): If T, show also the labels of the genes most depleted in input1
+#' @param label.min.fr (default=c(0.05, 0.05)): Region (rectangle) of the left corner of V/J plots with no gene label
 
 plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.3,
-  sp="HomoSapiens", ret.resList=F, combined.resList=NULL){
+  sp="HomoSapiens", ret.resList=F, combined.resList=NULL, label.neg=F, label.min.fr=c(0.05, 0.05)){
   if (is.null(combined.resList)){
     if (length(count.es) == 0){
       # Can directly return an empty plot when this doesn't contain any data.
@@ -264,13 +266,13 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.3,
     }
 
     #count.es is on the Y axis, count.rep on the X
-    gene <- info[1]
+    gene <- info[1]  # e.g., TRAV
     n <- sum(count.es)
     if(comp.baseline==0){n.rep <- sum(count.rep)}
     v <- c(names(count.rep), names(count.es))
     nm <- unique(v)
-    type1 <- info[2]
-    type2 <- info[3]
+    type1 <- info[2] # e.g., Input1
+    type2 <- info[3] # e.g., Baseline
     cn <- c(type1, type2)
     count <- matrix(0, nrow=length(nm), ncol=2)
     rownames(count) <- nm
@@ -287,22 +289,47 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.3,
     lim.y <- max(count[,c(type1)] )*1.3
     lim.x <- max(count[,c(type2)] )*1.3
 
-    #lim.y <- round(min( max(count[,c(type1)] )+0.1, max( count[,c(type1)] )*1.4),1)
-    #lim.x <- min(max(count[,c(type2)])+0.1, max(count[,c(type2)])*1.4)
-    #if(lim.x < 0.1){lim.x <- round(lim.x+0.005,2)}
-    #else { lim.x <- round(lim.x+0.05,1) }
-
-    label <- nm
-    label[count.df[,"Y"] < 0.05 & count.df[,"X"] < 0.05] <- NA
-    ratio <- count.df[,"Y"]/(count.df[,"X"]+0.001)
-    label[which(ratio < 1.5 & count.df[,"X"] < 0.3 & count.df[,"Y"] < 0.3) ] <- NA
-    n_lab_max <- ifelse(pType==2, 12, 8)
-    #If there are too many labels, show only those with FC > 2 (bar plot can
-    #accomodate more labels before it gets too confusing visually).
-    if(length(which(!is.na(label)))> n_lab_max){
-      label[which( (ratio < 2) & count.df[,"Y"]<0.1)] <- NA
+    label <- nm; names(label) <- nm
+    ratio <- (count.df[,"Y"]+0.0001)/(count.df[,"X"]+0.0001)
+    logFC <- log2(ratio); names(logFC) <- nm
+    if(label.neg){
+      logFC <- abs(logFC)
     }
-
+    
+    #If label.neg==F, put labels of all genes with negative logFC to NA
+    if(!label.neg){
+      label[logFC < 0] <- NA
+    }
+    
+    #Hide labels for points in the lower left corner, based on label.min.fr criteria
+    label[ count.df[,"Y"] < label.min.fr[1] & count.df[,"X"] < label.min.fr[2] ] <- NA
+    
+    #Hide labels for points with low fold change and not very high frequencies
+    #Do this iteratively
+    min.logFC <- log2(c(1.3,1.5,2,3))
+    min.fr <- c(0.3, 0.2, 0.1, 0.1) #This means that genes with higher frequency than min.fr in input1 will alwasy be labelled, irrespectiv of their logFC
+    
+    #Test different stringency on the logFC thresholds (bar plot can
+    #accomodate more labels before it gets too confusing visually).
+    n_lab_max <- ifelse(pType==2, 12, 8)
+    t <- 1
+    while(length(which(!is.na(label))) > n_lab_max & t <= length(min.fr)){
+      label[which( (logFC < min.logFC[t]) & count.df[,"X"] < min.fr[t] & count.df[,"Y"] < min.fr[t])] <- NA
+      t <- t+1
+    }
+    #If we still have too many labels, take those with the top logFC
+    if(length(which(!is.na(label))) > n_lab_max){
+      print(paste("Too many labels for ",gene,", selection will be based primarily on logFC:",sep=""))
+      print("  Consider augmenting values in label.min.fr if visualisation is not good")
+      logFC.sort <- sort(logFC)
+      t <- 1
+      while(length(which(!is.na(label))) > n_lab_max){
+        label[names(logFC.sort[t])] <- NA
+        t <- t+1
+      }
+    }
+    
+   
     ylab <- paste(type1," (",n,")", sep="")
 
     if(comp.baseline==1){  xlab <- type2 } else {xlab <- paste(type2," (",n.rep,")", sep="")}
