@@ -97,6 +97,7 @@ for (tsp in species.list){
       # part of this name (either "" when there isn't such 2nd part, "-1", "-2", ...).
       g2 <- gsub("^$", "none", g2)
     } else {
+      #The number of TRBJ genes is much lower, so we use only two shapes
       shapes <- c(21,25) # Shapes with outer colors can only take values 21:25
       n_diffShapes <- length(shapes)
       g1 <- genesCode
@@ -115,6 +116,7 @@ for (tsp in species.list){
       if(s != "TRBJ"){
         n_grays <- 2
       } else {
+        #The number of TRBJ genes is lower, so we use only a single outer color
         n_grays <- 1
       }
       g1 <- paste0("l", (rep(1:ceiling(length(g1) / (n_grays*n_diffShapes)),
