@@ -306,13 +306,14 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.3,
     
     #Hide labels for points with low fold change and not very high frequencies
     #Do this iteratively
-    min.logFC <- log2(c(1.3,1.5,2,3))
+    min.logFC <- log2(c(1.25,1.5,2,3))
     min.fr <- c(0.3, 0.2, 0.1, 0.1) #This means that genes with higher frequency than min.fr in input1 will alwasy be labelled, irrespectiv of their logFC
     
     #Test different stringency on the logFC thresholds (bar plot can
     #accomodate more labels before it gets too confusing visually).
     n_lab_max <- ifelse(pType==2, 12, 8)
-    t <- 1
+    label[which( (logFC < min.logFC[1]) & count.df[,"X"] < min.fr[1] & count.df[,"Y"] < min.fr[1])] <- NA
+    t <- 2
     while(length(which(!is.na(label))) > n_lab_max & t <= length(min.fr)){
       label[which( (logFC < min.logFC[t]) & count.df[,"X"] < min.fr[t] & count.df[,"Y"] < min.fr[t])] <- NA
       t <- t+1
@@ -481,7 +482,7 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.3,
 # And when combined.resList isn't NULL, we'll use the results from this list
 # to plot the results (from multiple models combined together).
 plotLD <- function(countL.es, countL.rep, info, plot.oneline, ret.resList=F,
-  combined.resList=NULL){
+  combined.resList=NULL, comp.baseline=1){
 
   if (is.null(combined.resList)){
     L.es <- as.numeric(lapply(names(countL.es), function(x){unlist(strsplit(x,split="_"))[2]}))
@@ -537,8 +538,13 @@ plotLD <- function(countL.es, countL.rep, info, plot.oneline, ret.resList=F,
       if(nchar(info[2])>23){legend.size=11}
       if(nchar(info[2])>25){legend.size=10}
     }
-    ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3, linetype=v3)) +
-      guides(color = guide_legend(ncol = 1, order=1), linetype="none")
+    if(comp.baseline==1){
+      ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3, linetype=v3)) +
+        guides(color = guide_legend(ncol = 1, order=1), linetype="none")
+    } else {
+      ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3)) +
+        guides(color = guide_legend(ncol = 1, order=1))
+    }
     # The rest of the plot is the same if combined.resList was NULL or if showing
     # the results from multiple models combined, so we'll draw it below.
   } else {

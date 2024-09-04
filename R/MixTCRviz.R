@@ -518,8 +518,8 @@ MixTCRviz <- function(input1, output.path,
           }
 
 
-          ld.plot <- plotLD(es$countL[[chain]], bs, info, plot.oneline,
-            ret.resList=plot.modelsCombined)
+          ld.plot <- plotLD(es$countL[[chain]], bs, info, plot.oneline=plot.oneline,
+            ret.resList=plot.modelsCombined, comp.baseline=comp.baseline)
 
           #######
           # Plot comparison of V/J usage
