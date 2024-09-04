@@ -1,6 +1,7 @@
 # Description ---------------------------------------------------------------
 # In this file we create and export some variables used by the package
 
+library(ggplot2)
 
 # Mapping of the gene names -----------------------------------------------
 segment.list <- c("TRAV", "TRBV", "TRAJ", "TRBJ")
@@ -185,7 +186,6 @@ if (TRUE){
 # Defining other parameters -----------------------------------------------
 # This initiates a few values and load the mapping of CDR1/2 sequences from
 # the gene*allele names.
-library(ggplot2)
 
 Lmin <- 7
 Lmax <- 22
