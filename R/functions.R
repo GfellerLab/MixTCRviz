@@ -537,8 +537,8 @@ plotLD <- function(countL.es, countL.rep, info, plot.oneline, ret.resList=F,
       if(nchar(info[2])>23){legend.size=11}
       if(nchar(info[2])>25){legend.size=10}
     }
-    ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3)) +
-      guides(color = guide_legend(ncol = 1, order=1))
+    ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3, linetype=v3)) +
+      guides(color = guide_legend(ncol = 1, order=1), linetype="none")
     # The rest of the plot is the same if combined.resList was NULL or if showing
     # the results from multiple models combined, so we'll draw it below.
   } else {
