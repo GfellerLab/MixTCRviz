@@ -247,7 +247,7 @@ MixTCRviz creates a directory (output.path). The output.path/ directory contains
 
 * V/J genes are key to the TCR binding motifs in MixTCRviz and only V/J names compatible with the IMGT nomenclature can be considered. Even if correct.gene.names==1 allows to correct several wrong V/J names, we strongly encourage the users to use only V/J gene names compatible with IMGT
 
-* PCR / Sequencing / TCR reconstruction errors frequently occur in AIRR-/TCR-Seq data. Although the option check.cdr3.mode = 1, can detect some of these errors, we encourage users to carefully check the quality fo their CDR3 sequences.
+* PCR / Sequencing / TCR reconstruction errors frequently occur in AIRR-/TCR-Seq data. Although the option check.cdr3.mode = 1, can detect some of these errors, we encourage users to carefully check the quality of their CDR3 sequences.
 
 * As with all motif visualisation tools, limited numbers of TCRs have a big impact on the interpretation of the results.
 Therefore, it is hilghly recommanded to use sets of TCRs with enough sequences to be able to interpret frequencies plotted in MixTCRviz.
