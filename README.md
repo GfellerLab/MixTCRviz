@@ -236,9 +236,10 @@ version from above or if you used library(MixTCRviz)).
 
 
 MixTCRviz creates a directory (output.path). The output.path/ directory contains the motifs (e.g. pdf files) for each model.
-If output.stat==T, the output.path/stats/ contains .rds files with all values for each motif.
-If output.processed.data==T, the output.path/processed_data/ contains .csv files with the actual data used to build the motifs.
-If plot.logo.length==1, the output.path/CDR3_length/ directory shows the V/J usage and CDR3 motifs for multiple lengths for both chains.
+
+- If output.stat==T, the output.path/stats/ contains .rds files with all values for each motif.
+- If output.processed.data==T, the output.path/processed_data/ contains .csv files with the actual data used to build the motifs.
+- If plot.logo.length==1, the output.path/CDR3_length/ directory shows the V/J usage and CDR3 motifs for multiple lengths for both chains.
 
 
 
