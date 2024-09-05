@@ -10,7 +10,7 @@ devtools::load_all(".")
 #library(MixTCRviz)
 
 #Compare input TCRs (specific for A0201_LLWNGPMAV) with baseline repertoire
-MixTCRviz(input1="test/test.csv", output.path="test/out/", output.stat = T)
+MixTCRviz(input1="test/test.csv", output.path="test/out/", output.stat = T, output.processed.data = T)
 
 list_1 <- readRDS("test/out/stats/A0201_LLWNGPMAV.rds")
 list_2 <- readRDS("test/out_compare/stats/A0201_LLWNGPMAV.rds")
