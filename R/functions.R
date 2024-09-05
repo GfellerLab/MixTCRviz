@@ -6,7 +6,7 @@
 #' @export
 build_stat <- function(input, chain.list=c("TRA","TRB"), sp="HomoSapiens", comp.VJL=0){
 
-  # comp.VJL=1 means we are computing length distributions and motifs knowing VJ
+  # comp.VJL>=1 means we are computing length distributions and motifs knowing P(VJ)
   # It takes some time, but still reasonable.
 
   es <- list()
@@ -47,7 +47,7 @@ build_stat <- function(input, chain.list=c("TRA","TRB"), sp="HomoSapiens", comp.
       es$countVJ.L[[chain]][[lg.c]] <- table(input[ind,Vn],input[ind,Jn])
     }
 
-    if(comp.VJL==1){
+    if(comp.VJL>=1){
 
       for(V in names(es$countV[[chain]])){
         indv <- which(input[,Vn]==V)
@@ -692,7 +692,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
           title.baseline <- paste("CDR3", info[1],"_",l," renorm ",info[3], sep="")
         }
         if(comp.baseline==0){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
-
+        
         if(plot.oneline!=0 & (nchar(title)>26 | nchar(title.baseline)>26)){
           title <- paste("CDR3", info[1],"_",l," ",info[2], "\n(",countL.es[[lc]],")", sep="")
           if(plot.cdr3.subtract.baseline==0){
@@ -704,10 +704,10 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
           }
           if(comp.baseline==0){title.baseline <- paste(title.baseline, "(",countL.rep[[lc]],")", sep="")}
         }
-
+        
         logo.CDR3.L.es.max <- ggseqlogoMOD(data=pwm.es[[lc]], additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8) +
           labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=title.size, hjust=0.5))
-
+        
         if(plot.cdr3.subtract.baseline==0){
           logo.CDR3.L.rep.max <- ggseqlogoMOD(data=pwm.rep[[lc]], additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8) +
             labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=title.size, hjust=0.5))
@@ -729,56 +729,84 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
     }
     ls <- list(logo.CDR3.L.es, logo.CDR3.L.rep, L.TR, lmax, logo.CDR3.L.es.max, logo.CDR3.L.rep.max)
     names(ls) <- c("ES", "Baseline", "length", "lmax", "ES_max", "Baseline_max")
-
+    
   }  else {
     ls <- list(list(), list(), c(), 0, ggplot(), ggplot())
     names(ls) <- c("ES", "Baseline", "length", "lmax", "ES_max", "Baseline_max")
-
+    
   }
-
+  
   return(ls)
 }
 
 
-check_input <- function(input, chain.list.output="AB", name="input1", species.default="HomoSapiens", model.default="Model_default"){
-
+check_input <- function(input, chain.list.output="AB", name="input1", species.default="HomoSapiens", model.default="Model_default", input.list=F){
+  
   #Check if some columns are missing, and add them with default values
-
-  if(chain.list.output=="AB"){
-    col <- c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB")
-  }
-  if(chain.list.output=="A"){
-    col <- c("TRAV","TRAJ","cdr3_TRA")
-  }
-  if(chain.list.output=="B"){
-    col <- c("TRBV","TRBJ","cdr3_TRB")
-  }
-
-  #Check missing input
-  for(cl in col){
-    if(cl %in% colnames(input) == F){
-      cn <- colnames(input)
-      input <- cbind(input,"")
-      colnames(input) <- c(cn, cl)
-      print(paste("Missing",cl,"information in",name))
+  
+  if(is.data.frame(input) & !input.list){
+    if(chain.list.output=="AB"){
+      col <- c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB")
     }
-  }
-  #If the "species" column is not provided, we add a column with species.default
-  #This is a bit suboptimal, but ok for now
-  if("species" %in% colnames(input) == F){
-    cn <- colnames(input)
-    input <- cbind(input,species.default)
-    colnames(input) <- c(cn, "species")
-    print(paste("Using",species.default,"as species for all entries"))
-  }
-  if("model" %in% colnames(input) == F){
-    cn <- colnames(input)
-    input <- cbind(input,model.default)
-    colnames(input) <- c(cn, "model")
-    print(paste("using",model.default,"as model for all entries"))
+    if(chain.list.output=="A"){
+      col <- c("TRAV","TRAJ","cdr3_TRA")
+    }
+    if(chain.list.output=="B"){
+      col <- c("TRBV","TRBJ","cdr3_TRB")
+    }
+    
+    #Check missing input
+    for(cl in col){
+      if(cl %in% colnames(input) == F){
+        cn <- colnames(input)
+        input <- cbind(input,"")
+        colnames(input) <- c(cn, cl)
+        print(paste("Missing",cl,"information in",name))
+      }
+    }
+    #If the "species" column is not provided, we add a column with species.default
+    #This is a bit suboptimal, but ok for now
+    if("species" %in% colnames(input) == F){
+      cn <- colnames(input)
+      input <- cbind(input,species.default)
+      colnames(input) <- c(cn, "species")
+      print(paste("Using",species.default,"as species for all entries"))
+    }
+    if("model" %in% colnames(input) == F){
+      cn <- colnames(input)
+      input <- cbind(input,model.default)
+      colnames(input) <- c(cn, "model")
+      print(paste("Using",model.default,"as model for all entries"))
+    }
+  } else if(input.list) {
+    nm.list <- c("L","countL","countV","countJ", "countVJ.L", "countCDR3.L", "countVJ", "countCDR1", "countCDR2",  "countV.L", "countJ.L") # the last 4 are actually not very useful
+    chain.list <- paste("TR", unlist(strsplit(chain.list.output,split="")), sep="")
+    for(nm in nm.list){
+      if(is.null(input[[nm]])){
+        stop("Missing feature in input object")
+      } else {
+        for(chain in chain.list){
+          if(is.null(input[[nm]][[chain]])){
+            stop("Missing feature in input object")
+          } 
+        }
+      }
+    }
+    #Check the 'info' field.
+    if(is.null(input$model)){
+      input$model <- model.default
+      print(paste("Using",model.default,"as model"))
+    } 
+    if(is.null(input$species)){
+      input$species <- species.default
+      print(paste("Using",species.default,"as species"))
+    }
+    
+  } else {
+    stop("Issues with input1 format")
   }
   return(input)
-
+  
 }
 
 #' @export
