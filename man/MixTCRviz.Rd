@@ -38,7 +38,7 @@ MixTCRviz(
 )
 }
 \arguments{
-\item{input1}{csv files or data.frame with the input TCRs.
+\item{input1}{.csv files or data.frame with the input TCRs.
 \itemize{
 \item Columns should include "TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB" (one chain is allowed is chain.list.output = "A" or "B", respectively)
 \item If TCRs from multiple models are provided in the same file, the "model" column should indicate the models
@@ -58,7 +58,7 @@ If a column is missing, empty values will be used.
 \item{output.path}{name of the output directory (if not already existing, it
 will be created). If existing the files with the same name will be overwritten.}
 
-\item{input2}{(default=NULL): csv file or data.frame containing the second set of
+\item{input2}{(default=NULL): .csv file or data.frame containing the second set of
 TCRs to be used in comparisons. Same format as input1.
 In particular, the set of models in the "model" field need to be the same as in input1
 so that comparisons are performed for each model separately.
@@ -101,11 +101,6 @@ enrichment in one of them versus the baseline.
 \item 0: Keep all CDR3 without any correction.
 \item 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment;
 Remove J and CDR3 when the last two amino acids are not compatible with the J segments.
-\item 2: remove V and CDR3 when the M first CDR3 amino acids are incompatible with the V segment, with M depending on the V gene and the CDR3 length;
-Remove J and CDR3 when the last two amino acids are not compatible with the J segments, with M depending on the J gene and CDR3 length.
-\item Note: 0: all PCR / sequencing / TCR reconstruction errors are kept.
-1: several PCR / sequencing / TCR reconstruction errors are removed, but only based on the first and last amino acids in CDR3.
-2: most PCR / sequencing / TCR reconstruction errors are removed.
 }}
 
 \item{renormVJ}{(default=1)
@@ -172,7 +167,7 @@ In case the input contains the "model" column, model.default is not considered.}
 \item{plot.logo.length}{(default=0)
 \itemize{
 \item 0: Show only the CDR3 motifs for the most frequent CDR3 length.
-\item 1: Show in a separate plot the V usage, J usage and CDR3 motifs for all CDR3 length, for both alpha and beta chains.
+\item 1: Write in output.path/CDR3_length separate plot the V usage, J usage and CDR3 motifs for all CDR3 length, for both alpha and beta chains.
 }}
 
 \item{plot.cdr3.norm}{(default=0)

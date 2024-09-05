@@ -167,13 +167,7 @@ version from above or if you used library(MixTCRviz)).
 
 - check.cdr3.mode (default=1):
     * 0: Keep all CDR3 without any correction.
-    * 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment;
-        Remove J and CDR3 when the last two amino acids are not compatible with the J segments.
-    * 2: remove V and CDR3 when the M first CDR3 amino acids are incompatible with the V segment, with M depending on the V gene and the CDR3 length;
-        Remove J and CDR3 when the last two amino acids are not compatible with the J segments, with M depending on the J gene and CDR3 length.
-    * Note: 0: all PCR / sequencing / TCR reconstruction errors are kept.
-            1: several PCR / sequencing / TCR reconstruction errors are removed, but only based on the first and last amino acids in CDR3.
-            2: most PCR / sequencing / TCR reconstruction errors are removed.
+    * 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment; Remove J and CDR3 when the last two amino acids are not compatible with the J segments.
 
 - verbose (default=1):
     * 0: Do not write any QC in the output
@@ -181,8 +175,8 @@ version from above or if you used library(MixTCRviz)).
     * 2: Write all the putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
 
 - plot (default=1):
-    * 0: only create .rds object with the statistics
-    * 1: Plot the data in output.path/plots/ and create .rds object with the statistics for each model in output.path/stats/.
+    * 0: Do not write the pdf/png/jpg files with the motifs
+    * 1: Write the pdf/png/jpg files with the motifs in output.path/
 
 - plot.cdr12.motif (default=0):
     * 0: Only show motifs for CDR3.
@@ -196,12 +190,12 @@ version from above or if you used library(MixTCRviz)).
 
 - plot.logo.length (default=0):
     * 0: Show only the CDR3 motifs for the most frequent CDR3 length.
-    * 1: Show in a separate plot the V usage, J usage and CDR3 motifs for all CDR3 length, for both alpha and beta chains.
+    * 1: Write in output.path/CDR3_length separate plot the V usage, J usage and CDR3 motifs for all CDR3 length, for both alpha and beta chains.
 
 - plot.cdr3.norm (default=0):
     * 0: Show the CDR3 motifs of the baseline repertoire.
-    * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
-    * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change).
+    * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire (not recommanded).
+    * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change, not recommanded).
 
 - plot.VJ.switch (default=1)
     * 1: Show the VJ usage as a scatter plot.
