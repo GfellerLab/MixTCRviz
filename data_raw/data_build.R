@@ -2,7 +2,6 @@
 # In this file we create and export some variables used by the package
 
 library(ggplot2)
-library(ggpubr)
 
 # Mapping of the gene names -----------------------------------------------
 segment.list <- c("TRAV", "TRBV", "TRAJ", "TRBJ")
@@ -182,9 +181,9 @@ if (TRUE){
           theme(plot.title = element_text(size = 16, hjust=0.5, face="bold"),
             plot.background=element_rect(color="gray30"))
       }
-      fig <- ggarrange(plotlist=gg, nrow=2, ncol=2)
+      fig <- ggpubr::ggarrange(plotlist=gg, nrow=2, ncol=2)
       fig <- ggpubr::annotate_figure(fig,
-        top = text_grob(paste0(tsp, " - colorScheme ", cScheme),
+        top = ggpubr::text_grob(paste0(tsp, " - colorScheme ", cScheme),
           color = "black", face = "bold", size = 16))
       dir <- paste("figures/", sep="")
       if (!dir.exists(dir)){
