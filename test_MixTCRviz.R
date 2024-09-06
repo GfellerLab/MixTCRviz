@@ -6,7 +6,7 @@ devtools::load_all(".")
 
 #Do this if you want to install the package
 #devtools::build()
-#install.packages("../MixTCRviz_0.0.1.tar.gz", repos=NULL)
+#install.packages("../MixTCRviz_0.0.2.tar.gz", repos=NULL)
 #library(MixTCRviz)
 
 #Compare input TCRs (specific for A0201_LLWNGPMAV) with baseline repertoire
