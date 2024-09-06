@@ -88,7 +88,18 @@ for (tsp in species.list){
     cGenes <- grep(s, gene.list[[tsp]], value=TRUE)
     genesCode <- sort(unique(gsub("TR(A|B)(V|J)", "", cGenes)))
    
-    if(s != "TRBJ"){
+    if(s == "TRBJ" ){
+      #The number of TRBJ genes is much lower, so we use only two shapes
+      shapes <- c(21,25) # Shapes with outer colors can only take values 21:25
+      n_diffShapes <- length(shapes)
+      g1 <- genesCode
+      g2 <- rep("none", length(g1))
+    } else if ((s=="TRBV" & tsp=="MusMusculus")) {
+      shapes <- c(21,24,25) # Shapes with outer colors can only take values 21:25
+      n_diffShapes <- length(shapes)
+      g1 <- genesCode
+      g2 <- rep("none", length(g1))
+    } else {
       shapes <- 21:25 # Shapes with outer colors can only take values 21:25
       n_diffShapes <- length(shapes)
       g1 <- gsub("-(.*)$", "", genesCode)
@@ -96,13 +107,7 @@ for (tsp in species.list){
       # g1 is the first part of gene names before the "-" and g2 is the 2nd
       # part of this name (either "" when there isn't such 2nd part, "-1", "-2", ...).
       g2 <- gsub("^$", "none", g2)
-    } else {
-      #The number of TRBJ genes is much lower, so we use only two shapes
-      shapes <- c(21,25) # Shapes with outer colors can only take values 21:25
-      n_diffShapes <- length(shapes)
-      g1 <- genesCode
-      g2 <- rep("none", length(g1))
-    }
+    } 
     # Replace empty strings by none to be able to call them by name below.
     g1u <- sort(unique(g1))
     g2u <- setdiff(sort(unique(g2)), "none")
@@ -113,11 +118,11 @@ for (tsp in species.list){
       # combine the color, shape and outer color for all the genes (I'll
       # consider here 2 different outer colors, and the number of inner color
       # will be determined based on number needed to distinguish all cases).
-      if(s != "TRBJ"){
-        n_grays <- 2
+      if(s == "TRBJ" | (s=="TRBV" & tsp=="MusMusculus")){
+        n_grays <- 1
       } else {
         #The number of TRBJ genes is lower, so we use only a single outer color
-        n_grays <- 1
+        n_grays <- 2
       }
       g1 <- paste0("l", (rep(1:ceiling(length(g1) / (n_grays*n_diffShapes)),
         each=n_grays*n_diffShapes)[1:length(g1)]))
