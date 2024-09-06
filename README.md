@@ -198,11 +198,10 @@ version from above or if you used library(MixTCRviz)).
     * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change, not recommanded).
 
 - plot.VJ.switch (default=1)
-    * 1: Show the VJ usage as a scatter plot.
-    * 1.2: Same as 1 with the points additionaly colored based on the TCR gene.
-    * 1.3: Same as 1 with the different color and shapes of the points based
-        on the TCR gene.
-    * 2: Show the VJ usage as a bar plot.
+    * 1: Show the VJ usage as a scatter plot with inner colors, outer colors and shapes of the points based on the TCR gene (see lookup table in MixTCRviz/figures/, scheme1).
+    * 1.2: Show the VJ usage as a scatter plot with colors of the points based on the TCR gene (see lookup table in MixTCRviz/figures/, scheme2).
+    * 1.3: Show the VJ usage as a scatter plot with black points and gene label colors (see lookup table in MixTCRviz/figures/, scheme2).
+    * 2: Show the VJ usage as a bar plot (see lookup table in MixTCRviz/figures/, scheme2)..
 
 - plot.modelsCombined (default=FALSE)
     * FALSE or empty string: Show the data for each model separately.

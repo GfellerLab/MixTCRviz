@@ -253,7 +253,7 @@ find_mhc <- function(m){
 #' @param label.neg (default=F): If T, show also the labels of the genes most depleted in input1
 #' @param label.min.fr (default=c(0.05, 0.05)): Region (rectangle) of the left corner of V/J plots with no gene label
 
-plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.3,
+plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1,
   sp="HomoSapiens", ret.resList=F, combined.resList=NULL, label.neg=F, label.min.fr=c(0.05, 0.05)){
   if (is.null(combined.resList)){
     if (length(count.es) == 0){
@@ -373,7 +373,7 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.3,
     gene <- combined.resList$gene
   }
 
-  if (pType != 1.3){
+  if (pType == 1){
     colorScale <- TCRgene2aes[[sp]][[gene]]$color1
   } else {
     colorScale <- TCRgene2aes[[sp]][[gene]]$color2
@@ -388,7 +388,7 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.3,
     count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) +
       geom_abline(col="orange",linetype="dashed",linewidth=1) #+
       #geom_errorbarh(aes(xmax=X+0.1*X, xmin=X-0.1*X), height=0, color="azure4")
-    if (pType == 1){
+    if (pType == 1.3){
       count.plot <- count.plot + geom_point()
     } else {
       # Define parameters to have a thin line around the points in scatter plot.
@@ -396,10 +396,10 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1.3,
         shape_color <- "common"
         shapeScale <- 21
         outerColorScale <- "gray20"
-      } else if (pType == 1.3){
+      } else if (pType == 1){
         shape_color <- count.df$gene
-        shapeScale <- TCRgene2aes[[sp]][[gene]]$shape2
-        outerColorScale <- TCRgene2aes[[sp]][[gene]]$outerColor2
+        shapeScale <- TCRgene2aes[[sp]][[gene]]$shape1
+        outerColorScale <- TCRgene2aes[[sp]][[gene]]$outerColor1
 
       }
       outerWidth <- 0.5

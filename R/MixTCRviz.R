@@ -97,12 +97,13 @@
 #'    * 0: Show the CDR3 motifs of the input and of the baseline repertoire or input2, possibly | P(VJ).
 #'    * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire (not recommanded).
 #'    * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change, not recommanded)
-#' @param plot.VJ.switch (default=1.3)
-#'    * 1: Show the VJ usage as a scatter plot.
-#'    * 1.2: Same as 1 with the points additionaly colored based on the TCR gene.
-#'    * 1.3: Same as 1 with the different color and shapes of the points based
-#'       on the TCR gene.
-#'    * 2: Show the VJ usage as a bar plot.
+#' @param plot.VJ.switch (default=1)
+#'    * 1: Show the VJ usage as a scatter plot with inner colors, outer colors and shapes of the points based
+#'       on the TCR gene (see lookup table in MixTCRviz/figures/, scheme1).
+#'    * 1.2: Show the VJ usage as a scatter plot with colors of the points based
+#'       on the TCR gene (see lookup table in MixTCRviz/figures/, scheme2).
+#'    * 1.3: Show the VJ usage as a scatter plot with black points and gene label colors (see lookup table in MixTCRviz/figures/, scheme2).
+#'    * 2: Show the VJ usage as a bar plot (see lookup table in MixTCRviz/figures/, scheme2)..
 #' @param plot.modelsCombined (default=FALSE)
 #'    * FALSE or empty string: Show the data for each model separately.
 #'    * TRUE or a string: Show the data for all models combined in a single
@@ -133,7 +134,7 @@ MixTCRviz <- function(input1, output.path,
                       set.cdr3a.length=NA, set.cdr3b.length=NA,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=1, plot.cdr12.motif=0, plot.oneline=0, plot.logo.length=0, plot.cdr3.norm=0,
-                      plot.VJ.switch=1.3, plot.modelsCombined=FALSE, label.neg=F, 
+                      plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, 
                       label.min.fr=c(0.05,0.05), chain.list.output="AB", 
                       input1.name="Input", input2.name=NULL, output.format="pdf"){
 

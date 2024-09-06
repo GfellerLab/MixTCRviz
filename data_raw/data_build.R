@@ -1,5 +1,6 @@
 # Description ---------------------------------------------------------------
 # In this file we create and export some variables used by the package
+# The script should be run from MixTCRviz folder
 
 library(ggplot2)
 
@@ -76,7 +77,7 @@ for (tsp in species.list){
     cols <- c(cols, "gray90")
     # Add a light gray for the "Other" corresponding to the sum of the genes
     # not showed in the bar plot.
-    TCRgene2aes[[tsp]][[s]]$color1 <- setNames(cols, cGenes)
+    TCRgene2aes[[tsp]][[s]]$color2 <- setNames(cols, cGenes)
 
   }
 }
@@ -136,9 +137,9 @@ for (tsp in species.list){
     cols_out <- c(cols_out[1], cols_out)
     names(shapes) <- names(cols_out) <- c("none", g2u)
 
-    TCRgene2aes[[tsp]][[s]]$color2 <- setNames(cols[g1], cGenes)
-    TCRgene2aes[[tsp]][[s]]$shape2 <- setNames(shapes[g2], cGenes)
-    TCRgene2aes[[tsp]][[s]]$outerColor2 <- setNames(cols_out[g2], cGenes)
+    TCRgene2aes[[tsp]][[s]]$color1 <- setNames(cols[g1], cGenes)
+    TCRgene2aes[[tsp]][[s]]$shape1 <- setNames(shapes[g2], cGenes)
+    TCRgene2aes[[tsp]][[s]]$outerColor1 <- setNames(cols_out[g2], cGenes)
   }
 }
 
