@@ -415,7 +415,7 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1,
       theme(plot.title = element_text(size = 14, hjust=0.5),
         axis.text=element_text(size=10), axis.title=element_text(size=14)) +
       geom_label_repel(aes(fill=gene), size = 3, nudge_y=0.02, box.padding = 0.25,
-        show.legend=F) +
+        show.legend=F, na.rm=T) +
       scale_fill_manual(values=colorScale, guide="none") +
       xlab(xlab) + ylab(ylab) 
   } else {
@@ -999,9 +999,9 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
         #Correct TRAJ38 in human (issue with 10X data)
         
         if(sp=="HomoSapiens" & chain=="TRA"){
-          ind.traj38 <- which(input[ind.sp,"TRAJ"]=="TRAJ38" & last=="LI")
+          ind.traj38 <- which(input[ind.sp,J]=="TRAJ38" & last=="LI")
           last[ind.traj38] <- "IW"
-          input[ind.sp[ind.traj38],"cdr3_TRA"] <- paste(input[ind.sp[ind.traj38],"cdr3_TRA"], "W", sep="")
+          input[ind.sp[ind.traj38],cdr3] <- paste(input[ind.sp[ind.traj38],cdr3], "W", sep="")
         }  
         
         ind.first <- which( (first != ref.first[input[ind.sp,V]] ) & ref.first[input[ind.sp,V]]!="" & is.na(ref.first[input[ind.sp,V]])==F ) #Missing data appear as NA, so not problem
@@ -1024,10 +1024,11 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           
         }
         
-        nt <- length(ind.sp)
         
         if(length(ind.first)>0){
-
+          
+          nt <- length(which(!is.na(input[ind.sp,V]) & !is.na(input[ind.sp,cdr3])))
+                       
           print(paste("*** Likely inconsistencies between ",chain,"V gene and CDR3",chain.small[chain]," in ",length(ind.first)," entries (out of ",nt,") in ",sp,"- will be put to NA ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.first))
@@ -1046,6 +1047,9 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           cat("\n")
         }
         if(length(ind.last)>0){
+          
+          nt <- length(which(!is.na(input[ind.sp,J]) & !is.na(input[ind.sp,cdr3])))
+          
           print(paste("*** Likely inconsistencies between ",chain,"J gene and CDR3",chain.small[chain]," in ",length(ind.last)," entries (out of ",nt,") in ",sp," - will be put to NA ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.last))
