@@ -1255,7 +1255,7 @@ add_alleles <- function(TCR, segment.list=c("TRAV", "TRAJ", "TRBV", "TRBJ"), spe
       if(length(a)==1){
         if(a[1] %in% names(allele.default[[sp]])){
           TCR[s]=paste(a[1],allele.default[[sp]][a[1]], sep="*")
-        } else {
+        } else if(!is.na(a[1])) {
           TCR[s]=paste(a[1],"01",sep="*")
         }
       }
