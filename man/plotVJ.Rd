@@ -9,19 +9,20 @@ plotVJ(
   count.rep,
   info,
   comp.baseline,
-  pType = 1.3,
-  sp = "HomoSapiens",
+  pType = 1,
+  species = "HomoSapiens",
   ret.resList = F,
   combined.resList = NULL,
   label.neg = F,
-  label.min.fr = c(0.05, 0.05)
+  label.min.fr = c(0.05, 0.05),
+  print.size = T
 )
 }
 \arguments{
 \item{pType}{Switch telling the type of plot to use. See plot.VJ.switch
 option from MixTCRviz.}
 
-\item{sp}{Tells the species, which is used for gene colors in the plots.}
+\item{species}{Tells the species, which is used for gene colors in the plots.}
 
 \item{ret.resList}{when T indicates to return a list of the results instead of
 the plots directly (in this case, the "info" should have a 4th element,
