@@ -163,6 +163,7 @@ version from above or if you used library(MixTCRviz)).
     * 0: Do not write any QC in the output
     * 1: Write max 10 examples of putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
     * 2: Write all the putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
+    * 3: Write all putatitive issues + cases that were corrected in the terminal
  - plot (default=TRUE)
     * F: Do not write the pdf/png/jpg files with the motifs
     * T: Write the pdf/png/jpg files with the motifs in output.path/

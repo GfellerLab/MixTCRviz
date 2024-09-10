@@ -885,7 +885,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
   ###################
 
   if(correct.gene.names){
-    input <- correct.VJnames(input, segment.list=segment.list, species.default=species.default, use.allele=use.allele, verbose)
+    input <- correct.VJnames(input, segment.list=segment.list, species.default=species.default, use.allele=use.allele, verbose=verbose)
   } else {
     for(species in species.list){
 
@@ -1023,9 +1023,9 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           print("Adding W on CDR3a for TRAJ38 entries:")
           if(verbose==1){
             n <- min(10,length(ind.traj38))
-            print("Examples  (use verbose=2 to see them all):")
+            print("Examples  (use verbose>=2 to see them all):")
           }
-          if(verbose==2){
+          if(verbose > 1){
             n <- length(ind.traj38)
           }
           ti <- ind.species[ind.traj38[1:n]]
@@ -1041,12 +1041,12 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           print(paste("*** Likely inconsistencies between ",chain,"V gene and CDR3",chain.small[chain]," in ",length(ind.first)," entries (out of ",nt,") in ",species,"- will be put to NA ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.first))
-            print("Examples  (use verbose=2 to see them all):")
+            print("Examples  (use verbose >= 2 to see them all):")
           }
-          if(verbose==2){
+          if(verbose > 1){
             n <- length(ind.first)
           }
-          if(verbose==1 | verbose==2){
+          if(verbose>=1){
             ti <- ind.species[ind.first[1:n]]
             sg <- input[ti,V]
             m.prob <- cbind(input[ti,c(V,cdr3)], cdr123[[species]][[chain]][sg,"CDR3"])
@@ -1062,12 +1062,12 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           print(paste("*** Likely inconsistencies between ",chain,"J gene and CDR3",chain.small[chain]," in ",length(ind.last)," entries (out of ",nt,") in ",species," - will be put to NA ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.last))
-            print("Examples (use verbose=2 to see them all):")
+            print("Examples (use verbose>=2 to see them all):")
           }
-          if(verbose==2){
+          if(verbose>1){
             n <- length(ind.last)
           }
-          if(verbose==1 | verbose==2){
+          if(verbose>=1){
             ti <- ind.species[ind.last[1:n]]
             sg <- input[ti,J]
             m.prob <- cbind(input[ti,c(J,cdr3)], Jseq[[species]][[chain]][sg,"CDR3"])
@@ -1124,15 +1124,15 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
 
             m.cor <- data.frame(original.name = input[ind[i],s], corrected.name = ga[i],row.names = NULL)
             m.cor <- m.cor[!duplicated(m.cor),]
-            if(verbose>0){
-              print(paste("*** ",dim(m.cor)[1]," ",s," names were corrected ***",sep=""))
-              if(verbose==1){
-                print("Use verbose=2 to see them")
-              }
-              if(verbose==2){
-                print(m.cor)
-              }
+            
+            print(paste("*** ",dim(m.cor)[1]," ",s," names were corrected ***",sep=""))
+            if(verbose==1 | verbose==2){
+              print("Use verbose=3 to see them")
             }
+            if(verbose==3){
+              print(m.cor)
+            }
+            
             cat("\n")
           }
 
@@ -1146,7 +1146,7 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
               n <- min(10,length(v))
               print(v[1:n])
             }
-            if(verbose==2){
+            if(verbose>1){
               print(v)
             }
             cat("\n")
@@ -1208,10 +1208,12 @@ clean.name.allele <- function(gene, allele, species="HomoSapiens", use.allele=F)
     ga <- NA
   } else {
     #An allele is given
-    if(!is.na(allele) & allele != "" | use.allele){
+    if( (!is.na(allele) & allele != "") | use.allele){
       ga <- paste(gene,allele,sep="*")
       if(ga %in% gene.allele.list[[species]] == F){
         #Try correcting the gene name
+        #To Do: we should try a few standard correction, like TCRAV -> TRAV, TRAV01 -> TRAV1
+        
         if(gene %in% gene.list[[species]] == F ){
           #The gene is not ok.
           if(!is.na(map[[species]][gene])){
@@ -1234,6 +1236,8 @@ clean.name.allele <- function(gene, allele, species="HomoSapiens", use.allele=F)
     } else {  #Allele is not given or should be removed
 
       if(gene %in% gene.list[[species]] == F ){
+        #To Do: we should try a few standard correction, like TCRAV -> TRAV, TRAV01 -> TRAV1
+        
         if(!is.na(map[[species]][gene])){
           ga <- map[[species]][gene] #The gene was wrong, but can be corrected
         } else {
