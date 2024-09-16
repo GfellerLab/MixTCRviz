@@ -859,6 +859,11 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
     name.list <- gene.list
   }
 
+  #Replace empty values by NA
+  for(i in col){
+    input[which(input[,i] == '' | input[,i] == ""),i] <- NA
+  }
+  
   #Set to NA CDR3 sequences with incompatible lengths or weird characters
 
   for(cdr3 in cdr3.list){
@@ -902,11 +907,6 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
         input[ind.species[ind],s] <- NA
       }
     }
-  }
-
-  #Replace empty values by NA
-  for(i in col){
-    input[which(input[,i] == ''),i] <- NA
   }
 
   if(check.cdr3.mode > 0){
@@ -1106,11 +1106,14 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
     for(s in segment.list){
 
       if("species" %in% colnames(input)){
-        ind <- which(input[,s] %in% name.list[[species]]==F & input[,"species"]==species)
+        ind <- which(input[,s] %in% name.list[[species]]==F & input[,"species"]==species & !is.na(input[,s]))
       } else {
-        ind <- which(input[,s] %in% name.list[[species]]==F)
+        ind <- which(input[,s] %in% name.list[[species]]==F & !is.na(input[,s]))
       }
 
+      if(species=="MusMusculus" & s=="TRBJ"){
+        print(input[ind,"TRBJ"])
+      }
       if(length(ind)>0){
         nm <- strsplit(input[ind,s], split="*", fixed=T)
         gene <- unlist(lapply(nm, function(x){x[1]}))
@@ -1125,7 +1128,7 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
             m.cor <- data.frame(original.name = input[ind[i],s], corrected.name = ga[i],row.names = NULL)
             m.cor <- m.cor[!duplicated(m.cor),]
             
-            print(paste("*** ",dim(m.cor)[1]," ",s," names were corrected ***",sep=""))
+            print(paste("*** ",dim(m.cor)[1]," ",s," names in ",length(i)," entries were corrected in ",species, "***",sep=""))
             if(verbose==1 | verbose==2){
               print("Use verbose=3 to see them")
             }
@@ -1137,11 +1140,11 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
           }
 
           #Check the cases where the segment was not NA, but was put to NA (i.e., mapping of gene name failed)
-          i <- which(input[ind,s] != "" & is.na(ga)==T)
+          i <- which(!is.na(input[ind,s]) & input[ind,s] != "" & is.na(ga)==T)
           if(length(i)>0){
             v <- unique(input[ind[i],s])
             v <- v[!is.na(v)]
-            print(paste("*** ",length(v), " ", s, " gene names not in IMGT could not be corrected in ",species," - will be put to NA ***", sep=""))
+            print(paste("*** ",length(v), " ", s, " gene names in ",length(i)," entries could not be corrected in ",species," - will be put to NA ***", sep=""))
             if(verbose==1){
               n <- min(10,length(v))
               print(v[1:n])
@@ -1204,48 +1207,53 @@ clean.name.allele <- function(gene, allele, species="HomoSapiens", use.allele=F)
     allele <- ""
   }
 
-  if(is.na(gene) | gene==""){
+  if(is.na(gene) | gene==""){  #This is not needed in MixTCRviz, but can be useful i other cases
     ga <- NA
   } else {
-    #An allele is given
-    if( (!is.na(allele) & allele != "") | use.allele){
-      ga <- paste(gene,allele,sep="*")
-      if(ga %in% gene.allele.list[[species]] == F){
-        #Try correcting the gene name
-        #To Do: we should try a few standard correction, like TCRAV -> TRAV, TRAV01 -> TRAV1
-        
-        if(gene %in% gene.list[[species]] == F ){
-          #The gene is not ok.
-          if(!is.na(map[[species]][gene])){
-            #If the gene can be corrected
-            gene.map <- map[[species]][gene]
-            v <- paste(gene.map,allele,sep="*")
-            if(v %in% gene.allele.list[[species]] == T){
-              ga <- v #After correcting the gene, the gene*allele is ok
-            } else {
-              ga <- paste(gene.map,allele.default[[species]][gene.map],sep="*") #If not, Use the gene*default.allele
-            }
-          } else {
-            ga <- NA #The gene is wrong and could not be corrected
-          }
-        } else {
-          #The gene is ok
-          ga <- paste(gene,allele.default[[species]][gene],sep="*") #Use the gene*default.allele
-        }
+    
+    #Check if the gene needs to be corrected
+    if(gene %in% gene.list[[species]] == F){
+      #Do a few automatic corrections
+      gene <- gsub("TCR","TR",gene)
+      gene <- gsub("S","-",gene)
+      gene <- gsub("–","-", gene)
+      gene <- gsub("-0","-", gene)
+      if(species=="HomoSapiens"){ gene <- gsub("hTR","TR",gene) }
+      if(species=="MusMusculus"){ gene <- gsub("mTR","TR",gene) }
+      st0 <- substr(gene,1,2)
+      st <- substr(gene,3,4)
+      if(st0=="TR" & st %in% c("AV","AJ","BV","BJ")){
+        gene <- gsub(paste("TR",st,"0",sep=""),paste("TR",st,sep=""),gene)
       }
-    } else {  #Allele is not given or should be removed
-
+      if(substr(gene,1,4)=="TRAJ" & grepl("-",gene)){
+        gene <- unlist(strsplit(gene,"-"))[1]
+      }
+    
       if(gene %in% gene.list[[species]] == F ){
-        #To Do: we should try a few standard correction, like TCRAV -> TRAV, TRAV01 -> TRAV1
-        
+        #The gene is still not ok, try using our manual dictionary
         if(!is.na(map[[species]][gene])){
-          ga <- map[[species]][gene] #The gene was wrong, but can be corrected
+          gene <- map[[species]][gene] #The gene was wrong, but can be corrected
         } else {
-          ga <- NA #The gene was wrong and could not be corrected
+          gene <- NA #The gene was wrong and could not be corrected
+        }
+      } 
+    }
+    
+    if(use.allele){
+      if(!is.na(gene)){
+        #The gene was ok or could be corrected
+        v <- paste(gene,allele,sep="*")
+        if(v %in% gene.allele.list[[species]] == T){
+          ga <- v #the gene*allele is ok
+        } else {
+          ga <- paste(gene,allele.default[[species]][gene],sep="*") #If not, Use the gene*default.allele
         }
       } else {
-        ga <- gene
+        #The gene could not be corrected
+        ga <- NA
       }
+    } else {
+      ga <- gene
     }
   }
   return(ga)
