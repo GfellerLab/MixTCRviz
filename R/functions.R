@@ -803,7 +803,7 @@ check_input <- function(input, chain.list.output="AB", name="input1", species.de
         }
       }
     }
-    #Check the 'info' field.
+    #Check the 'model' field.
     if(is.null(input$model)){
       input$model <- model.default
       print(paste("Using",model.default,"as model"))
@@ -1006,7 +1006,7 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
         ref.last <- substr(J.start, nchar(J.start)-end.lg+1, nchar(J.start));  names(ref.last) <- rownames(Jseq[[species]][[chain]])
 
         #Correct TRAJ38 in human (issue with 10X data)
-        
+
         if(species=="HomoSapiens" & chain=="TRA"){
           ind.traj38 <- which(input[ind.species,J]=="TRAJ38" & last=="LI")
           last[ind.traj38] <- "IW"
@@ -1041,7 +1041,9 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           print(paste("*** Likely inconsistencies between ",chain,"V gene and CDR3",chain.small[chain]," in ",length(ind.first)," entries (out of ",nt,") in ",species,"- will be put to NA ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.first))
-            print("Examples  (use verbose >= 2 to see them all):")
+            if(length(ind.first)>10){
+              print("Examples  (use verbose >= 2 to see them all):")
+            }
           }
           if(verbose > 1){
             n <- length(ind.first)
@@ -1062,7 +1064,9 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           print(paste("*** Likely inconsistencies between ",chain,"J gene and CDR3",chain.small[chain]," in ",length(ind.last)," entries (out of ",nt,") in ",species," - will be put to NA ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.last))
-            print("Examples (use verbose>=2 to see them all):")
+            if(length(ind.last)>10){
+              print("Examples (use verbose>=2 to see them all):")
+            }
           }
           if(verbose>1){
             n <- length(ind.last)
@@ -1111,9 +1115,7 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
         ind <- which(input[,s] %in% name.list[[species]]==F & !is.na(input[,s]))
       }
 
-      if(species=="MusMusculus" & s=="TRBJ"){
-        print(input[ind,"TRBJ"])
-      }
+     
       if(length(ind)>0){
         nm <- strsplit(input[ind,s], split="*", fixed=T)
         gene <- unlist(lapply(nm, function(x){x[1]}))
@@ -1147,6 +1149,9 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
             print(paste("*** ",length(v), " ", s, " gene names in ",length(i)," entries could not be corrected in ",species," - will be put to NA ***", sep=""))
             if(verbose==1){
               n <- min(10,length(v))
+              if(length(v)>10){
+                print("Examples  (use verbose >= 2 to see them all):")
+              }
               print(v[1:n])
             }
             if(verbose>1){
@@ -1215,7 +1220,6 @@ clean.name.allele <- function(gene, allele, species="HomoSapiens", use.allele=F)
     if(gene %in% gene.list[[species]] == F){
       #Do a few automatic corrections
       gene <- gsub("TCR","TR",gene)
-      gene <- gsub("S","-",gene)
       gene <- gsub("–","-", gene)
       gene <- gsub("-0","-", gene)
       if(species=="HomoSapiens"){ gene <- gsub("hTR","TR",gene) }
