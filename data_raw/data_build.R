@@ -56,10 +56,10 @@ mp <- mp[mp[,5]=="yes",]
 
 #Build the mapping separately for human and mouse
 map <- list()
-pos.h <- which(mp[,4]=="Human")
+pos.h <- which(mp[,4]=="HomoSapiens")
 map[["HomoSapiens"]] <- mp[pos.h,2]
 names(map[["HomoSapiens"]]) <- mp[pos.h,1]
-pos.m <- which(mp[,4]=="Mouse")
+pos.m <- which(mp[,4]=="MusMusculus")
 map[["MusMusculus"]] <- mp[pos.m,2]
 names(map[["MusMusculus"]]) <- mp[pos.m,1]
 
