@@ -12,6 +12,7 @@
 #' @import ggpubr
 #' @import ggseqlogo
 #' @import seqinr
+#' @import stringr
 #' @import ggrepel
 #' @import mgcv
 NULL

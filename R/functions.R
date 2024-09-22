@@ -997,24 +997,41 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
       ind.traj38 <- c()
       
       if(check.cdr3.mode==1){
-        first <- substr(input[ind.species,cdr3], 1, start.lg)
-        V.end <- cdr123[[species]][[chain]][,"CDR3"]
-        ref.first <- substr(V.end,1,start.lg); names(ref.first) <- rownames(cdr123[[species]][[chain]])
-
-        last <- substr(input[ind.species,cdr3], nchar(input[ind.species,cdr3])-end.lg+1, nchar(input[ind.species,cdr3]))
-        J.start <- Jseq[[species]][[chain]][,"CDR3"]
-        ref.last <- substr(J.start, nchar(J.start)-end.lg+1, nchar(J.start));  names(ref.last) <- rownames(Jseq[[species]][[chain]])
-
-        #Correct TRAJ38 in human (issue with 10X data)
-
+        
+        #Correct TRAJ38 in human (e.g., issue with 10X data)
         if(species=="HomoSapiens" & chain=="TRA"){
-          ind.traj38 <- which(input[ind.species,J]=="TRAJ38" & last=="LI")
-          last[ind.traj38] <- "IW"
+          ind.traj38 <- which((input[ind.species,J]=="TRAJ38" | input[ind.species,J]=="TRAJ38*01") & str_sub(input[ind.species,cdr3],start=-2)=="LI")
           input[ind.species[ind.traj38],cdr3] <- paste(input[ind.species[ind.traj38],cdr3], "W", sep="")
         }  
         
-        ind.first <- which( (first != ref.first[input[ind.species,V]] ) & ref.first[input[ind.species,V]]!="" & is.na(ref.first[input[ind.species,V]])==F ) #Missing data appear as NA, so not problem
-        ind.last <- which( (last != ref.last[input[ind.species,J]] ) & ref.last[input[ind.species,J]]!="" & is.na(ref.last[input[ind.species,J]])==F ) #Missing data appear as NA, so not problem
+        #Extract the first (start.lg) and last (end.lg) amino acids
+        first <- substr(input[ind.species,cdr3], 1, start.lg)
+        last <- str_sub(input[ind.species,cdr3], start=-end.lg)
+        
+        
+        #Find cases incompatible with the reference (allowing matching to any allele)
+        diff.first <- sapply(1:length(first), function(i){
+          diff <- F
+          if(!is.na(input[ind.species[i],V])){
+            if( !(first[i] %in% ref.cdr3.first[[species]][[chain]][[input[ind.species[i],V]]]) & !is.na(first[i])){
+              diff <- T
+            }
+          }
+          return(diff)
+        })
+        ind.first <- (1:length(first))[diff.first]
+        
+        #Find cases incompatible with the reference (allowing matching to any allele)
+        diff.last <- sapply(1:length(last), function(i){
+          diff <- F
+          if(!is.na(input[ind.species[i],J])){
+            if( !(last[i] %in% ref.cdr3.last[[species]][[chain]][[input[ind.species[i],J]]]) & !is.na(last[i]) ){
+              diff <- T
+            }
+          }
+          return(diff)
+        })
+        ind.last <- (1:length(last))[diff.last]
       }
 
       if(verbose>0){
@@ -1030,9 +1047,7 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           }
           ti <- ind.species[ind.traj38[1:n]]
           print(input[ti,c(cdr3,J)])
-          
         }
-        
         
         if(length(ind.first)>0){
           

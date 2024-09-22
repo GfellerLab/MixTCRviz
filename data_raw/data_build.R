@@ -3,6 +3,7 @@
 # The script should be run from MixTCRviz folder
 
 library(ggplot2)
+library(stringr)
 
 # Mapping of the gene names -----------------------------------------------
 segment.list <- c("TRAV", "TRBV", "TRAJ", "TRBJ")
@@ -26,19 +27,8 @@ for(tsp in species.list){
     default <- df[,"default_allele"]
     default <- gsub('\\*','',default)
     names(default) <- rownames(df)
-    allele.default[[tsp]] <- c(allele.default[[tsp]], default)
+    allele.default[[tsp]] <- c(allele.default[[tsp]], default) #This is no longer used.
   }
-
-  # Build the mapping to the most likely allele (needed when allele names are not given, and we infer them)
-  #allele.default[[tsp]] <- rep("01", length(gene.list[[tsp]]))
-  #names(allele.default[[tsp]]) <- gene.list[[tsp]]
-  # Do some manual correction
-  #if(tsp=="HomoSapiens"){
-  # allele.default[[tsp]]["TRAV14/DV4"] <- "02"
-  #  allele.default[[tsp]]["TRAV36/DV7"] <- "02"
-  #  allele.default[[tsp]]["TRAJ24"] <- "02"
-  #}
-
 }
 
 #For mouse TRAV, take the merging between different strains
@@ -226,7 +216,7 @@ names(chain.small) <- chain.list
 
 species.list <- c("HomoSapiens", "MusMusculus")
 
-### Load the aligned CDR1 and CDR2 sequences
+### Load the aligned CDR1, CDR2 and CDR3 sequences
 
 cdr123 <- list()
 Jseq <- list()
@@ -257,17 +247,84 @@ for(species in species.list){
 
 }
 
+#Build reference sequences for the beginning and end of CDR3, allowing mapping to muliple alleles in most cases
+
+start.lg <- 1
+end.lg <- 2
+
+ref.cdr3.first <- list()
+ref.cdr3.last <- list()
+for(species in species.list){
+  
+  ref.cdr3.first[[species]] <- list()
+  ref.cdr3.last[[species]] <- list()
+  
+  for(chain in c("TRA", "TRB")){
+    
+    V.end <- cdr123[[species]][[chain]][,"CDR3"]
+    V.list <- rownames(cdr123[[species]][[chain]])
+    V.list2 <- sapply(V.list, function(x){unlist(strsplit(x,split="*", fixed=T))[1]})
+    ref.cdr3.first[[species]][[chain]] <- lapply(V.list, function(x){
+      gn <- unlist(strsplit(x,split="*", fixed=T))[1]
+      ind <- which(V.list2==gn & V.end != "")
+      ref <- unique(substr(V.end[ind],1,start.lg))
+    })
+    
+    names(ref.cdr3.first[[species]][[chain]]) <- V.list
+    
+    
+    J.start <- Jseq[[species]][[chain]][,"CDR3"]
+    J.list <- rownames(Jseq[[species]][[chain]])
+    J.list2 <- sapply(J.list, function(x){unlist(strsplit(x,split="*", fixed=T))[1]})
+    ref.cdr3.last[[species]][[chain]] <- lapply(J.list, function(x){
+      gn <- unlist(strsplit(x,split="*", fixed=T))[1]
+      ind <- which(J.list2==gn & J.start != "")
+      ref <- unique(str_sub(J.start[ind],start=-end.lg))
+    })
+    names(ref.cdr3.last[[species]][[chain]]) <- J.list
+    
+  }
+}
+#Do some manual corrections (we could do some additional ones in mouse when one allele is ORF, e.g., TRAJ47)
+ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3"]] <- "C"
+ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*01"]] <- "C"
+ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*04"]] <- "C"
+ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*05"]] <- "C"
+
+ref.cdr3.last$HomoSapiens$TRB[["TRBJ2-7"]] <- "YF"
+ref.cdr3.last$HomoSapiens$TRB[["TRBJ2-7*01"]] <- "YF"
+
+# Print the cases with multiple references
+print.ref <- F
+if(print.ref){
+  for(species in species.list){
+    for(chain in c("TRA", "TRB")){
+      print(c(species,chain))
+      ind <- which(ref.cdr3.first[[species]][[chain]] != "C" & !grepl("*", names(ref.cdr3.first[[species]][[chain]]), fixed=T))
+      if(length(ind)>0){
+        print(ref.cdr3.first[[species]][[chain]][ind])
+      }
+      
+      lg <- sapply(ref.cdr3.last[[species]][[chain]],length)
+      for(i in which(lg!=1 & !grepl("*", names(lg), fixed=T))){
+        print(ref.cdr3.last[[species]][[chain]][i])
+      }
+    }
+  }
+}
 
 # Saving all these variable for internal use within the package ------------------
 # functions
 
 usethis::use_data(gene.allele.list, gene.list, allele.default,
-  merge.mouse.TRAV, map, cdr123, Jseq, th, yl, aa, aa.list, N.aa,
+  merge.mouse.TRAV, map, cdr123, Jseq, ref.cdr3.first, ref.cdr3.last,
+  th, yl, aa, aa.list, N.aa,
   chain.small, gap, Lmin, Lmax, species.list, TCRgene2aes,
   overwrite=T, internal=T)
 
 usethis::use_data(gene.allele.list, gene.list, allele.default,
-  merge.mouse.TRAV, map, cdr123, Jseq, overwrite=T, internal=F)
+  merge.mouse.TRAV, map, cdr123, Jseq, ref.cdr3.first, ref.cdr3.last, 
+  overwrite=T, internal=F)
 
 # usethis::use_data(gene.allele.list, gene.list, allele.default,
 #   merge.mouse.TRAV, map, cdr123, Jseq, th, yl, aa, aa.list, N.aa,
