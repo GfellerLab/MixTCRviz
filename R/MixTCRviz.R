@@ -561,17 +561,17 @@ MixTCRviz <- function(input1, output.path,
           #These are the default repertoires.
           if(species=="HomoSapiens"){
             if(use.allele.es){
-              baseline <-  MixTCRviz::summary_HomoSapiens
+              baseline <-  MixTCRviz::summary_HomoSapiens_allele
             } else {
-              baseline <- MixTCRviz::summary_HomoSapiens_noallele
+              baseline <- MixTCRviz::summary_HomoSapiens
             }
           }
           if(species=="MusMusculus"){
             if(!use.allele.es){  #N.B. Currently always the case in mouse
               if(use.mouse.strain){
-                baseline <- MixTCRviz::summary_MusMusculus_noallele_SEQTR
+                baseline <- MixTCRviz::summary_MusMusculus_SEQTR
               } else {
-                baseline <- MixTCRviz::summary_MusMusculus_noallele_noStrain_SEQTR
+                baseline <- MixTCRviz::summary_MusMusculus_noStrain_SEQTR
               }
             }
           }

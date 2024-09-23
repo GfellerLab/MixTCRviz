@@ -143,6 +143,7 @@ In case the input contains the "model" column, model.default is not considered.}
 \item 0: Do not write any QC in the output
 \item 1: Write max 10 examples of putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
 \item 2: Write all the putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
+\item 3: Write all putative issues + cases that were corrected
 }}
 
 \item{plot}{(default=TRUE)

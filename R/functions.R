@@ -829,6 +829,8 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
   # species.default is only used if input does not contain the "species" column
   ####
 
+  #print("Start")
+  
   if("species" %in% colnames(input)){
     species.list <- unique(input[,"species"])
     use.species.default <- 0
@@ -866,6 +868,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
   
   #Set to NA CDR3 sequences with incompatible lengths or weird characters
 
+  #print("Checking non-aa characters")
   for(cdr3 in cdr3.list){
     nc <- nchar(input[,cdr3])
     ind <- which( nc < Lmin | nc > Lmax | grepl('[^ACDEFGHIKLMNPQRSTVWY]', input[,cdr3]) == T)
@@ -874,11 +877,23 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
 
   #Remove or add alleles
   if(!use.allele){
+    #print("Removing alleles")
     for(s in segment.list){
-      input[,s] <- sapply(input[,s], function(x){unlist(strsplit(x,split="*", fixed=T))[1]})
+      ind <- which(grepl("*",input[,s], fixed=T))
+      input[ind,s] <- gsub("\\*0[1-9]", "", input[ind,s])
     }
   } else{
-    input <- as.data.frame( t( apply( input, 1, function(x){add_alleles(x, segment.list, species.default)} ) ) )
+    #print("Adding alleles")
+    for(s in segment.list){
+      ind <- which(!grepl("*",input[,s], fixed=T) & !is.na(input[,s]) )
+      if(use.species.default){
+        al <- allele.default[[species.default]][input[ind,s]]
+      } else {
+        al <- allele.default[[input[ind,"species"]]][input[ind,s]]
+      }
+      al[is.na(al)] <- "01" #This happens in case of wrong gene names, since gene names were not yet corrected
+      input[ind,s] <- paste(input[ind,s], al, sep="*")
+    }
   }
 
 
@@ -890,6 +905,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
   ###################
 
   if(correct.gene.names){
+    #print("Check V/J names")
     input <- correct.VJnames(input, segment.list=segment.list, species.default=species.default, use.allele=use.allele, verbose=verbose)
   } else {
     for(species in species.list){
@@ -910,6 +926,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
   }
 
   if(check.cdr3.mode > 0){
+    #print("Checking CDR3")
     input <- check_cdr3(input, chain.list.output, species.default, check.cdr3.mode, verbose)
   }
   ################
@@ -1010,10 +1027,13 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
         
         
         #Find cases incompatible with the reference (allowing matching to any allele)
+        #print("First aa")
+        nm <- input[ind.species,V]
+        rf <- ref.cdr3.first[[species]][[chain]]
         diff.first <- sapply(1:length(first), function(i){
           diff <- F
-          if(!is.na(input[ind.species[i],V])){
-            if( !(first[i] %in% ref.cdr3.first[[species]][[chain]][[input[ind.species[i],V]]]) & !is.na(first[i])){
+          if(!is.na(nm[i])){
+            if( !(first[i] %in% rf[[nm[i]]]) & !is.na(first[i])){
               diff <- T
             }
           }
@@ -1022,10 +1042,13 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
         ind.first <- (1:length(first))[diff.first]
         
         #Find cases incompatible with the reference (allowing matching to any allele)
+        #print("Last aa")
+        nm <- input[ind.species,J]
+        rf <- ref.cdr3.last[[species]][[chain]]
         diff.last <- sapply(1:length(last), function(i){
           diff <- F
-          if(!is.na(input[ind.species[i],J])){
-            if( !(last[i] %in% ref.cdr3.last[[species]][[chain]][[input[ind.species[i],J]]]) & !is.na(last[i]) ){
+          if(!is.na(nm[i])){
+            if( !(last[i] %in% rf[[nm[i]]]) & !is.na(last[i]) ){
               diff <- T
             }
           }
@@ -1278,13 +1301,11 @@ clean.name.allele <- function(gene, allele, species="HomoSapiens", use.allele=F)
   return(ga)
 }
 
-
+#No longer used...
 add_alleles <- function(TCR, segment.list=c("TRAV", "TRAJ", "TRBV", "TRBJ"), species.default="HomoSapiens"){
 
   # If allele is missing, add the default one (or "01" is default is not known, which can happen if people use non-standard V/J names)
   # Important: this function does not attempt to correct V/J names
-
-
 
   if("species" %in% names(TCR)){
     species <- as.character(TCR["species"])

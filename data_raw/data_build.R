@@ -351,14 +351,14 @@ if (FALSE){
   # I did this only once and then deleted the RData folder, kept the code
   # in case we need to redo it later.
   summary_HomoSapiens <- readRDS("RData/summary_HomoSapiens.rds")
-  summary_HomoSapiens_noallele <- readRDS("RData/summary_HomoSapiens_noallele.rds")
-  summary_MusMusculus_noallele_noStrain_SEQTR <-
-    readRDS("RData/summary_MusMusculus_noallele_noStrain_SEQTR.rds")
-  summary_MusMusculus_noallele_SEQTR <-
-    readRDS("RData/summary_MusMusculus_noallele_SEQTR.rds")
-  usethis::use_data(summary_HomoSapiens, summary_HomoSapiens_noallele,
-    summary_MusMusculus_noallele_noStrain_SEQTR,
-    summary_MusMusculus_noallele_SEQTR, overwrite=F, internal=F)
+  summary_HomoSapiens_allele <- readRDS("RData/summary_HomoSapiens_allele.rds")
+  summary_MusMusculus_noStrain_SEQTR <-
+    readRDS("RData/summary_MusMusculus_noStrain_SEQTR.rds")
+  summary_MusMusculus_SEQTR <-
+    readRDS("RData/summary_MusMusculus_SEQTR.rds")
+  usethis::use_data(summary_HomoSapiens, summary_HomoSapiens_allele,
+    summary_MusMusculus_noStrain_SEQTR,
+    summary_MusMusculus_SEQTR, overwrite=F, internal=F)
 }
 
   # EOF ---------------------------------------------------------------------
