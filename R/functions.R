@@ -321,8 +321,10 @@ plotVJ <- function(count.es, count.rep, info, comp.baseline, pType=1,
     }
     #If we still have too many labels, take those with the top logFC
     if(length(which(!is.na(label))) > n_lab_max){
-      print(paste("Too many labels for ",gene,", selection will be based primarily on logFC:",sep=""))
-      print("  Consider augmenting values in label.min.fr if visualisation is not good")
+      if(verbose>=1){
+        print(paste("Too many labels for ",gene,", selection will be based primarily on logFC:",sep=""))
+        print("  Consider augmenting values in label.min.fr if visualisation is not good")
+      }
       logFC.sort <- sort(logFC)
       t <- 1
       while(length(which(!is.na(label))) > n_lab_max){
@@ -874,6 +876,32 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
     ind <- which( nc < Lmin | nc > Lmax | grepl('[^ACDEFGHIKLMNPQRSTVWY]', input[,cdr3]) == T)
     input[ind,cdr3] <- NA
   }
+  
+  #If multiple V or J genes (separated by "," or "\" or ";" or " or "), keep only the first one
+  for(s in segment.list){
+    ind <- which(grepl("\\\\|,|;| or ",input[,s]))
+    if(length(ind)>0){
+      cor <- sapply(ind,function(i){strsplit(input[i,s], split="\\\\|,|;| or ")[[1]][1]})
+      if(verbose>=1) {
+        entry <- ifelse(length(ind)==1,"entry","entries")
+        print(paste(length(ind)," ",entry," with multiple ",s," segments (only the first segment will be kept):", sep=""))
+        
+        if(verbose==1 | verbose==2){
+          print("Use verbose=3 to see them all")
+        } else {
+          mt <- cbind(input[ind,s], cor)
+          colnames(mt) <- c("Original", "Corrected")
+          print(mt)
+        }
+      }
+      input[ind,s] <- cor
+    }
+  }
+  
+  #Remove spaces
+  for(s in segment.list){
+    input[,s] <- gsub(" ","",input[,s])
+  }
 
   #Remove or add alleles
   if(!use.allele){
@@ -918,7 +946,8 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
       for(s in segment.list){
         ind <- which(input[ind.species,s] %in% name.list[[species]] == F & !is.na(input[ind.species,s]) )
         if(length(ind)>=1 & verbose != 0){
-          print(c(paste("WARNING: ",s," names in Input TCRs absent from IMGT: ",sep=""), sort(unique(input[ind.species[ind],s])) ))
+          nm <- ifelse(s==1,"name","names")
+          print(c(paste("WARNING: ",s," ",nm," in Input TCRs absent from IMGT: ",sep=""), sort(unique(input[ind.species[ind],s])) ))
         }
         input[ind.species[ind],s] <- NA
       }
@@ -1017,7 +1046,8 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
         
         #Correct TRAJ38 in human (e.g., issue with 10X data)
         if(species=="HomoSapiens" & chain=="TRA"){
-          ind.traj38 <- which((input[ind.species,J]=="TRAJ38" | input[ind.species,J]=="TRAJ38*01") & str_sub(input[ind.species,cdr3],start=-2)=="LI")
+          
+          ind.traj38 <- which((input[ind.species,J]=="TRAJ38" | input[ind.species,J]=="TRAJ38*01") & str_sub(input[ind.species,cdr3],start=-2)=="LI" & nchar(input[ind.species,cdr3]) < Lmax)
           input[ind.species[ind.traj38],cdr3] <- paste(input[ind.species[ind.traj38],cdr3], "W", sep="")
         }  
         
@@ -1027,7 +1057,6 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
         
         
         #Find cases incompatible with the reference (allowing matching to any allele)
-        #print("First aa")
         nm <- input[ind.species,V]
         rf <- ref.cdr3.first[[species]][[chain]]
         diff.first <- sapply(1:length(first), function(i){
@@ -1042,7 +1071,6 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
         ind.first <- (1:length(first))[diff.first]
         
         #Find cases incompatible with the reference (allowing matching to any allele)
-        #print("Last aa")
         nm <- input[ind.species,J]
         rf <- ref.cdr3.last[[species]][[chain]]
         diff.last <- sapply(1:length(last), function(i){
@@ -1061,11 +1089,13 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
         
         if(length(ind.traj38)>0 & chain=="TRA"){
           print("Adding W on CDR3a for TRAJ38 entries:")
-          if(verbose==1){
+          if(verbose<=2){
             n <- min(10,length(ind.traj38))
-            print("Examples  (use verbose>=2 to see them all):")
+            if(n<length(ind.traj38)){
+              print("Examples  (use verbose>=2 to see them all):")
+            }
           }
-          if(verbose > 1){
+          if(verbose > 2){
             n <- length(ind.traj38)
           }
           ti <- ind.species[ind.traj38[1:n]]
@@ -1076,10 +1106,11 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           
           nt <- length(which(!is.na(input[ind.species,V]) & !is.na(input[ind.species,cdr3])))
                        
-          print(paste("*** Likely inconsistencies between ",chain,"V gene and CDR3",chain.small[chain]," in ",length(ind.first)," entries (out of ",nt,") in ",species,"- will be put to NA ***",sep=""))
+          entry <- ifelse(length(ind.first)==1,"entry","entries")
+          print(paste("*** Likely inconsistencies between ",chain,"V gene and CDR3",chain.small[chain]," in ",length(ind.first)," ",entry," (out of ",nt,") in ",species,"- will be put to NA ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.first))
-            if(length(ind.first)>10){
+            if(length(ind.first)>n){
               print("Examples  (use verbose >= 2 to see them all):")
             }
           }
@@ -1099,7 +1130,8 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           
           nt <- length(which(!is.na(input[ind.species,J]) & !is.na(input[ind.species,cdr3])))
           
-          print(paste("*** Likely inconsistencies between ",chain,"J gene and CDR3",chain.small[chain]," in ",length(ind.last)," entries (out of ",nt,") in ",species," - will be put to NA ***",sep=""))
+          entry <- ifelse(length(ind.first)==1,"entry","entries")
+          print(paste("*** Likely inconsistencies between ",chain,"J gene and CDR3",chain.small[chain]," in ",length(ind.last)," ",entry," (out of ",nt,") in ",species," - will be put to NA ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.last))
             if(length(ind.last)>10){
@@ -1168,7 +1200,10 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
             m.cor <- data.frame(original.name = input[ind[i],s], corrected.name = ga[i],row.names = NULL)
             m.cor <- m.cor[!duplicated(m.cor),]
             
-            print(paste("*** ",dim(m.cor)[1]," ",s," names in ",length(i)," entries were corrected in ",species, "***",sep=""))
+            entry <- ifelse(length(i)==1,"entry","entries")
+            nm <- ifelse(dim(m.cor)[1]==1,"name","names")
+            verb <- ifelse(dim(m.cor)[1]==1,"was","were")
+            print(paste("*** ",dim(m.cor)[1]," ",s," ",nm," in ",length(i)," ",entry," ",verb," corrected in ",species, "***",sep=""))
             if(verbose==1 | verbose==2){
               print("Use verbose=3 to see them")
             }
@@ -1187,7 +1222,7 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
             print(paste("*** ",length(v), " ", s, " gene names in ",length(i)," entries could not be corrected in ",species," - will be put to NA ***", sep=""))
             if(verbose==1){
               n <- min(10,length(v))
-              if(length(v)>10){
+              if(length(v)>n){
                 print("Examples  (use verbose >= 2 to see them all):")
               }
               print(v[1:n])
