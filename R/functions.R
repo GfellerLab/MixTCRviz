@@ -290,7 +290,7 @@ plotVJ <- function(count.es, count.rep, sd.rep=NULL, info, comp.baseline, pType=
     #Now create the sd to show as error bars
     if(!is.null(sd.rep)){
       
-      if(n.rep>1.5){  #This means that sd.rep should have the same normalisation as count.rep
+      if(n.rep>1.1){  #This means that sd.rep should have the same normalisation as count.rep
         sd.rep <- sd.rep/n.rep
       }
       cn <- colnames(count.df)
