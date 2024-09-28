@@ -209,7 +209,7 @@ MixTCRviz <- function(input1, output.path,
     }
   }
   
-  if(N.min < 1 | is.numeric(N.min)==FALSE){
+  if(N.min < 10 | is.numeric(N.min)==FALSE){
     print(paste("N.min=",N.min," not supported, using default N.min=10", sep=""))
     N.min <- 10
   }
@@ -690,11 +690,15 @@ MixTCRviz <- function(input1, output.path,
           infoV <- c(paste(chain,"V", sep=""), input1.name, baseline.name, model)
           infoJ <- c(paste(chain,"J", sep=""), input1.name, baseline.name, model)
 
-          countV.plot <- plotVJ(es$countV[[chain]], baseline$countV[[chain]],
-            infoV, comp.baseline, pType=plot.VJ.switch, species=species,
+          #baseline$sdV[[chain]] <- 0.5*baseline$countV[[chain]]
+          #baseline$sdJ[[chain]] <- 0.5*baseline$countJ[[chain]]
+          
+          countV.plot <- plotVJ(count.es=es$countV[[chain]], count.rep=baseline$countV[[chain]], sd.rep=baseline$sdV[[chain]],
+            info=infoV, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species,
             ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr, print.size=print.size)
-          countJ.plot <- plotVJ(es$countJ[[chain]], baseline$countJ[[chain]],
-            infoJ, comp.baseline, pType=plot.VJ.switch, species=species,
+          
+          countJ.plot <- plotVJ(count.es=es$countJ[[chain]], count.rep=baseline$countJ[[chain]], sd.rep=baseline$sdJ[[chain]],
+            info=infoJ, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species,
             ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr, print.size=print.size)
 
           #######
