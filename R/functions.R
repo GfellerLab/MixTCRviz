@@ -255,7 +255,7 @@ find_mhc <- function(m){
 #' @param label.min.fr (default=c(0.05, 0.05)): Region (rectangle) of the left corner of V/J plots with no gene label
 
 plotVJ <- function(count.es, count.rep, sd.rep=NULL, info, comp.baseline, pType=1, 
-  species="HomoSapiens", ret.resList=F, combined.resList=NULL, label.neg=F, label.min.fr=c(0.05, 0.05), print.size=T){
+  species="HomoSapiens", ret.resList=F, combined.resList=NULL, label.neg=F, label.min.fr=c(0.05, 0.05), print.size=T, verbose=1){
   if (is.null(combined.resList)){
     if (length(count.es) == 0){
       # Can directly return an empty plot when this doesn't contain any data.

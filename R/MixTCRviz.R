@@ -67,7 +67,7 @@
 #'   indicate that CDR3 length distributions and motifs correspond to those
 #'   expected with the V-J usage in the TCRs used for training.
 #'   
-#' @param N.min (default=10) Minimum number of TCR (i.e., V-J-CDR3) for at least
+#' @param N.min (default=1) Minimum number of TCR (i.e., V-J-CDR3) for at least
 #'   one chain. This number is computed after cleaning the data.
 #'   
 #' @param output.stat (default=FALSE) If T, Create a stat/ folder with .rds objects summarizing the raw statistics for each model.
@@ -161,7 +161,7 @@
 MixTCRviz <- function(input1, output.path,
                       input2=NULL, baseline.file=NULL,
                       use.allele=F, correct.gene.names=T, use.mouse.strain=F, check.cdr3.mode=1,
-                      renormVJ=NULL, N.min=10, output.stat=F, output.processed.data=F, 
+                      renormVJ=NULL, N.min=1, output.stat=F, output.processed.data=F, 
                       set.cdr3a.length=NA, set.cdr3b.length=NA,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
@@ -209,9 +209,9 @@ MixTCRviz <- function(input1, output.path,
     }
   }
   
-  if(N.min < 10 | is.numeric(N.min)==FALSE){
-    print(paste("N.min=",N.min," not supported, using default N.min=10", sep=""))
-    N.min <- 10
+  if(N.min < 1 | is.numeric(N.min)==FALSE){
+    print(paste("N.min=",N.min," not supported, using default N.min=1", sep=""))
+    N.min <- 1
   }
   
   if(!is.logical(output.stat)){
@@ -489,7 +489,7 @@ MixTCRviz <- function(input1, output.path,
     model.list <- c(input1$model) #In this case, only one model is allowed
   }
   if(length(model.list)==0){
-    stop("No model has enough data to use MixTCRviz. Check your input or lower the N.min parameter (default 10)")
+    stop("No model has enough data to use MixTCRviz. Check your input or lower the N.min parameter (default 1)")
   }
 
 
@@ -695,12 +695,12 @@ MixTCRviz <- function(input1, output.path,
           
           countV.plot <- plotVJ(count.es=es$countV[[chain]], count.rep=baseline$countV[[chain]], sd.rep=baseline$sdV[[chain]],
             info=infoV, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species,
-            ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr, print.size=print.size)
+            ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
           
           countJ.plot <- plotVJ(count.es=es$countJ[[chain]], count.rep=baseline$countJ[[chain]], sd.rep=baseline$sdJ[[chain]],
             info=infoJ, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species,
-            ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr, print.size=print.size)
-
+            ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
+          
           #######
           # Plot comparison of motifs for CDR1 and CDR2, but this is redundant with V/J plots
           # No correction based on VJ usage
@@ -847,14 +847,14 @@ MixTCRviz <- function(input1, output.path,
                 logo.sub.baseline[[ct]] <- logo.CDR3.L.baseline[[t]]
 
                 #Add the comparison of V/J usage
-                plotV.L <- plotVJ(es$countV.L[[chain]][[t]], baseline$countV.L[[chain]][[t]],
-                  c(paste(chain,"V", sep=""), input1.name, baseline.name, model),
+                plotV.L <- plotVJ(count.es=es$countV.L[[chain]][[t]], count.rep=baseline$countV.L[[chain]][[t]],
+                  info=c(paste(chain,"V", sep=""), input1.name, baseline.name, model),
+                  comp.baseline = comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg, 
+                  label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
+                plotJ.L <- plotVJ(count.es=es$countJ.L[[chain]][[t]], count.rep=baseline$countJ.L[[chain]][[t]],
+                  info=c(paste(chain,"J", sep=""), input1.name, baseline.name, model),
                   comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg, 
-                  label.min.fr=label.min.fr, print.size=print.size)
-                plotJ.L <- plotVJ(es$countJ.L[[chain]][[t]], baseline$countJ.L[[chain]][[t]],
-                  c(paste(chain,"J", sep=""), input1.name, baseline.name, model),
-                  comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg, 
-                  label.min.fr=label.min.fr, print.size=print.size)
+                  label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
 
                 plotVJ.L[[ct]] <- ggarrange(plotV.L, plotJ.L, ncol=2, nrow=1)
 
@@ -957,9 +957,9 @@ MixTCRviz <- function(input1, output.path,
         # The 2nd level of comb_res is the chain.
         ld.plot <- plotLD(combined.resList=resSp[[chain]]$ld)
         countV.plot <- plotVJ(pType=plot.VJ.switch, species=species,
-          combined.resList=resSp[[chain]]$V)
+          combined.resList=resSp[[chain]]$V, verbose=verbose)
         countJ.plot <- plotVJ(pType=plot.VJ.switch, species=species,
-          combined.resList=resSp[[chain]]$J)
+          combined.resList=resSp[[chain]]$J, verbose=verbose)
         CDR3_logos <- ggarrange(plotlist=resSp[[chain]]$CDR3, ncol=1)
 
         VJ.plot <- ggarrange(countV.plot, countJ.plot, nrow=1,
