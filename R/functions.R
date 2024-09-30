@@ -303,7 +303,7 @@ plotVJ <- function(count.es, count.rep, sd.rep=NULL, info, comp.baseline, pType=
       }
     }
     
-    lim.y <- max(count.df[,"Y"] )*1.3
+    lim.y <- max(count.df[,"Y"] )*1.4
     if(is.null(sd.rep)){
       lim.x <- max(count.df[,"X"] )*1.3
     } else {
@@ -352,7 +352,7 @@ plotVJ <- function(count.es, count.rep, sd.rep=NULL, info, comp.baseline, pType=
       }
     }
     
-   
+    
     if(print.size){
       ylab <- paste(type1," (",n,")", sep="")
     } else {
