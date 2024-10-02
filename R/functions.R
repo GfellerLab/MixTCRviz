@@ -515,12 +515,14 @@ plotLD <- function(countL.es, countL.rep, info, plot.oneline, ret.resList=F,
   combined.resList=NULL, comp.baseline=1, print.size=T){
 
   if (is.null(combined.resList)){
-    L.es <- as.numeric(lapply(names(countL.es), function(x){strsplit(x,split="_")[[1]][2]}))
-    L.rep <- as.numeric(lapply(names(countL.rep), function(x){strsplit(x,split="_")[[1]][2]}))
 
-    L.all <- unique(c(L.es, L.rep))
-    L.all <- min(L.all):max(L.all)
+    #L.es <- as.numeric(lapply(names(countL.es), function(x){strsplit(x,split="_")[[1]][2]}))
+    #L.rep <- as.numeric(lapply(names(countL.rep), function(x){strsplit(x,split="_")[[1]][2]}))
+    #L.all <- unique(c(L.es, L.rep))
+    #L.all <- min(L.all):max(L.all)
 
+    L.all <- Lmin:Lmax
+    
     ct <- 1
     ld.es <- c()
     ld.rep <- c()

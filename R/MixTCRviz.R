@@ -853,7 +853,7 @@ MixTCRviz <- function(input1, output.path,
                   label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
                 plotJ.L <- plotVJ(count.es=es$countJ.L[[chain]][[t]], count.rep=baseline$countJ.L[[chain]][[t]],
                   info=c(paste(chain,"J", sep=""), input1.name, baseline.name, model),
-                  comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg, 
+                  comp.baseline = comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg, 
                   label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
 
                 plotVJ.L[[ct]] <- ggarrange(plotV.L, plotJ.L, ncol=2, nrow=1)
