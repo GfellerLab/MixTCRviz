@@ -692,12 +692,14 @@ MixTCRviz <- function(input1, output.path,
 
           #baseline$sdV[[chain]] <- 0.5*baseline$countV[[chain]]
           #baseline$sdJ[[chain]] <- 0.5*baseline$countJ[[chain]]
+          #es$sdV[[chain]] <- 0.2*es$countV[[chain]]
+          #es$sdJ[[chain]] <- 0.2*es$countJ[[chain]]
           
-          countV.plot <- plotVJ(count.es=es$countV[[chain]], count.rep=baseline$countV[[chain]], sd.rep=baseline$sdV[[chain]],
+          countV.plot <- plotVJ(count.es=es$countV[[chain]], count.rep=baseline$countV[[chain]], sd.es=es$sdV[[chain]], sd.rep=baseline$sdV[[chain]],
             info=infoV, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species,
             ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
           
-          countJ.plot <- plotVJ(count.es=es$countJ[[chain]], count.rep=baseline$countJ[[chain]], sd.rep=baseline$sdJ[[chain]],
+          countJ.plot <- plotVJ(count.es=es$countJ[[chain]], count.rep=baseline$countJ[[chain]], sd.es=es$sdJ[[chain]], sd.rep=baseline$sdJ[[chain]],
             info=infoJ, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species,
             ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
           

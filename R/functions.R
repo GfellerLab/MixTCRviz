@@ -254,7 +254,7 @@ find_mhc <- function(m){
 #' @param label.neg (default=F): If T, show also the labels of the genes most depleted in input1
 #' @param label.min.fr (default=c(0.05, 0.05)): Region (rectangle) of the left corner of V/J plots with no gene label
 
-plotVJ <- function(count.es, count.rep, sd.rep=NULL, info, comp.baseline, pType=1, 
+plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.baseline, pType=1, 
   species="HomoSapiens", ret.resList=F, combined.resList=NULL, label.neg=F, label.min.fr=c(0.05, 0.05), print.size=T, verbose=1){
   if (is.null(combined.resList)){
     if (length(count.es) == 0){
@@ -288,6 +288,21 @@ plotVJ <- function(count.es, count.rep, sd.rep=NULL, info, comp.baseline, pType=
     # gsub is used to possible remove the allele information from the 'name'.
 
     #Now create the sd to show as error bars
+    if(!is.null(sd.es)){
+      
+      if(n>1.1){  #This means that sd.rep should have the same normalisation as count.rep
+        sd.es <- sd.es/n
+      }
+      cn <- colnames(count.df)
+      count.df <- cbind(count.df,0)
+      colnames(count.df) <- c(cn,"SD_es")
+      for(n in nm){
+        if(!is.na(sd.es[n])){
+          count.df[n,"SD_es"] <- sd.es[n]
+        }
+      }
+    }
+    #Now create the sd to show as error bars
     if(!is.null(sd.rep)){
       
       if(n.rep>1.1){  #This means that sd.rep should have the same normalisation as count.rep
@@ -295,19 +310,23 @@ plotVJ <- function(count.es, count.rep, sd.rep=NULL, info, comp.baseline, pType=
       }
       cn <- colnames(count.df)
       count.df <- cbind(count.df,0)
-      colnames(count.df) <- c(cn,"SD")
+      colnames(count.df) <- c(cn,"SD_rep")
       for(n in nm){
         if(!is.na(sd.rep[n])){
-          count.df[n,"SD"] <- sd.rep[n]
+          count.df[n,"SD_rep"] <- sd.rep[n]
         }
       }
     }
     
-    lim.y <- max(count.df[,"Y"] )*1.4
+    if(is.null(sd.es)){
+      lim.y <- max(count.df[,"Y"] )*1.4
+    } else {
+      lim.y <- max(max(count.df[,"Y"] )*1.4, count.df[,"Y"]+count.df[,"SD_es"])
+    }
     if(is.null(sd.rep)){
       lim.x <- max(count.df[,"X"] )*1.3
     } else {
-      lim.x <- max(max(count.df[,"X"] )*1.3, count.df[,"X"]+count.df[,"SD"])
+      lim.x <- max(max(count.df[,"X"] )*1.3, count.df[,"X"]+count.df[,"SD_rep"])
     }
     label <- nm; names(label) <- nm
     ratio <- (count.df[,"Y"]+0.0001)/(count.df[,"X"]+0.0001)
@@ -415,8 +434,11 @@ plotVJ <- function(count.es, count.rep, sd.rep=NULL, info, comp.baseline, pType=
 
     count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) +
       geom_abline(col="orange",linetype="dashed",linewidth=1)
+    if(!is.null(sd.es)){
+      count.plot <- count.plot + geom_errorbar(aes(ymax=Y+SD_es, ymin=Y-SD_es), width=0, linewidth=0.3, color="azure4", linetype="dashed")
+    }
     if(!is.null(sd.rep)){
-      count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD, xmin=X-SD), height=0, linewidth=0.3, color="azure4", linetype="dashed")
+      count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD_rep, xmin=X-SD_rep), height=0, linewidth=0.3, color="azure4", linetype="dashed")
     }
     if (pType == 1.3){
       count.plot <- count.plot + geom_point()
@@ -515,11 +537,6 @@ plotLD <- function(countL.es, countL.rep, info, plot.oneline, ret.resList=F,
   combined.resList=NULL, comp.baseline=1, print.size=T){
 
   if (is.null(combined.resList)){
-
-    #L.es <- as.numeric(lapply(names(countL.es), function(x){strsplit(x,split="_")[[1]][2]}))
-    #L.rep <- as.numeric(lapply(names(countL.rep), function(x){strsplit(x,split="_")[[1]][2]}))
-    #L.all <- unique(c(L.es, L.rep))
-    #L.all <- min(L.all):max(L.all)
 
     L.all <- Lmin:Lmax
     
