@@ -435,10 +435,10 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
     count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) +
       geom_abline(col="orange",linetype="dashed",linewidth=1)
     if(!is.null(sd.es)){
-      count.plot <- count.plot + geom_errorbar(aes(ymax=Y+SD_es, ymin=Y-SD_es), width=0, linewidth=0.3, color="azure4", linetype="dashed")
+      count.plot <- count.plot + geom_errorbar(aes(ymax=Y+SD_es, ymin=Y-SD_es), width=0, linewidth=0.3, color="grey45", linetype="dashed")
     }
     if(!is.null(sd.rep)){
-      count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD_rep, xmin=X-SD_rep), height=0, linewidth=0.3, color="azure4", linetype="dashed")
+      count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD_rep, xmin=X-SD_rep), height=0, linewidth=0.4, color="grey45", linetype="dashed")
     }
     if (pType == 1.3){
       count.plot <- count.plot + geom_point()
