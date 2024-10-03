@@ -268,8 +268,11 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
 
     #count.es is on the Y axis, count.rep on the X
     gene <- info[1]  # e.g., TRAV
-    n <- sum(count.es)
+    n.es <- sum(count.es)
+    print(n.es)
+    
     n.rep <- sum(count.rep)
+    print(n.rep)
     v <- c(names(count.rep), names(count.es))
     nm <- unique(v)
     type1 <- info[2] # e.g., Input1
@@ -290,8 +293,8 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
     #Now create the sd to show as error bars
     if(!is.null(sd.es)){
       
-      if(n>1.1){  #This means that sd.rep should have the same normalisation as count.rep
-        sd.es <- sd.es/n
+      if(n.es>1.1){  #This means that sd.rep should have the same normalisation as count.rep
+        sd.es <- sd.es/n.es
       }
       cn <- colnames(count.df)
       count.df <- cbind(count.df,0)
@@ -371,9 +374,8 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
       }
     }
     
-    
     if(print.size){
-      ylab <- paste(type1," (",n,")", sep="")
+      ylab <- paste(type1," (",n.es,")", sep="")
     } else {
       ylab <- type1
     }
@@ -496,7 +498,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
       count.plot <- ggplot(count.df, aes(x=Y, y=label, fill=gene)) +
         geom_col(color="gray10", linewidth=1)
 
-      figTitle <- paste0(gene, " (", n, ")")
+      figTitle <- paste0(gene, " (", n.es, ")")
     } else {
       count.plot <- ggplot(count.df, aes(x=Y, y=label, fill=gene, color=model)) +
         geom_col(position="dodge", linewidth=1, width=0.8) +
@@ -836,11 +838,11 @@ check_input <- function(input, chain.list.output="AB", name="input1", species.de
     chain.list <- paste("TR", unlist(strsplit(chain.list.output,split="")), sep="")
     for(nm in nm.list){
       if(is.null(input[[nm]])){
-        stop("Missing feature in input object")
+        stop(paste("Missing feature in input object:",nm,sep=" "))
       } else {
         for(chain in chain.list){
           if(is.null(input[[nm]][[chain]])){
-            stop("Missing feature in input object")
+            stop(paste("Missing feature in input object:",nm,chain,sep=" "))
           } 
         }
       }
