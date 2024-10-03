@@ -269,10 +269,8 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
     #count.es is on the Y axis, count.rep on the X
     gene <- info[1]  # e.g., TRAV
     n.es <- sum(count.es)
-    print(n.es)
-    
+
     n.rep <- sum(count.rep)
-    print(n.rep)
     v <- c(names(count.rep), names(count.es))
     nm <- unique(v)
     type1 <- info[2] # e.g., Input1
@@ -408,7 +406,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
     # 'baselineName' will be used to show the baseline value from the genes in the
     # bar plot.
     count.df$log2FC <- log2(ratio+1e-5)
-    count.df$model <- paste0(info[4], " (", n, ")")
+    count.df$model <- paste0(info[4], " (", n.es, ")")
 
     if (ret.resList){
       return(list(count.df=count.df, namesToKeep=namesToKeep, gene=gene))
