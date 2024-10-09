@@ -302,6 +302,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
           count.df[n,"SD_es"] <- sd.es[n]
         }
       }
+      
     }
     #Now create the sd to show as error bars
     if(!is.null(sd.rep)){
@@ -435,10 +436,10 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
     count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) +
       geom_abline(col="orange",linetype="dashed",linewidth=1)
     if(!is.null(sd.es)){
-      count.plot <- count.plot + geom_errorbar(aes(ymax=Y+SD_es, ymin=Y-SD_es), width=0, linewidth=0.3, color="grey45", linetype="dashed")
+      count.plot <- count.plot + geom_errorbar(aes(ymax=Y+SD_es, ymin=sapply(Y-SD_es, function(x){max(0.001,x)})), width=0, linewidth=0.4, color="grey45", linetype="dashed")
     }
     if(!is.null(sd.rep)){
-      count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD_rep, xmin=X-SD_rep), height=0, linewidth=0.4, color="grey45", linetype="dashed")
+      count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD_rep, xmin=sapply(Y-SD_rep, function(x){max(0.001,x)})), height=0, linewidth=0.4, color="grey45", linetype="dashed")
     }
     if (pType == 1.3){
       count.plot <- count.plot + geom_point()
@@ -832,7 +833,7 @@ check_input <- function(input, chain.list.output="AB", name="input1", species.de
       print(paste("Using",model.default,"as model for all entries"))
     }
   } else if(input.list) {
-    nm.list <- c("L","countL","countV","countJ", "countVJ.L", "countCDR3.L", "countVJ", "countCDR1", "countCDR2",  "countV.L", "countJ.L") # the last 4 are actually not very useful
+    nm.list <- c("L","countL","countV","countJ", "countVJ.L", "countCDR3.L", "countVJ",  "countV.L", "countJ.L") # the last 4 are actually not very useful
     chain.list <- paste("TR", unlist(strsplit(chain.list.output,split="")), sep="")
     for(nm in nm.list){
       if(is.null(input[[nm]])){
