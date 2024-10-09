@@ -439,7 +439,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
       count.plot <- count.plot + geom_errorbar(aes(ymax=Y+SD_es, ymin=sapply(Y-SD_es, function(x){max(0.001,x)})), width=0, linewidth=0.4, color="grey45", linetype="dashed")
     }
     if(!is.null(sd.rep)){
-      count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD_rep, xmin=sapply(Y-SD_rep, function(x){max(0.001,x)})), height=0, linewidth=0.4, color="grey45", linetype="dashed")
+      count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD_rep, xmin=sapply(X-SD_rep, function(x){max(0.001,x)})), height=0, linewidth=0.4, color="grey45", linetype="dashed")
     }
     if (pType == 1.3){
       count.plot <- count.plot + geom_point()
