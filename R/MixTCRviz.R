@@ -669,6 +669,7 @@ MixTCRviz <- function(input1, output.path,
             if(length(es$countVJ[[chain]])>0 & !is.null(baseline$countL.VJ[[chain]])){
               info[3] <- paste(info[3], "P(VJ)",sep=" | ")
               bs <- weighted_countL(baseline$countL.VJ[[chain]], es$countVJ[[chain]])
+              
             } else {
               if(length(es$countVJ[[chain]])==0){
                 print(paste("No P(VJ) information in input1 to compute baseline CDR3",chain.small[chain]," length distribution | P(VJ). renormVJ=0 will be used", sep=""))
@@ -682,9 +683,12 @@ MixTCRviz <- function(input1, output.path,
           } else{
             bs <- baseline$countL[[chain]]
           }
+          bs.sd <- baseline$sdL[[chain]] # This means that we do not change the sd values, irrespective of | P(VJ)
+          
+          #baseline$sdL[[chain]] <- 0.2*baseline$countL[[chain]]/sum(baseline$countL[[chain]])
+          #es$sdL[[chain]] <- 0.2*es$countL[[chain]]
 
-
-          ld.plot <- plotLD(es$countL[[chain]], bs, info, plot.oneline=plot.oneline,
+          ld.plot <- plotLD(es$countL[[chain]], bs, info=info, sd.es=es$sdL[[chain]], sd.rep=bs.sd, plot.oneline=plot.oneline,
             ret.resList=plot.modelsCombined, comp.baseline=comp.baseline, print.size=print.size)
 
           #######
@@ -694,8 +698,8 @@ MixTCRviz <- function(input1, output.path,
           infoV <- c(paste(chain,"V", sep=""), input1.name, baseline.name, model)
           infoJ <- c(paste(chain,"J", sep=""), input1.name, baseline.name, model)
 
-          #baseline$sdV[[chain]] <- 0.5*baseline$countV[[chain]]
-          #baseline$sdJ[[chain]] <- 0.5*baseline$countJ[[chain]]
+          #baseline$sdV[[chain]] <- 0.2*baseline$countV[[chain]]
+          #baseline$sdJ[[chain]] <- 0.2*baseline$countJ[[chain]]
           #es$sdV[[chain]] <- 0.2*es$countV[[chain]]
           #es$sdJ[[chain]] <- 0.2*es$countJ[[chain]]
           

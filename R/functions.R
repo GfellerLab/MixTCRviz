@@ -435,12 +435,14 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
 
     count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) +
       geom_abline(col="orange",linetype="dashed",linewidth=1)
+   
     if(!is.null(sd.es)){
-      count.plot <- count.plot + geom_errorbar(aes(ymax=Y+SD_es, ymin=sapply(Y-SD_es, function(x){max(0.001,x)})), width=0, linewidth=0.4, color="grey45", linetype="dashed")
+      count.plot <- count.plot + geom_errorbar(aes(ymax=Y+SD_es, ymin=sapply(Y-SD_es, function(x){max(0.001,x)})), width=0.015*lim.x, linewidth=0.4, color="grey40", linetype="dashed")
     }
     if(!is.null(sd.rep)){
-      count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD_rep, xmin=sapply(X-SD_rep, function(x){max(0.001,x)})), height=0, linewidth=0.4, color="grey45", linetype="dashed")
+      count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD_rep, xmin=sapply(X-SD_rep, function(x){max(0.001,x)})), height=0.015*lim.y, linewidth=0.4, color="grey40", linetype="dashed")
     }
+    
     if (pType == 1.3){
       count.plot <- count.plot + geom_point()
     } else {
@@ -458,7 +460,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
       outerWidth <- 0.5
 
       count.plot <- count.plot + geom_point(aes(fill=gene, shape=shape_color,
-        color=shape_color), stroke=outerWidth, size=2.5) +
+        color=shape_color), stroke=outerWidth, size=2.5) + 
         scale_color_manual(values=outerColorScale, guide="none") +
         scale_shape_manual(values=shapeScale, guide="none")
     }
@@ -471,6 +473,9 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
         show.legend=F, na.rm=T) +
       scale_fill_manual(values=colorScale, guide="none") +
       xlab(xlab) + ylab(ylab) 
+    
+  
+    
   } else {
     # Show results as bar plots. Will only keep most significant genes, summing
     # together all the other and rework a bit the data.
@@ -534,22 +539,22 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
 # indicating the model name).
 # And when combined.resList isn't NULL, we'll use the results from this list
 # to plot the results (from multiple models combined together).
-plotLD <- function(countL.es, countL.rep, info, plot.oneline, ret.resList=F,
+plotLD <- function(countL.es, countL.rep, info, sd.es=NULL, sd.rep=NULL, plot.oneline=0, ret.resList=F,
   combined.resList=NULL, comp.baseline=1, print.size=T){
 
   if (is.null(combined.resList)){
 
     L.all <- Lmin:Lmax
-    
-    ct <- 1
-    ld.es <- c()
-    ld.rep <- c()
+    cn <- paste("L",L.all,sep="_")
 
-    for(lg in L.all){
-      lc <- paste("L",lg,sep="_")
-      if(!is.na(countL.es[lc])){ ld.es[ct] <- countL.es[lc]} else {ld.es[ct] <- 0}
-      if(!is.na(countL.rep[lc])){ld.rep[ct] <- countL.rep[lc]} else {ld.rep[ct] <- 0}
-      ct <- ct+1
+    ld.es <- rep(0,length(L.all)); names(ld.es) <- cn
+    ld.rep <- rep(0,length(L.all)); names(ld.rep) <- cn
+    n.es <- sum(countL.es)
+    n.rep <- sum(countL.rep)
+    
+    for(lc in cn){
+      if(!is.na(countL.es[lc])){ ld.es[lc] <- countL.es[lc]} 
+      if(!is.na(countL.rep[lc])){ld.rep[lc] <- countL.rep[lc]} 
     }
     if(sum(ld.es)>0){
       ld.es <- ld.es/sum(ld.es)
@@ -557,7 +562,29 @@ plotLD <- function(countL.es, countL.rep, info, plot.oneline, ret.resList=F,
     if(sum(ld.rep)>0){
       ld.rep <- ld.rep/sum(ld.rep)
     }
+    
+    lds.es <- rep(0,length(L.all)); names(lds.es) <- cn
+    lds.rep <- rep(0,length(L.all)); names(lds.rep) <- cn
+    #Now create the sd to show as error bars
+    if(!is.null(sd.es)){
+      if(n.es>1.1){  #This implies that sd.rep should have the same normalisation as count
+        sd.es <- sd.es/n.es
+      }
+      for(lc in cn){
+        if(!is.na(sd.es[lc])){ lds.es[lc] <- sd.es[lc]}
+      }
+    }
+    #Now create the sd to show as error bars
+    if(!is.null(sd.rep)){
+      if(n.rep>1.1){  #This means that sd.rep should have the same normalisation as count.rep
+        sd.rep <- sd.rep/n.rep
+      }
+      for(lc in cn){
+        if(!is.na(sd.rep[lc])){ lds.rep[lc] <- sd.rep[lc]}
+      }
+    }
 
+   
     ##########
     #Plot the comparison for length distribution
     ##########
@@ -565,7 +592,8 @@ plotLD <- function(countL.es, countL.rep, info, plot.oneline, ret.resList=F,
     v1 <- c(L.all,L.all);
     v2 <- c(ld.es, ld.rep);
     v3 <- c( rep(info[2], length(L.all)), rep(info[3], length(L.all))) ;
-    ld.df <- data.frame(v1,v2,v3)
+    v4 <- c(lds.es,lds.rep)
+    ld.df <- data.frame(v1,v2,v3,SD=v4)
     ld.df$v3 <- factor(ld.df$v3, levels=c(info[2], info[3]))
 
     if (ret.resList){
@@ -592,9 +620,12 @@ plotLD <- function(countL.es, countL.rep, info, plot.oneline, ret.resList=F,
       ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3, linetype=v3)) +
         guides(color = guide_legend(ncol = 1, order=1), linetype="none")
     } else {
-      ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3)) +
+      ld.plot <- ggplot(ld.df, aes(x=v1, y=v2, color=v3)) +
         guides(color = guide_legend(ncol = 1, order=1))
     }
+    ld.plot <- ld.plot + geom_errorbar(aes(ymax=v2+SD, ymin=sapply(v2-SD, function(x){max(0.001,x)})), width=0.2, linewidth=0.4, linetype="dashed")
+        
+    
     # The rest of the plot is the same if combined.resList was NULL or if showing
     # the results from multiple models combined, so we'll draw it below.
   } else {
