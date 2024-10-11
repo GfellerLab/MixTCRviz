@@ -30,6 +30,7 @@ MixTCRviz(
   plot.VJ.switch = 1,
   plot.modelsCombined = FALSE,
   label.neg = F,
+  plot.sd = T,
   label.min.fr = c(0.05, 0.05),
   chain.list.output = "AB",
   input1.name = "Input",
@@ -198,6 +199,12 @@ is used for the resulting figure filename.
 }}
 
 \item{label.neg}{(default=FALSE): If TRUE, show also the labels of the genes most depleted in input1.}
+
+\item{plot.sd}{(default=T)
+\itemize{
+\item T: Show standard deviation for P(V), P(J) and P(L), if such data are provided for baseline and/or input1
+\item F: Do not show standard deviation
+}}
 
 \item{label.min.fr}{(default=c(0.05,0.05)): Region (rectangle) of the left corner of V/J plots with no gene label.}
 

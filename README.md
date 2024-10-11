@@ -183,6 +183,11 @@ version from above or if you used library(MixTCRviz)).
     * 0: Show the CDR3 motifs of the input and of the baseline repertoire or input2, possibly | P(VJ).
     * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire (not recommanded).
     * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change, not recommanded)
+
+ - plot.sd (default=T)
+    * T: Show standard deviation for P(V), P(J) and P(L), if such data are provided for baseline and/or input1
+    * F: Do not show standard deviation
+
  - plot.VJ.switch (default=1)
     * 1: Show the VJ usage as a scatter plot with inner colors, outer colors and shapes of the points based
        on the V/J gene names (see lookup table in MixTCRviz/figures/, scheme1).
@@ -190,6 +195,7 @@ version from above or if you used library(MixTCRviz)).
        on the V/J gene names (see lookup table in MixTCRviz/figures/, scheme2).
     * 1.3: Show the VJ usage as a scatter plot with black points and V/J gene label in colors (see lookup table in MixTCRviz/figures/, scheme2).
     * 2: Show the VJ usage as a bar plot (see lookup table in MixTCRviz/figures/, scheme2).
+
  - plot.modelsCombined (default=FALSE)
     * FALSE or empty string: Show the data for each model separately.
     * TRUE or a string: Show the data for all models combined in a single

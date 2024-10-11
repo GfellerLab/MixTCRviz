@@ -119,6 +119,10 @@
 #'    * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire (not recommended).
 #'    * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change, not recommended)
 #'    
+#' @param plot.sd (default=T)
+#'    * T: Show standard deviation for P(V), P(J) and P(L), if such data are provided for baseline and/or input1 
+#'    * F: Do not show standard deviation
+#'    
 #' @param plot.VJ.switch (default=1)
 #'    * 1: Show the VJ usage as a scatter plot with inner colors, outer colors and shapes of the points based
 #'       on the V/J gene names (see lookup table in MixTCRviz/figures/, scheme1).
@@ -165,7 +169,7 @@ MixTCRviz <- function(input1, output.path,
                       set.cdr3a.length=NA, set.cdr3b.length=NA,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
-                      plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, 
+                      plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, plot.sd=T,
                       label.min.fr=c(0.05,0.05), chain.list.output="AB", 
                       input1.name="Input", input2.name=NULL, output.format="pdf", print.size=T){
 
@@ -689,7 +693,7 @@ MixTCRviz <- function(input1, output.path,
           #es$sdL[[chain]] <- 0.2*es$countL[[chain]]
 
           ld.plot <- plotLD(es$countL[[chain]], bs, info=info, sd.es=es$sdL[[chain]], sd.rep=bs.sd, plot.oneline=plot.oneline,
-            ret.resList=plot.modelsCombined, comp.baseline=comp.baseline, print.size=print.size)
+            ret.resList=plot.modelsCombined, comp.baseline=comp.baseline, print.size=print.size, plot.sd=plot.sd)
 
           #######
           # Plot comparison of V/J usage
@@ -705,11 +709,11 @@ MixTCRviz <- function(input1, output.path,
           
           countV.plot <- plotVJ(count.es=es$countV[[chain]], count.rep=baseline$countV[[chain]], sd.es=es$sdV[[chain]], sd.rep=baseline$sdV[[chain]],
             info=infoV, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species,
-            ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
+            ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr, print.size=print.size, plot.sd=plot.sd, verbose=verbose)
           
           countJ.plot <- plotVJ(count.es=es$countJ[[chain]], count.rep=baseline$countJ[[chain]], sd.es=es$sdJ[[chain]], sd.rep=baseline$sdJ[[chain]],
             info=infoJ, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species,
-            ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
+            ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr, print.size=print.size, plot.sd=plot.sd, verbose=verbose)
           
           #######
           # Plot comparison of motifs for CDR1 and CDR2, but this is redundant with V/J plots

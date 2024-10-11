@@ -7,6 +7,8 @@
 plotVJ(
   count.es,
   count.rep,
+  sd.es = NULL,
+  sd.rep = NULL,
   info,
   comp.baseline,
   pType = 1,
@@ -15,7 +17,9 @@ plotVJ(
   combined.resList = NULL,
   label.neg = F,
   label.min.fr = c(0.05, 0.05),
-  print.size = T
+  print.size = T,
+  plot.sd = T,
+  verbose = 1
 )
 }
 \arguments{

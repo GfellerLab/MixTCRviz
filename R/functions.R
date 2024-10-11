@@ -255,7 +255,7 @@ find_mhc <- function(m){
 #' @param label.min.fr (default=c(0.05, 0.05)): Region (rectangle) of the left corner of V/J plots with no gene label
 
 plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.baseline, pType=1, 
-  species="HomoSapiens", ret.resList=F, combined.resList=NULL, label.neg=F, label.min.fr=c(0.05, 0.05), print.size=T, verbose=1){
+  species="HomoSapiens", ret.resList=F, combined.resList=NULL, label.neg=F, label.min.fr=c(0.05, 0.05), print.size=T, plot.sd=T, verbose=1){
   if (is.null(combined.resList)){
     if (length(count.es) == 0){
       # Can directly return an empty plot when this doesn't contain any data.
@@ -289,7 +289,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
     # gsub is used to possible remove the allele information from the 'name'.
 
     #Now create the sd to show as error bars
-    if(!is.null(sd.es)){
+    if(!is.null(sd.es) & plot.sd){
       
       if(n.es>1.1){  #This means that sd.rep should have the same normalisation as count.rep
         sd.es <- sd.es/n.es
@@ -305,7 +305,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
       
     }
     #Now create the sd to show as error bars
-    if(!is.null(sd.rep)){
+    if(!is.null(sd.rep) & plot.sd){
       
       if(n.rep>1.1){  #This means that sd.rep should have the same normalisation as count.rep
         sd.rep <- sd.rep/n.rep
@@ -320,12 +320,12 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
       }
     }
     
-    if(is.null(sd.es)){
+    if(is.null(sd.es) | !plot.sd){
       lim.y <- max(count.df[,"Y"] )*1.4
     } else {
       lim.y <- max(max(count.df[,"Y"] )*1.4, count.df[,"Y"]+count.df[,"SD_es"])
     }
-    if(is.null(sd.rep)){
+    if(is.null(sd.rep) | !plot.sd){
       lim.x <- max(count.df[,"X"] )*1.3
     } else {
       lim.x <- max(max(count.df[,"X"] )*1.3, count.df[,"X"]+count.df[,"SD_rep"])
@@ -436,10 +436,10 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
     count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) +
       geom_abline(col="orange",linetype="dashed",linewidth=1)
    
-    if(!is.null(sd.es)){
+    if(!is.null(sd.es) & plot.sd){
       count.plot <- count.plot + geom_errorbar(aes(ymax=Y+SD_es, ymin=sapply(Y-SD_es, function(x){max(0.001,x)})), width=0.015*lim.x, linewidth=0.4, color="grey40", linetype="dashed")
     }
-    if(!is.null(sd.rep)){
+    if(!is.null(sd.rep) & plot.sd){
       count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD_rep, xmin=sapply(X-SD_rep, function(x){max(0.001,x)})), height=0.015*lim.y, linewidth=0.4, color="grey40", linetype="dashed")
     }
     
@@ -455,7 +455,6 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
         shape_color <- count.df$gene
         shapeScale <- TCRgene2aes[[species]][[gene]]$shape1
         outerColorScale <- TCRgene2aes[[species]][[gene]]$outerColor1
-
       }
       outerWidth <- 0.5
 
@@ -540,7 +539,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
 # And when combined.resList isn't NULL, we'll use the results from this list
 # to plot the results (from multiple models combined together).
 plotLD <- function(countL.es, countL.rep, info, sd.es=NULL, sd.rep=NULL, plot.oneline=0, ret.resList=F,
-  combined.resList=NULL, comp.baseline=1, print.size=T){
+  combined.resList=NULL, comp.baseline=1, print.size=T, plot.sd=T){
 
   if (is.null(combined.resList)){
 
@@ -623,8 +622,9 @@ plotLD <- function(countL.es, countL.rep, info, sd.es=NULL, sd.rep=NULL, plot.on
       ld.plot <- ggplot(ld.df, aes(x=v1, y=v2, color=v3)) +
         guides(color = guide_legend(ncol = 1, order=1))
     }
-    ld.plot <- ld.plot + geom_errorbar(aes(ymax=v2+SD, ymin=sapply(v2-SD, function(x){max(0.001,x)})), width=0.2, linewidth=0.4, linetype="dashed")
-        
+    if(plot.sd & (!is.null(sd.es) | !is.null(sd.rep))){
+      ld.plot <- ld.plot + geom_errorbar(aes(ymax=v2+SD, ymin=sapply(v2-SD, function(x){max(0.001,x)})), width=0.2, linewidth=0.4, linetype="dashed")
+    }
     
     # The rest of the plot is the same if combined.resList was NULL or if showing
     # the results from multiple models combined, so we'll draw it below.
