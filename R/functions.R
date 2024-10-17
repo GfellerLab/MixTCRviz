@@ -252,7 +252,7 @@ find_mhc <- function(m){
 #' @param combined.resList When this isn't NULL, we'll use the results from
 #'    this list to plot the results (from multiple models combined together).
 #' @param label.neg (default=F): If T, show also the labels of the genes most depleted in input1
-#' @param label.diag (default=F): Print label on the diagonal above a certain value for both x and y axis
+#' @param label.diag (default=0.3): Print label on the diagonal above a certain value for both x and y axis
 #' @param label.min.fr (default=c(0.05, 0.05)): Region (rectangle) of the left corner of V/J plots with no gene label
 
 plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.baseline, pType=1, 
@@ -350,7 +350,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
     #Hide labels for points with low fold change and not very high frequencies
     #Do this iteratively
     min.logFC <- log2(c(1.25,1.5,2,3))
-    min.fr <- c(0.3, 0.2, 0.1, 0.1) #This means that genes with higher frequency than min.fr in input1 will always be labelled, irrespective of their logFC
+    min.fr <- c(label.diag, 0.2, 0.1, 0.1) #This means that genes with higher frequency than min.fr in input1 will always be labelled, irrespective of their logFC
     
     #Test different stringency on the logFC thresholds (bar plot can
     #accomodate more labels before it gets too confusing visually).
@@ -375,6 +375,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
       }
     }
     if(label.diag){
+      #Force to show points along the diagonal
       ind <- which(count.df[,"Y"] > label.diag & count.df[,"X"] > label.diag & abs(logFC) < 1.5)
       if(length(ind)<10){
         label[ind] <- label.all[ind]
