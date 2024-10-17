@@ -140,6 +140,9 @@
 #'        
 #' @param label.neg (default=FALSE): If TRUE, show also the labels of the genes most depleted in input1.
 #' 
+#' @param label.diag (default=0.3): Decide to keep some label in the upper right corner, based on label.diag value. 
+#'        This can be useful when comparing two epitope-specific TCRs
+#'
 #' @param label.min.fr (default=c(0.05,0.05)): Region (rectangle) of the left corner of V/J plots with no gene label.
 #' 
 #' @param chain.list.output (default="AB")
@@ -169,7 +172,7 @@ MixTCRviz <- function(input1, output.path,
                       set.cdr3a.length=NA, set.cdr3b.length=NA,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
-                      plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, plot.sd=T,
+                      plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
                       label.min.fr=c(0.05,0.05), chain.list.output="AB", 
                       input1.name="Input", input2.name=NULL, output.format="pdf", print.size=T){
 
@@ -709,11 +712,11 @@ MixTCRviz <- function(input1, output.path,
           
           countV.plot <- plotVJ(count.es=es$countV[[chain]], count.rep=baseline$countV[[chain]], sd.es=es$sdV[[chain]], sd.rep=baseline$sdV[[chain]],
             info=infoV, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species,
-            ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr, print.size=print.size, plot.sd=plot.sd, verbose=verbose)
+            ret.resList=plot.modelsCombined, label.neg = label.neg, label.diag=label.diag, label.min.fr=label.min.fr, print.size=print.size, plot.sd=plot.sd, verbose=verbose)
           
           countJ.plot <- plotVJ(count.es=es$countJ[[chain]], count.rep=baseline$countJ[[chain]], sd.es=es$sdJ[[chain]], sd.rep=baseline$sdJ[[chain]],
             info=infoJ, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species,
-            ret.resList=plot.modelsCombined, label.neg = label.neg, label.min.fr=label.min.fr, print.size=print.size, plot.sd=plot.sd, verbose=verbose)
+            ret.resList=plot.modelsCombined, label.neg = label.neg, label.diag=label.diag, label.min.fr=label.min.fr, print.size=print.size, plot.sd=plot.sd, verbose=verbose)
           
           #######
           # Plot comparison of motifs for CDR1 and CDR2, but this is redundant with V/J plots
@@ -863,11 +866,11 @@ MixTCRviz <- function(input1, output.path,
                 #Add the comparison of V/J usage
                 plotV.L <- plotVJ(count.es=es$countV.L[[chain]][[t]], count.rep=baseline$countV.L[[chain]][[t]],
                   info=c(paste(chain,"V", sep=""), input1.name, baseline.name, model),
-                  comp.baseline = comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg, 
+                  comp.baseline = comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg,  label.diag=label.diag,
                   label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
                 plotJ.L <- plotVJ(count.es=es$countJ.L[[chain]][[t]], count.rep=baseline$countJ.L[[chain]][[t]],
                   info=c(paste(chain,"J", sep=""), input1.name, baseline.name, model),
-                  comp.baseline = comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg, 
+                  comp.baseline = comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg,  label.diag=label.diag,
                   label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
 
                 plotVJ.L[[ct]] <- ggarrange(plotV.L, plotJ.L, ncol=2, nrow=1)

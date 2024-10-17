@@ -203,6 +203,7 @@ version from above or if you used library(MixTCRviz)).
         logical, the default name "modCombined" is used. Otherwise, the string
         is used for the resulting figure filename.
  - label.neg (default=FALSE): If TRUE, show also the labels of the genes most depleted in input1
+ - label.diag (default=0.3): Decide to keep some label along the diagonal inthe upper corner, based on label.diag value. This can be useful when comparing two epitope-specific TCRs
  - label.min.fr (default=c(0.05,0.05)): Region (rectangle) of the left corner of V/J plots with no gene label
  - chain.list.output (default="AB")
     * A: Only the alpha chain is plotted in output;
