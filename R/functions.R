@@ -917,10 +917,10 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
   
   if("species" %in% colnames(input)){
     species.list <- unique(input[,"species"])
-    use.species.default <- 0
+    use.species.default <- F
   } else {
     species.list <- c(species.default)
-    use.species.default <- 1
+    use.species.default <- T
   }
 
   if(chain.list.output=="AB"){
@@ -1020,8 +1020,8 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
   } else {
     for(species in species.list){
 
-      if(use.species.default==0){
-        ind.species <- which(input[,"species"]==sp)
+      if(!use.species.default){
+        ind.species <- which(input[,"species"]==species)
       } else {
         ind.species <- 1:dim(input)[1]
       }
@@ -1045,7 +1045,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
   # and TRAV genes can be merged
   ################
 
-  if(use.species.default==0){
+  if(!use.species.default){
     ind <- which(input[,"species"]=="MusMusculus")
   } else {
     if(species.default=="MusMusculus"){
@@ -1084,12 +1084,12 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
   # species.default is only used if es.all does not contain the "species" column
   # If the allele is given in the gene name, the allele will be used.
 
-  use.species.default <- 0
+  use.species.default <- F
   if("species" %in% colnames(input)){
     species.list <- unique(input[,"species"])
   } else {
     species.list <- c(species.default)
-    use.species.default <- 1
+    use.species.default <- T
   }
 
   if(chain.list.output=="A"){chain.list=c("TRA")}
@@ -1111,7 +1111,7 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
 
     for(species in species.list){
 
-      if(use.species.default==0){
+      if(!use.species.default){
         ind.species <- which(input[,"species"]==species)
       } else{
         ind.species <- 1:dim(input)[1]
