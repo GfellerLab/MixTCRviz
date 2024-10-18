@@ -194,6 +194,9 @@ MixTCRviz <- function(input1, output.path,
     print("Invalid value for correct.gene.names. Default value of TRUE will be used")
     correct.gene.names <- T
   }
+  if(correct.gene.names==F){
+    print("Warning: the option to correct V/J names is turned off. You need to be sure all your V/J names follow the IMGT nomenclature")
+  }
   
   if(!is.logical(use.mouse.strain)){
     print("Invalid value for use.mouse.strain. Default value of FALSE will be used")
@@ -292,6 +295,11 @@ MixTCRviz <- function(input1, output.path,
   if(!is.logical(label.neg)){
     print("Invalid value for label.neg. Default value of FALSE will be used")
     label.neg <- F
+  }
+  
+  if(!is.numeric(label.diag) | label.diag<0){
+    print("Invalid value for label.diag. Should be a number larger than 0. Default value of 0.3 will be used")
+    label.neg <- 0.3
   }
   
   if(!is.numeric(label.min.fr) | length(label.min.fr) != 2){
