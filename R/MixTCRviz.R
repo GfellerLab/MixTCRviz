@@ -145,6 +145,10 @@
 #'
 #' @param label.min.fr (default=c(0.05,0.05)): Region (rectangle) of the left corner of V/J plots with no gene label.
 #' 
+#' @param keep.incomplete.chain (default=T): If False, incomplete chains are discarded. 
+#'      Even if input only consists of complete chains, incomplete chain can occur when one V/J gene cannot be corrected, 
+#'      or when there is some incompatibilities between V/J names and CDR3 sequences
+#' 
 #' @param chain.list.output (default="AB")
 #'    * A: Only the alpha chain is plotted in output;
 #'    * B: only the beta chain is plotted in output;
@@ -173,7 +177,7 @@ MixTCRviz <- function(input1, output.path,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
-                      label.min.fr=c(0.05,0.05), chain.list.output="AB", 
+                      label.min.fr=c(0.05,0.05), chain.list.output="AB", keep.incomplete.chain=T,
                       input1.name="Input", input2.name=NULL, output.format="pdf", print.size=T){
 
   

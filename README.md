@@ -205,6 +205,9 @@ version from above or if you used library(MixTCRviz)).
  - label.neg (default=FALSE): If TRUE, show also the labels of the genes most depleted in input1
  - label.diag (default=0.3): Decide to keep some label along the diagonal inthe upper corner, based on label.diag value. This can be useful when comparing two epitope-specific TCRs
  - label.min.fr (default=c(0.05,0.05)): Region (rectangle) of the left corner of V/J plots with no gene label
+ - keep.incomplete.chain (default=T): If False, incomplete chains are discarded.
+     Even if input only consists of complete chains, incomplete chain can occur when one V/J gene cannot be corrected,
+     or when there is some incompatibilities between V/J names and CDR3 sequences
  - chain.list.output (default="AB")
     * A: Only the alpha chain is plotted in output;
     * B: only the beta chain is plotted in output;

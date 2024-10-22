@@ -20,7 +20,8 @@ build_stat <- function(input, chain.list=c("TRA","TRB"), species="HomoSapiens", 
     es[[s]] <- list()
   }
  
-
+  input[input==""] <- NA # Useful if using build_stat outside of MixTCRviz
+  
   for(chain in chain.list){
 
     Vn <- paste(chain,"V", sep="")
@@ -905,7 +906,9 @@ check_input <- function(input, chain.list.output="AB", name="input1", species.de
 }
 
 #' @export
-clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.strain=F, chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, verbose=1){
+clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.strain=F, 
+                        chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, 
+                        keep.incomplete.chain=T,verbose=1){
 
   ####
   # Clean the input by removing CDR3 with weird characters, longer than Lmax or shorter than Lmin
@@ -1068,7 +1071,15 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
     }
   }
 
-  #Remove empty lines
+  if(!keep.incomplete.chain){
+    chain.list <- paste("TR",strsplit(chain.list.output,split="")[[1]],sep="")
+    for(chain in chain.list){
+      cl <- c(paste(chain,"V",sep=""),paste(chain,"J",sep=""),paste("cdr3_",chain,sep=""))
+      ind <- apply(input[,cl],1,function(x){any(is.na(x))})
+      input[ind,cl] <- NA
+    }
+  }
+  #Remove empty lines (No longer since it's convenient to write them in processed_data)
   #ind <- apply(es.all,1,function(x){ s <- length(which(is.na(x[col])==F)); return(s)})
   #es.all <- es.all[which(ind>0),]
 
