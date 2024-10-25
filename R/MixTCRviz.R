@@ -165,6 +165,11 @@
 #' @param output.format (default="pdf"): Choose the format for the output
 #'      plots (can be "pdf", "png" or "jpg").
 #'      
+#' @param interactive.plots (default=0): 
+#'    * 0: Do not create an html file with interactive plots. 
+#'    * 1: Create an html file with interactive plots.
+#'    * 2: Show only V/J usage and length (i.e., do not show CDR3 motifs for the most frequent CDR3 length)
+#'      
 #' @param print.size (default=TRUE): If TRUE, print the number of TCRs in input1 in the plots.
 #'
 #' @returns Nothing.
@@ -178,7 +183,7 @@ MixTCRviz <- function(input1, output.path,
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
                       label.min.fr=c(0.05,0.05), chain.list.output="AB", keep.incomplete.chain=T,
-                      input1.name="Input", input2.name=NULL, output.format="pdf", print.size=T){
+                      input1.name="Input", input2.name=NULL, output.format="pdf", interactive.plots = 0, print.size=T){
 
   
   #######
@@ -525,6 +530,7 @@ MixTCRviz <- function(input1, output.path,
     print(paste("Model:",model))
 
     pg.all <- list()
+    interactive_figure <- list()
     pg.length <- list()
     tl.logo <- list() #Keep track of the number of logos of different length
 
@@ -835,6 +841,9 @@ MixTCRviz <- function(input1, output.path,
                 pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, ncol=3, nrow=1)
               }
             }
+            if(interactive.plots==1){
+              interactive_figure[[chain]] <- create_interactive_plots(countV.plot,countJ.plot,ld.plot,CDR3)
+            }
           } else {
             # Combine data from current model with data from previous models
             comb_res[[species]][[chain]]$V$count.df <- dplyr::bind_rows(
@@ -923,8 +932,23 @@ MixTCRviz <- function(input1, output.path,
     
 
       if (!plot.modelsCombined){
-        if(chain.list.output=="A" | chain.list.output=="B"){   pg.both <- pg.all[[chain.list[1]]]; div=2   }
-        if(chain.list.output=="AB"){  pg.both <- ggarrange(pg.all[[chain.list[1]]], pg.all[[chain.list[2]]], ncol=2); div=1  }
+        if(chain.list.output=="A" | chain.list.output=="B"){   
+          pg.both <- pg.all[[chain.list[1]]]; div=2   
+          if(interactive.plots==1){
+            combined_both<- interactive_figure[[chain.list[1]]] 
+            }
+          }
+        if(chain.list.output=="AB"){  
+          pg.both <- ggarrange(pg.all[[chain.list[1]]], pg.all[[chain.list[2]]], ncol=2); div=1 
+          
+          if(interactive.plots==1){
+            combined_both<- manipulateWidget::combineWidgets(
+              interactive_figure[[chain.list[1]]] , interactive_figure[[chain.list[2]]],
+              ncol = 2,
+              title = model
+            )
+          }
+        }
 
         #fig <- annotate_figure(pg.both, top = text_grob(model, face = "bold", size = 12))
         fig <- pg.both
@@ -945,7 +969,21 @@ MixTCRviz <- function(input1, output.path,
           }
         }
         ggsave(fig, filename=paste(dir,"/",model,".", output.format, sep=""), device=output.format, width = width/div, height = height)
-
+        if(interactive.plots==1){
+          # Define the file name
+          html_file <-paste(dir,"/",model,".html", sep="")
+          
+          # Save the interactive plot to an HTML file
+          htmlwidgets::saveWidget(combined_both, file = html_file, selfcontained = TRUE)
+          
+          # Get the name of the folder that may have been created
+          folder_name <- sub(".html$", "_files", html_file)
+          
+          # Delete the folder if it exists
+          if (dir.exists(folder_name)) {
+            unlink(folder_name, recursive = TRUE)
+          }
+        }
         if(plot.all.length){
           dir.length <- paste(dir,"/CDR3_length/", sep="")
           if(!dir.exists(dir.length)){

@@ -16,6 +16,7 @@ plotVJ(
   ret.resList = F,
   combined.resList = NULL,
   label.neg = F,
+  label.diag = 0.3,
   label.min.fr = c(0.05, 0.05),
   print.size = T,
   plot.sd = T,
@@ -36,6 +37,8 @@ indicating the model name).}
 this list to plot the results (from multiple models combined together).}
 
 \item{label.neg}{(default=F): If T, show also the labels of the genes most depleted in input1}
+
+\item{label.diag}{(default=0.3): Print label on the diagonal above a certain value for both x and y axis}
 
 \item{label.min.fr}{(default=c(0.05, 0.05)): Region (rectangle) of the left corner of V/J plots with no gene label}
 }

@@ -1482,3 +1482,40 @@ set_model_colPals <- function(models){
   }
   return(colPal_modelsCombined)
 }
+
+create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3){
+  # Turn off legends in the first two plots
+  p1 <- plotly::ggplotly(countV.plot, tooltip = "gene") %>% plotly::layout(showlegend = FALSE)
+  
+  p2 <- plotly::ggplotly(countJ.plot, tooltip = "gene") %>% plotly::layout(showlegend = FALSE)
+  
+  # Adjust legend in the third plot and remove legend title
+  p3 <- plotly::ggplotly(ld.plot, tooltip = "none") %>% 
+    plotly::layout(
+      legend = list(
+        orientation = "h",
+        x = 0.5,
+        xanchor = "center",
+        y = 1.15,
+        yanchor = "bottom",
+        title = list(text = NULL)  # Remove legend title
+      ),
+      margin = list(t = 100)
+    )
+  
+  # Prepare the last two plots
+  p4 <- plotly::ggplotly(CDR3$ES_max, tooltip = "none")
+  p5 <- plotly::ggplotly(CDR3$Baseline_max, tooltip = "none")
+  
+  # Combine p4 and p5 vertically
+  bottom_subplot <- manipulateWidget::combineWidgets(p4, p5, ncol = 1, title = NULL)
+  
+  # Combine all plots in a 2-column layout
+  combined_plots <- manipulateWidget::combineWidgets(
+    p1, p2,
+    p3, bottom_subplot,
+    ncol = 2,
+    title = NULL
+  )
+  return(combined_plots)
+}

@@ -30,12 +30,15 @@ MixTCRviz(
   plot.VJ.switch = 1,
   plot.modelsCombined = FALSE,
   label.neg = F,
+  label.diag = 0.3,
   plot.sd = T,
   label.min.fr = c(0.05, 0.05),
   chain.list.output = "AB",
+  keep.incomplete.chain = T,
   input1.name = "Input",
   input2.name = NULL,
   output.format = "pdf",
+  interactive.plots = 0,
   print.size = T
 )
 }
@@ -200,6 +203,9 @@ is used for the resulting figure filename.
 
 \item{label.neg}{(default=FALSE): If TRUE, show also the labels of the genes most depleted in input1.}
 
+\item{label.diag}{(default=0.3): Decide to keep some label in the upper right corner, based on label.diag value.
+This can be useful when comparing two epitope-specific TCRs}
+
 \item{plot.sd}{(default=T)
 \itemize{
 \item T: Show standard deviation for P(V), P(J) and P(L), if such data are provided for baseline and/or input1
@@ -215,6 +221,10 @@ is used for the resulting figure filename.
 \item AB both chains are plotted in output
 }}
 
+\item{keep.incomplete.chain}{(default=T): If False, incomplete chains are discarded.
+Even if input only consists of complete chains, incomplete chain can occur when one V/J gene cannot be corrected,
+or when there is some incompatibilities between V/J names and CDR3 sequences}
+
 \item{input1.name}{(default="Input"): Provide a generic name for
 the input TCRs in the plots (e.g., Epitope Specific). Avoid names with more
 than 20 characters}
@@ -225,6 +235,13 @@ plots. Avoid names with more than 20 characters.}
 
 \item{output.format}{(default="pdf"): Choose the format for the output
 plots (can be "pdf", "png" or "jpg").}
+
+\item{interactive.plots}{(default=0):
+\itemize{
+\item 0: Do not create an html file with interactive plots.
+\item 1: Create an html file with interactive plots.
+\item 2: Show only V/J usage and length (i.e., do not show CDR3 motifs for the most frequent CDR3 length)
+}}
 
 \item{print.size}{(default=TRUE): If TRUE, print the number of TCRs in input1 in the plots.}
 }

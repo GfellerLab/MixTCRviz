@@ -20,7 +20,10 @@ Imports:
     ggseqlogo (>= 0.1),
     mgcv,
     seqinr,
-    stringr
+    stringr,
+    plotly,
+    manipulateWidget,
+    htmlwidgets
 Remotes: 
     gfellerlab/ggseqlogo
 Depends: 
