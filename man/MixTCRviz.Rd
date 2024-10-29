@@ -38,7 +38,7 @@ MixTCRviz(
   input1.name = "Input",
   input2.name = NULL,
   output.format = "pdf",
-  interactive.plots = 0,
+  interactive.plots = F,
   print.size = T
 )
 }
@@ -236,11 +236,10 @@ plots. Avoid names with more than 20 characters.}
 \item{output.format}{(default="pdf"): Choose the format for the output
 plots (can be "pdf", "png" or "jpg").}
 
-\item{interactive.plots}{(default=0):
+\item{interactive.plots}{(default=F):
 \itemize{
-\item 0: Do not create an html file with interactive plots.
-\item 1: Create an html file with interactive plots.
-\item 2: Show only V/J usage and length (i.e., do not show CDR3 motifs for the most frequent CDR3 length)
+\item F: Do not create an html file with interactive plots.
+\item T: Create an html file with interactive plots.
 }}
 
 \item{print.size}{(default=TRUE): If TRUE, print the number of TCRs in input1 in the plots.}

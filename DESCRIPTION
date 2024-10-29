@@ -23,7 +23,7 @@ Imports:
     stringr,
     plotly,
     manipulateWidget,
-    htmlwidgets
+    htmlwidgets,
 Remotes: 
     gfellerlab/ggseqlogo
 Depends: 

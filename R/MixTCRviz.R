@@ -165,10 +165,9 @@
 #' @param output.format (default="pdf"): Choose the format for the output
 #'      plots (can be "pdf", "png" or "jpg").
 #'      
-#' @param interactive.plots (default=0): 
-#'    * 0: Do not create an html file with interactive plots. 
-#'    * 1: Create an html file with interactive plots.
-#'    * 2: Show only V/J usage and length (i.e., do not show CDR3 motifs for the most frequent CDR3 length)
+#' @param interactive.plots (default=F): 
+#'    * F: Do not create an html file with interactive plots. 
+#'    * T: Create an html file with interactive plots.
 #'      
 #' @param print.size (default=TRUE): If TRUE, print the number of TCRs in input1 in the plots.
 #'
@@ -183,7 +182,7 @@ MixTCRviz <- function(input1, output.path,
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
                       label.min.fr=c(0.05,0.05), chain.list.output="AB", keep.incomplete.chain=T,
-                      input1.name="Input", input2.name=NULL, output.format="pdf", interactive.plots = 0, print.size=T){
+                      input1.name="Input", input2.name=NULL, output.format="pdf", interactive.plots = F, print.size=T){
 
   
   #######
@@ -284,6 +283,11 @@ MixTCRviz <- function(input1, output.path,
   if(!plot.oneline %in% c(0,1,2)){
     print("Invalid value for plot.oneline. Default value of 0 will be used")
     plot.oneline <- 0
+  }
+  
+  if(!is.logical(interactive.plots)){
+    print("Invalid value for interactive.plots Default value of FALSE will be used")
+    interactive.plots <- F
   }
   
   if(!is.logical(plot.all.length)){
@@ -841,8 +845,8 @@ MixTCRviz <- function(input1, output.path,
                 pg.all[[chain]] <- ggarrange(countV.plot, countJ.plot, ld.plot, ncol=3, nrow=1)
               }
             }
-            if(interactive.plots==1){
-              interactive_figure[[chain]] <- create_interactive_plots(countV.plot,countJ.plot,ld.plot,CDR3)
+            if(interactive.plots){
+              interactive_figure[[chain]] <- create_interactive_plots(countV.plot,countJ.plot,ld.plot,CDR3,plot.oneline)
             }
           } else {
             # Combine data from current model with data from previous models
@@ -934,19 +938,21 @@ MixTCRviz <- function(input1, output.path,
       if (!plot.modelsCombined){
         if(chain.list.output=="A" | chain.list.output=="B"){   
           pg.both <- pg.all[[chain.list[1]]]; div=2   
-          if(interactive.plots==1){
+          if(interactive.plots){
             combined_both<- interactive_figure[[chain.list[1]]] 
             }
           }
         if(chain.list.output=="AB"){  
           pg.both <- ggarrange(pg.all[[chain.list[1]]], pg.all[[chain.list[2]]], ncol=2); div=1 
           
-          if(interactive.plots==1){
+          if(interactive.plots){
             combined_both<- manipulateWidget::combineWidgets(
               interactive_figure[[chain.list[1]]] , interactive_figure[[chain.list[2]]],
               ncol = 2,
-              title = model
+              title = NULL
             )
+            
+
           }
         }
 
@@ -960,21 +966,82 @@ MixTCRviz <- function(input1, output.path,
           if(plot.oneline==0){
             width <- 15
             height <- 8
+            desired_width <- "100%"
+            style_width <- "auto"
+            desired_height <- "100%"
           } else if(plot.oneline==1){
             width <- 20
             height <- 3
+            desired_width <- "2500px"
+            style_width <- "auto"
+            desired_height <- "400px"
           } else if(plot.oneline==2){
             width <- 15
             height <- 3
+            desired_width <- "2500px"
+            style_width <- "auto"
+            desired_height <- "400px"
+            
+          }
+          if(chain.list.output=="A" | chain.list.output=="B"){
+            if(plot.oneline==0){
+            desired_width <- "100%"
+            style_width <- "50%"
+            desired_height <- "100%"
+            }else if(plot.oneline==1){
+              desired_width <- "1250px"
+              style_width <- "75%"
+              desired_height <- "400px"
+            }else if(plot.oneline==2){
+              desired_width <- "1200px"
+              style_width <- "70%"
+              desired_height <- "400px"
+            }
+            
           }
         }
         ggsave(fig, filename=paste(dir,"/",model,".", output.format, sep=""), device=output.format, width = width/div, height = height)
-        if(interactive.plots==1){
-          # Define the file name
+        if(interactive.plots){
+          
+          # Create JavaScript code with simple string concatenation
+          js_code <- paste0(
+            "
+              function(el, x) {
+                var parentDiv = el.parentNode;
+            
+                // Style for the title
+                var titleDiv = document.createElement('div');
+                titleDiv.innerHTML = '", model, "';
+                titleDiv.style.textAlign = 'center';
+                titleDiv.style.fontSize = '24px';
+                titleDiv.style.fontWeight = 'bold';
+                titleDiv.style.position = 'fixed';
+                titleDiv.style.top = '20px';
+                titleDiv.style.width = '100%';
+                titleDiv.style.backgroundColor = 'white';
+                titleDiv.style.zIndex = '1000';
+                titleDiv.style.padding = '10px 0';
+                document.body.insertBefore(titleDiv, document.body.firstChild);
+            
+                // Adjust the parent div of the widget
+                parentDiv.style.overflowX = 'auto'; // Add horizontal scroll
+                parentDiv.style.overflowY = 'hidden'; // Disable vertical scroll
+                parentDiv.style.width = '", style_width, "'; // Set parent div width to less than full width to see margin effect
+                parentDiv.style.margin = '50px auto 0 auto'; // Center horizontally with automatic margins and add top margin for title
+                el.style.display = 'inline-block'; // Set widget to inline-block to prevent squeezing
+                el.style.width = '", desired_width, "'; // Adjust this width to allow enough room for the plots
+                el.style.height = '", desired_height, "';  // Height for better visibility
+              }
+            "
+          )
+          
           html_file <-paste(dir,"/",model,".html", sep="")
           
-          # Save the interactive plot to an HTML file
-          htmlwidgets::saveWidget(combined_both, file = html_file, selfcontained = TRUE)
+          scrollable_combined_figure <- htmlwidgets::onRender(
+            combined_both,
+            js_code
+          )          
+          htmlwidgets::saveWidget(scrollable_combined_figure, file = html_file, selfcontained = TRUE)
           
           # Get the name of the folder that may have been created
           folder_name <- sub(".html$", "_files", html_file)

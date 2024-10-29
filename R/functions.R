@@ -1483,11 +1483,45 @@ set_model_colPals <- function(models){
   return(colPal_modelsCombined)
 }
 
-create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3){
+create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.oneline){
   # Turn off legends in the first two plots
-  p1 <- plotly::ggplotly(countV.plot, tooltip = "gene") %>% plotly::layout(showlegend = FALSE)
+  p1 <- plotly::ggplotly(countV.plot, tooltip = "gene")
   
-  p2 <- plotly::ggplotly(countJ.plot, tooltip = "gene") %>% plotly::layout(showlegend = FALSE)
+  p1$x$data <- lapply(p1$x$data, function(trace) {
+    # Set marker size and mode for points
+    
+    if (!is.null(trace$marker$size)){trace$marker$size <- 11}
+    if (!is.null(trace$error_x)){
+      trace$error_x$width <- 3
+      trace$error_x$color <- rgb(102 / 255, 102 / 255, 102 / 255, alpha = 0.4)
+    }
+
+    return(trace)
+  })
+  
+  
+
+
+
+  # Modify layout to hide legend if needed
+  p1 <- plotly::layout(p1, showlegend = FALSE)
+
+
+  p2 <- plotly::ggplotly(countJ.plot, tooltip = "gene") 
+  
+  p2$x$data <- lapply(p2$x$data, function(trace) {
+    # Set marker size and mode for points
+    
+    if (!is.null(trace$marker$size)){trace$marker$size <- 11}
+    if (!is.null(trace$error_x)){
+      trace$error_x$width <- 3
+      trace$error_x$color <- rgb(102 / 255, 102 / 255, 102 / 255, alpha = 0.4)
+    }
+    
+    return(trace)
+  })
+  
+  p2 <- plotly::layout(p2, showlegend = FALSE)
   
   # Adjust legend in the third plot and remove legend title
   p3 <- plotly::ggplotly(ld.plot, tooltip = "none") %>% 
@@ -1504,18 +1538,39 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3){
     )
   
   # Prepare the last two plots
-  p4 <- plotly::ggplotly(CDR3$ES_max, tooltip = "none")
-  p5 <- plotly::ggplotly(CDR3$Baseline_max, tooltip = "none")
+  if(plot.oneline!=2){
+    p4 <- plotly::ggplotly(CDR3$ES_max, tooltip = "none")
+    p5 <- plotly::ggplotly(CDR3$Baseline_max, tooltip = "none")
+    bottom_subplot <- manipulateWidget::combineWidgets(p4, p5, ncol = 1, title = NULL)
+  }
+
+
+  if(plot.oneline==0){
+    combined_plots <- manipulateWidget::combineWidgets(
+      p1, p2,
+      p3, bottom_subplot,
+      ncol = 2,
+      title = NULL
+    )
+  }
+  if(plot.oneline==1){
+    combined_plots <- manipulateWidget::combineWidgets(
+      p1, p2,
+      p3, bottom_subplot,
+      ncol = 4,
+      nrow = 1,
+      title = NULL
+    )
+  }
   
-  # Combine p4 and p5 vertically
-  bottom_subplot <- manipulateWidget::combineWidgets(p4, p5, ncol = 1, title = NULL)
-  
-  # Combine all plots in a 2-column layout
-  combined_plots <- manipulateWidget::combineWidgets(
-    p1, p2,
-    p3, bottom_subplot,
-    ncol = 2,
-    title = NULL
-  )
+  if(plot.oneline==2){
+    combined_plots <- manipulateWidget::combineWidgets(
+      p1, p2,p3, 
+      ncol = 3,
+      nrow = 1,
+      title = NULL
+    )
+  }
+
   return(combined_plots)
 }
