@@ -628,13 +628,14 @@ plotLD <- function(countL.es, countL.rep, info, sd.es=NULL, sd.rep=NULL, plot.on
     }
     if(comp.baseline==1){
       ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3, linetype=v3)) +
-        guides(color = guide_legend(ncol = 1, order=1), linetype="none")
+        guides(color = guide_legend(ncol = 1, order=1), linetype= "none")
     } else {
       ld.plot <- ggplot(ld.df, aes(x=v1, y=v2, color=v3)) +
         guides(color = guide_legend(ncol = 1, order=1))
     }
     if(plot.sd & (!is.null(sd.es) | !is.null(sd.rep))){
-      ld.plot <- ld.plot + geom_errorbar(aes(ymax=v2+SD, ymin=sapply(v2-SD, function(x){max(0.001,x)})), width=0.2, linewidth=0.4, linetype="dashed")
+      ld.plot <- ld.plot + 
+        geom_errorbar(aes(ymax=v2+SD, ymin=sapply(v2-SD, function(x){max(0.001,x)})), width=0.2, linewidth=0.4, linetype="dashed")
     }
     
     # The rest of the plot is the same if combined.resList was NULL or if showing
@@ -651,12 +652,14 @@ plotLD <- function(countL.es, countL.rep, info, sd.es=NULL, sd.rep=NULL, plot.on
   }
 
   ld.plot <- ld.plot + geom_point() + geom_line() +
-    theme(legend.key.size = unit(0.2, 'cm'), legend.position="top",
+    theme(legend.key.size = unit(0.65, 'cm'), legend.position="top",
       legend.title=element_blank(), legend.text=element_text(size=legend.size)) +
     xlab(paste("Length_CDR3",info[1],sep="")) + ylab("") +
     theme(axis.text=element_text(size=12), axis.title=element_text(size=14),
       plot.title = element_text(size=15,hjust = 0.5))
 
+  
+  
   return(ld.plot)
 }
 
@@ -738,20 +741,23 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
         x.norm <- scale(x.norm,center = F, scale=colSums(x.norm))
         y.inc <- 4
       }
-      title <- paste("CDR3", info[1],"_",l," ",info[2], sep="")
+      title <- info[2]
       if(print.size){ title <- paste(title, " (",countL.es[[lc]],")", sep="")  }
+      title <- paste(title,", CDR3", info[1],"_",l, sep="")
       
       logo.CDR3.L.es[[lc]] <- ggseqlogoMOD(data=pwm.es[[lc]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8) +
         labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
 
-      if(plot.cdr3.subtract.baseline==0){
-        title.baseline <- paste("CDR3", info[1],"_",l," ",info[3], sep="")
-      } else if(plot.cdr3.subtract.baseline==1){
-        title.baseline <- paste("CDR3", info[1],"_",l," subtract ",info[3], sep="")
-      } else if(plot.cdr3.subtract.baseline==2){
-        title.baseline <- paste("CDR3", info[1],"_",l," renorm ",info[3], sep="")
-      }
+      title.baseline <- info[3]
       if(comp.baseline==0 & print.size){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
+      
+      if(plot.cdr3.subtract.baseline==0){
+        title.baseline <- paste(title.baseline,", CDR3", info[1],"_",l, sep="")
+      } else if(plot.cdr3.subtract.baseline==1){
+        title.baseline <- paste(title.baseline," subtract, CDR3", info[1],"_",l, sep="")
+      } else if(plot.cdr3.subtract.baseline==2){
+        title.baseline <- paste(title.baseline," renorm, CDR3", info[1],"_",l, sep="")
+      }
       
       if(plot.cdr3.subtract.baseline==0){
         logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD(data=pwm.rep[[lc]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8) +
@@ -774,17 +780,20 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
       #So far, we redo everything, since the graphical outline has to be a little bit different,
       # but this is not optimal since any change has to be performed multiple times
       if(l==lmax){
-        title <- paste("CDR3", info[1],"_",l," ",info[2], sep="")
-        if(print.size){ title <- paste(title," (",countL.es[[lc]],")", sep="") }
+        title <- info[2]
+        if(print.size){ title <- paste(title, " (",countL.es[[lc]],")", sep="")  }
+        title <- paste(title,", CDR3", info[1],"_",l, sep="")
+         
+        title.baseline <- info[3]
+        if(comp.baseline==0 & print.size){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
         
         if(plot.cdr3.subtract.baseline==0){
-          title.baseline <- paste("CDR3", info[1],"_",l," ",info[3], sep="")
+          title.baseline <- paste(title.baseline,", CDR3", info[1],"_",l, sep="")
         } else if(plot.cdr3.subtract.baseline==1){
-          title.baseline <- paste("CDR3", info[1],"_",l," subtract ",info[3], sep="")
+          title.baseline <- paste(title.baseline," subtract, CDR3", info[1],"_",l, sep="")
         } else if(plot.cdr3.subtract.baseline==2){
-          title.baseline <- paste("CDR3", info[1],"_",l," renorm ",info[3], sep="")
+          title.baseline <- paste(title.baseline," renorm, CDR3", info[1],"_",l, sep="")
         }
-        if(comp.baseline==0 & print.size){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
         
         if(plot.oneline!=0 & (nchar(title)>26 | nchar(title.baseline)>26)){
           title <- paste("CDR3", info[1],"_",l," ",info[2], sep="")
@@ -836,7 +845,8 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
 }
 
 
-check_input <- function(input, chain.list.output="AB", name="input1", species.default="HomoSapiens", model.default="Model_default", input.list=F){
+check_input <- function(input, chain.list.output="AB", name="input1", species.default="HomoSapiens",
+                        model.default="Model_default", input.list=F){
   
   #Check if some columns are missing, and add them with default values
   
@@ -993,6 +1003,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
     #print("Removing alleles")
     for(s in segment.list){
       ind <- which(grepl("*",input[,s], fixed=T))
+      input[ind,s] <- gsub("\\*0[1-9]/0[1-9]", "", input[ind,s]) #This are entries with ambiguous allele assignment
       input[ind,s] <- gsub("\\*0[1-9]", "", input[ind,s])
     }
   } else{

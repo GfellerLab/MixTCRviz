@@ -335,11 +335,11 @@ usethis::use_data(gene.allele.list, gene.list, allele.default,
 
 
 
-# Resaving also the summary_xxx.rds file for simple loading within -------------
+# Resaving also the baseline_xxx.rds file for simple loading within -------------
 # the package. Instead of having these files saved as .rds files and then loaded
 # when needed through all.baseline <- readRDS(...), I read these here will save
 # them as rda variables as well so that we can then directly load them
-# through "all.baseline <- MixTCRviz::summary_xxx" (otherwise path to these data
+# through "all.baseline <- MixTCRviz::baseline_xxx" (otherwise path to these data
 # isn't necessarily known).
 # If we don't want that these are available for every use outside of the package
 # but only to be used from within the package, we could save them as internal
@@ -347,18 +347,18 @@ usethis::use_data(gene.allele.list, gene.list, allele.default,
 # due to the size of these data). We could also put these in "inst/RData/"
 # folder for example and then in the code, use
 # "system.file("RData", package = "MixTCRviz")" to get path to this folder.
-if (FALSE){
+if (TRUE){
   # I did this only once and then deleted the RData folder, kept the code
   # in case we need to redo it later.
-  summary_HomoSapiens <- readRDS("RData/summary_HomoSapiens.rds")
-  summary_HomoSapiens_allele <- readRDS("RData/summary_HomoSapiens_allele.rds")
-  summary_MusMusculus_noStrain_SEQTR <-
-    readRDS("RData/summary_MusMusculus_noStrain_SEQTR.rds")
-  summary_MusMusculus_SEQTR <-
-    readRDS("RData/summary_MusMusculus_SEQTR.rds")
-  usethis::use_data(summary_HomoSapiens, summary_HomoSapiens_allele,
-    summary_MusMusculus_noStrain_SEQTR,
-    summary_MusMusculus_SEQTR, overwrite=F, internal=F)
+  path.rep <- "../MixTCR_scripts/data/Repertoires"
+  baseline_HomoSapiens <- readRDS(paste(path.rep,"/baseline_HomoSapiens_mean_bulk_and_paired.rds",sep=""))
+  baseline_HomoSapiens_allele <- readRDS(paste(path.rep,"/baseline_HomoSapiens_mean_bulk_and_paired_allele.rds",sep=""))
+  baseline_HomoSapiens_SEQTR <- readRDS(paste(path.rep,"/baseline_HomoSapiens_SEQTR.rds",sep=""))
+  baseline_MusMusculus_noStrain_SEQTR <- readRDS(paste(path.rep,"/baseline_MusMusculus_noStrain_SEQTR.rds",sep=""))
+  baseline_MusMusculus_SEQTR <- readRDS(paste(path.rep,"/baseline_MusMusculus_SEQTR.rds",sep=""))
+  usethis::use_data(baseline_HomoSapiens, baseline_HomoSapiens_allele, baseline_HomoSapiens_SEQTR,
+                    baseline_MusMusculus_noStrain_SEQTR,
+                    baseline_MusMusculus_SEQTR, overwrite=T, internal=F)
 }
 
   # EOF ---------------------------------------------------------------------
