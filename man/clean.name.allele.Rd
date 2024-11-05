@@ -8,7 +8,12 @@ If allele is not empty, try to correct the gene\*allele.
 If the gene can be corrected, but the gene\*allele does not exist, return gene\*default.allele
 If the gene cannot be corrected, return NA.}
 \usage{
-clean.name.allele(gene, allele, species = "HomoSapiens", use.allele = F)
+clean.name.allele(
+  gene = gene,
+  allele = allele,
+  species = "HomoSapiens",
+  use.allele = F
+)
 }
 \description{
 Take the gene + allele.

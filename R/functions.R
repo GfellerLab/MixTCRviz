@@ -918,7 +918,7 @@ check_input <- function(input, chain.list.output="AB", name="input1", species.de
 #' @export
 clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.strain=F, 
                         chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, 
-                        keep.incomplete.chain=T,verbose=1){
+                        keep.incomplete.chain=T, start.lg=1, end.lg=2, verbose=1){
 
   ####
   # Clean the input by removing CDR3 with weird characters, longer than Lmax or shorter than Lmin
@@ -952,11 +952,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
     cdr3.list <- c("cdr3_TRB")
   }
 
-  if(use.allele){
-    name.list <- gene.allele.list
-  } else {
-    name.list <- gene.list
-  }
+ 
 
   #Replace empty values by NA
   for(i in col){
@@ -1030,7 +1026,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
 
   if(correct.gene.names){
     #print("Check V/J names")
-    input <- correct.VJnames(input, segment.list=segment.list, species.default=species.default, use.allele=use.allele, verbose=verbose)
+    input <- correct.VJnames(input=input, segment.list=segment.list, species.default=species.default, use.allele=use.allele, verbose=verbose)
   } else {
     for(species in species.list){
 
@@ -1040,7 +1036,12 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
         ind.species <- 1:dim(input)[1]
       }
       for(s in segment.list){
-        ind <- which(input[ind.species,s] %in% name.list[[species]] == F & !is.na(input[ind.species,s]) )
+        if(use.allele){
+          name.list <- gene.allele.list[[species]][substr(gene.allele.list[[species]],1,4)==s]
+        } else {
+          name.list <- gene.list[[species]][substr(gene.list[[species]],1,4)==s]
+        }
+        ind <- which(input[ind.species,s] %in% name.list == F & !is.na(input[ind.species,s]) )
         if(length(ind)>=1 & verbose != 0){
           nm <- ifelse(s==1,"name","names")
           print(c(paste("WARNING: ",s," ",nm," in Input TCRs absent from IMGT: ",sep=""), sort(unique(input[ind.species[ind],s])) ))
@@ -1052,7 +1053,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
 
   if(check.cdr3.mode > 0){
     #print("Checking CDR3")
-    input <- check_cdr3(input, chain.list.output, species.default, check.cdr3.mode, verbose)
+    input <- check_cdr3(input=input, chain.list.output=chain.list.output, species.default=species.default, check.cdr3.mode=check.cdr3.mode, start.lg=start.lg, end.lg=end.lg, verbose=verbose)
   }
   ################
   # Do an extra correction for mouse entries, where only gene level analyses are allowed
@@ -1099,7 +1100,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
 }
 
 #' @export
-check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, verbose=1){
+check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, start.lg=1, end.lg=2, verbose=1){
 
   # Clean the CDR3 based on the V and J usage.
   # This should be applied after correcting the gene names, and adding the species if needed
@@ -1118,13 +1119,7 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
   if(chain.list.output=="B"){chain.list=c("TRB")}
   if(chain.list.output=="AB"){chain.list=c("TRA","TRB")}
 
-  #Fixed lengths for checking the agreement between V/J and CDR3
-  if(check.cdr3.mode==1){
-    start.lg <- 1
-    end.lg <- 2
-  }
-
-
+ 
   for(chain in chain.list){
 
     V <- paste(chain,"V",sep="")
@@ -1148,26 +1143,42 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
       
       if(check.cdr3.mode==1){
         
-        #Correct TRAJ38 in human (e.g., issue with 10X data)
+        #Correct TRAJ38 in human (e.g., issue with some 10X data)
         if(species=="HomoSapiens" & chain=="TRA"){
           
           ind.traj38 <- which((input[ind.species,J]=="TRAJ38" | input[ind.species,J]=="TRAJ38*01") & str_sub(input[ind.species,cdr3],start=-2)=="LI" & nchar(input[ind.species,cdr3]) < Lmax)
           input[ind.species[ind.traj38],cdr3] <- paste(input[ind.species[ind.traj38],cdr3], "W", sep="")
+          
         }  
         
         #Extract the first (start.lg) and last (end.lg) amino acids
         first <- substr(input[ind.species,cdr3], 1, start.lg)
         last <- str_sub(input[ind.species,cdr3], start=-end.lg)
         
-        
+        #print(first)
+        #print(last)
+
         #Find cases incompatible with the reference (allowing matching to any allele)
         nm <- input[ind.species,V]
-        rf <- ref.cdr3.first[[species]][[chain]]
+        rf <- sapply(ref.cdr3.first[[species]][[chain]], function(x){unique(substr(x,1,start.lg))}) #This includes all non-redundant allelic variants
+     
         diff.first <- sapply(1:length(first), function(i){
           diff <- F
-          if(!is.na(nm[i])){
-            if( !(first[i] %in% rf[[nm[i]]]) & !is.na(first[i])){
-              diff <- T
+          if(!is.na(nm[i]) & !is.na(first[i])){
+            diff <- T
+            #Check if 'first' matches one of the possible allele of the V gene
+            for(st in rf[[nm[i]]]){
+              if(nchar(first[i])==nchar(st)){
+                if(first[i] == st ){
+                  diff <- F
+                }
+              } else if (nchar(first[i]) > nchar(st)) {
+                #This is the special case were 'first' is actually longer than some rf[[nm[i]]]
+                #Typically, this is the case when using large values for start.lg
+                if(substr(first[i],1,nchar(st)) == st){
+                  diff <- F
+                }
+              }
             }
           }
           return(diff)
@@ -1176,12 +1187,25 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
         
         #Find cases incompatible with the reference (allowing matching to any allele)
         nm <- input[ind.species,J]
-        rf <- ref.cdr3.last[[species]][[chain]]
+        rf <- sapply(ref.cdr3.last[[species]][[chain]], function(x){unique(str_sub(x,start=-end.lg))})
+        
         diff.last <- sapply(1:length(last), function(i){
           diff <- F
-          if(!is.na(nm[i])){
-            if( !(last[i] %in% rf[[nm[i]]]) & !is.na(last[i]) ){
-              diff <- T
+          if(!is.na(nm[i]) & !is.na(last[i])){
+            diff <- T
+            #Check if 'last' matches one of the possible allele of the V gene
+            for(st in rf[[nm[i]]]){
+              if(nchar(last[i])==nchar(st)){
+                if(last[i] == st ){
+                  diff <- F
+                }
+              } else if (nchar(last[i]) > nchar(st)) {
+                #This is the special case were 'last' is actually longer than some rf[[nm[i]]]
+                #Typically, this is the case when using large values for start.lg
+                if(str_sub(last[i],start=-nchar(st)) == st){
+                  diff <- F
+                }
+              }
             }
           }
           return(diff)
@@ -1224,7 +1248,7 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           if(verbose>=1){
             ti <- ind.species[ind.first[1:n]]
             sg <- input[ti,V]
-            m.prob <- cbind(input[ti,c(V,cdr3)], cdr123[[species]][[chain]][sg,"CDR3"])
+            m.prob <- cbind(input[ti,c(V,cdr3)], sapply(sg,function(x){paste(ref.cdr3.first[[species]][[chain]][[x]], collapse=" / ")}))
             colnames(m.prob) <- c(V,cdr3,"Ref_CDR3_start")
             print(m.prob)
           }
@@ -1248,7 +1272,7 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           if(verbose>=1){
             ti <- ind.species[ind.last[1:n]]
             sg <- input[ti,J]
-            m.prob <- cbind(input[ti,c(J,cdr3)], Jseq[[species]][[chain]][sg,"CDR3"])
+            m.prob <- cbind(input[ti,c(J,cdr3)], sapply(sg,function(x){paste(ref.cdr3.last[[species]][[chain]][[x]], collapse=" / ")}))
             colnames(m.prob) <- c(J,cdr3,"Ref_CDR3_end")
             print(m.prob)
           }
@@ -1274,29 +1298,34 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
     species.list <- c(species.default)
   }
 
-  if(use.allele){
-    name.list <- gene.allele.list
-  } else {
-    name.list <- gene.list
-  }
+  
 
   for(species in species.list){
     for(s in segment.list){
-
-      if("species" %in% colnames(input)){
-        ind <- which(input[,s] %in% name.list[[species]]==F & input[,"species"]==species & !is.na(input[,s]))
+      if(use.allele){
+        name.list <- gene.allele.list[[species]][substr(gene.allele.list[[species]],1,4)==s]
       } else {
-        ind <- which(input[,s] %in% name.list[[species]]==F & !is.na(input[,s]))
+        name.list <- gene.list[[species]][substr(gene.list[[species]],1,4)==s]
       }
-
+      if("species" %in% colnames(input)){
+        ind <- which(!(input[,s] %in% name.list) & input[,"species"]==species & !is.na(input[,s]))
+      } else {
+        ind <- which(!(input[,s] %in% name.list) & !is.na(input[,s]))
+      }
+      
      
       if(length(ind)>0){
+        
         nm <- strsplit(input[ind,s], split="*", fixed=T)
         gene <- unlist(lapply(nm, function(x){x[1]}))
         allele <- unlist(lapply(nm, function(x){x[2]}))
 
-        ga <- unlist(lapply(1:length(gene), function(x){ clean.name.allele(gene[x],allele[x],species, use.allele)}))
+        ga <- unlist(lapply(1:length(gene), function(x){ clean.name.allele(gene=gene[x], allele=allele[x], species=species, use.allele=use.allele)}))
 
+        #Set to NA cases where the gene names comes from another segment
+        #This is because the clean.name.allele does not check if the gene is in the right column (e.g., TRAV12-2 in TRAJ column)
+        ga[substr(ga,1,4) != s] <- NA
+        
         if(verbose>0){
           i <- which(input[ind,s] != ga & is.na(ga)==F)
           if(length(i)>0){
@@ -1379,7 +1408,7 @@ merge_mouse_TRAV <- function(input){
 #' If allele is not empty, try to correct the gene\*allele.
 #' If the gene can be corrected, but the gene\*allele does not exist, return gene\*default.allele
 #' If the gene cannot be corrected, return NA.
-clean.name.allele <- function(gene, allele, species="HomoSapiens", use.allele=F){
+clean.name.allele <- function(gene=gene, allele=allele, species="HomoSapiens", use.allele=F){
 
   if(species != "HomoSapiens" & species != "MusMusculus"){
     print("Undefined species: ",species)
@@ -1389,7 +1418,7 @@ clean.name.allele <- function(gene, allele, species="HomoSapiens", use.allele=F)
     allele <- ""
   }
 
-  if(is.na(gene) | gene==""){  #This is not needed in MixTCRviz, but can be useful i other cases
+  if(is.na(gene) | gene==""){  #This is not needed in MixTCRviz, but can be useful in other cases
     ga <- NA
   } else {
     

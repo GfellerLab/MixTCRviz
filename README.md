@@ -137,8 +137,13 @@ version from above or if you used library(MixTCRviz)).
 
  - check.cdr3.mode (default=1)
     * 0: Keep all CDR3 without any correction.
-    * 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment;
-        Remove J and CDR3 when the last two amino acids are not compatible with the J segments.
+    * 1: Remove V and CDR3 when the first start.lg CDR3 amino acid are incompatible with the V segment;
+        Remove J and CDR3 when the last end.lg amino acids are not compatible with the J segments.
+        Allow compatibility check with any allele.
+
+ - start.lg (default=1): Number of amino acids to be checked for compatibility between V segment and beginning of CDR3. Needs to be an integer between 0 and 3
+
+ - end.lg (default=2): Number of amino acids to be checked for compatibility between J segment and end of CDR3. Needs to be an integer between 0 and 5
 
  - renormVJ (default=NULL)
     * NULL: If left empty, 1 is used if comparison is performed with a baseline (input2==NULL)
@@ -255,6 +260,10 @@ version from above or if you used library(MixTCRviz)).
  - plot.title (default=TRUE): If TRUE, print the model name as title to the plots.
 
  - return.plot (default=FALSE): If TRUE, return the list of plots, which can be displayed in R studio, for instance. Quality will vary depending on your plot settings, so this option is not recommended for high-quality figures.
+
+ - return.stat (default=FALSE): If TRUE, return the R object with the stats for each model
+
+ - return.processed.data (default=FALSE): If TRUE, return the processed data
 
 # OUTPUT
 

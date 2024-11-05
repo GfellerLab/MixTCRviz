@@ -16,14 +16,26 @@ species.list <- c("HomoSapiens", "MusMusculus")
 
 gene.allele.list <- list()
 gene.list <- list()
+gene.type <- list()
 allele.default <- list()
 for(tsp in species.list){
   gene.allele.list[[tsp]] <- c()
   gene.list[[tsp]] <- c()
+  gene.type[[tsp]] <- c()
   for(s in segment.list){
-    gene.allele.list[[tsp]] <- c(gene.allele.list[[tsp]], rownames(read.csv(file=paste("data_raw/CDR123/",tsp,"/",s,"_allele.csv", sep=""), row.names = 1)))
+    df <- read.csv(file=paste("data_raw/CDR123/",tsp,"/",s,"_allele.csv", sep=""), row.names = 1)
+    gene.allele.list[[tsp]] <- c(gene.allele.list[[tsp]], rownames(df))
+    gt <- df[,"gene_type"]
+    names(gt) <- rownames(df)
+    gene.type[[tsp]] <- c(gene.type[[tsp]], gt)
+    
     df <- read.csv(file=paste("data_raw/CDR123/",tsp,"/",s,".csv", sep=""), row.names = 1)
     gene.list[[tsp]] <- c(gene.list[[tsp]], rownames(df))
+    
+    gt <- df[,"gene_type"]
+    names(gt) <- rownames(df)
+    gene.type[[tsp]] <- c(gene.type[[tsp]], gt)
+    
     default <- df[,"default_allele"]
     default <- gsub('\\*','',default)
     names(default) <- rownames(df)
@@ -133,6 +145,11 @@ for (tsp in species.list){
     names(shapes) <- names(cols_out) <- c("none", g2u)
 
     TCRgene2aes[[tsp]][[s]]$color1 <- setNames(cols[g1], cGenes)
+    
+    #Set pseudogenes or ORF,... to light grey
+    ind <- which(gene.type[[tsp]][names(TCRgene2aes[[tsp]][[s]]$color1)] %in% c("P", "ORF"))
+    TCRgene2aes[[tsp]][[s]]$color1[ind] <- "grey95"
+    
     TCRgene2aes[[tsp]][[s]]$shape1 <- setNames(shapes[g2], cGenes)
     TCRgene2aes[[tsp]][[s]]$outerColor1 <- setNames(cols_out[g2], cGenes)
   }
@@ -225,7 +242,7 @@ for(species in species.list){
 
   tcdr123 <- list()
   tJseq <- list()
-
+  
   for(chain in chain.list){
     tcdr123[[chain]] <- read.csv(file=paste("data_raw/CDR123/",species,"/",chain,"V_allele.csv", sep=""), row.names = 1)
     tJseq[[chain]] <- read.csv(file=paste("data_raw/CDR123/",species,"/",chain,"J_allele.csv", sep=""), row.names = 1)
@@ -238,6 +255,7 @@ for(species in species.list){
     tcdr123[[chain]][] <- data.frame(lapply(tcdr123[[chain]], function(x){gsub(pattern="-", replacement = "g", x)}))
     tJseq[[chain]][] <- data.frame(lapply(tJseq[[chain]], function(x){gsub(pattern="-", replacement = "g", x)}))
 
+    
   }
 
   cdr123[[species]] <- list(tcdr123[["TRA"]],tcdr123[["TRB"]])
@@ -249,8 +267,6 @@ for(species in species.list){
 
 #Build reference sequences for the beginning and end of CDR3, allowing mapping to muliple alleles in most cases
 
-start.lg <- 1
-end.lg <- 2
 
 ref.cdr3.first <- list()
 ref.cdr3.last <- list()
@@ -267,7 +283,19 @@ for(species in species.list){
     ref.cdr3.first[[species]][[chain]] <- lapply(V.list, function(x){
       gn <- unlist(strsplit(x,split="*", fixed=T))[1]
       ind <- which(V.list2==gn & V.end != "")
-      ref <- unique(substr(V.end[ind],1,start.lg))
+      ref <- unique(V.end[ind])
+      #Remove cases which are subset of a longer one
+      lg.max <- max(nchar(ref))
+      ref.max <- ref[nchar(ref)==lg.max]
+      ref.final <- ref.max
+      for(r in ref){
+        if(nchar(r) != lg.max){
+          if(!r %in% substr(ref.max,1,nchar(r))) {
+            ref.final <- c(ref.final,r)
+          }
+        }
+      }
+      return(ref.final)
     })
     
     names(ref.cdr3.first[[species]][[chain]]) <- V.list
@@ -279,20 +307,21 @@ for(species in species.list){
     ref.cdr3.last[[species]][[chain]] <- lapply(J.list, function(x){
       gn <- unlist(strsplit(x,split="*", fixed=T))[1]
       ind <- which(J.list2==gn & J.start != "")
-      ref <- unique(str_sub(J.start[ind],start=-end.lg))
+      ref <- unique(J.start[ind])
+      return(ref)
     })
     names(ref.cdr3.last[[species]][[chain]]) <- J.list
-    
   }
 }
-#Do some manual corrections (we could do some additional ones in mouse when one allele is ORF, e.g., TRAJ47)
-ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3"]] <- "C"
-ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*01"]] <- "C"
-ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*04"]] <- "C"
-ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*05"]] <- "C"
+#Do some manual corrections to consider only one allele in some cases
+# (we could do some additional ones in mouse when one allele is ORF, e.g., TRAJ47)
+ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3"]] <- "CASS"
+ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*01"]] <- "CASS"
+ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*04"]] <- "CASS"
+ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*05"]] <- "CASS"
 
-ref.cdr3.last$HomoSapiens$TRB[["TRBJ2-7"]] <- "YF"
-ref.cdr3.last$HomoSapiens$TRB[["TRBJ2-7*01"]] <- "YF"
+ref.cdr3.last$HomoSapiens$TRB[["TRBJ2-7"]] <- "SYEQYF"
+ref.cdr3.last$HomoSapiens$TRB[["TRBJ2-7*01"]] <- "SYEQYF"
 
 # Print the cases with multiple references
 print.ref <- F
@@ -300,11 +329,11 @@ if(print.ref){
   for(species in species.list){
     for(chain in c("TRA", "TRB")){
       print(c(species,chain))
-      ind <- which(ref.cdr3.first[[species]][[chain]] != "C" & !grepl("*", names(ref.cdr3.first[[species]][[chain]]), fixed=T))
-      if(length(ind)>0){
-        print(ref.cdr3.first[[species]][[chain]][ind])
-      }
       
+      lg <- sapply(ref.cdr3.first[[species]][[chain]],length)
+      for(i in which(lg!=1 & !grepl("*", names(lg), fixed=T))){
+        print(ref.cdr3.first[[species]][[chain]][i])
+      }
       lg <- sapply(ref.cdr3.last[[species]][[chain]],length)
       for(i in which(lg!=1 & !grepl("*", names(lg), fixed=T))){
         print(ref.cdr3.last[[species]][[chain]][i])

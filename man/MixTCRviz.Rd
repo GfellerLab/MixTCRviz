@@ -13,6 +13,8 @@ MixTCRviz(
   correct.gene.names = T,
   use.mouse.strain = F,
   check.cdr3.mode = 1,
+  start.lg = 1,
+  end.lg = 2,
   renormVJ = NULL,
   N.min = 1,
   output.stat = F,
@@ -21,6 +23,8 @@ MixTCRviz(
   set.cdr3b.length = NA,
   plot.title = T,
   return.plot = F,
+  return.stat = F,
+  return.processed.data = F,
   species.default = "HomoSapiens",
   model.default = "Model_default",
   verbose = 1,
@@ -110,9 +114,16 @@ enrichment in one of them versus the baseline.
 \item{check.cdr3.mode}{(default=1)
 \itemize{
 \item 0: Keep all CDR3 without any correction.
-\item 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment;
-Remove J and CDR3 when the last two amino acids are not compatible with the J segments.
+\item 1: Remove V and CDR3 when the first start.lg CDR3 amino acids are incompatible with the V segment;
+Remove J and CDR3 when the last end.lg amino acids are not compatible with the J segments.
+Allow compatibility check with any allele.
 }}
+
+\item{start.lg}{(default=1): Number of amino acids to be checked for compatibility between V segment and beginning of CDR3
+Needs to be an integer between 0 and 3.}
+
+\item{end.lg}{(default=2): Number of amino acids to be checked for compatibility between J segment and end of CDR3
+Needs to be an integer between 0 and 5.}
 
 \item{renormVJ}{(default=NULL)
 \itemize{
@@ -144,6 +155,10 @@ By default the value corresponding to the most frequent CDR3b length in input1 (
 
 \item{return.plot}{(default=FALSE): If TRUE, return the list of plots, which can be displayed in R studio, for instance.
 Quality will vary depending on your R studio settings, so this option is not recommended for good quality figures.}
+
+\item{return.stat}{(default=FALSE): If TRUE, return the R object with the stats for each model}
+
+\item{return.processed.data}{(default=FALSE): If TRUE, return the processed data}
 
 \item{species.default}{(default="HomoSapiens"). Option to provide the species for all the TCR in input.
 This is useful if your input does not contain a "species" column.

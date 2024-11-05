@@ -62,9 +62,16 @@
 #'    
 #' @param check.cdr3.mode (default=1)
 #'    * 0: Keep all CDR3 without any correction.
-#'    * 1: Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment;
-#'        Remove J and CDR3 when the last two amino acids are not compatible with the J segments.
+#'    * 1: Remove V and CDR3 when the first start.lg CDR3 amino acids are incompatible with the V segment;
+#'        Remove J and CDR3 when the last end.lg amino acids are not compatible with the J segments.
+#'        Allow compatibility check with any allele.
 #'        
+#' @param start.lg (default=1): Number of amino acids to be checked for compatibility between V segment and beginning of CDR3
+#'      Needs to be an integer between 0 and 3.
+#' 
+#' @param end.lg (default=2): Number of amino acids to be checked for compatibility between J segment and end of CDR3
+#'      Needs to be an integer between 0 and 5.
+#'       
 #' @param renormVJ (default=NULL)
 #'    * NULL: If left empty, 1 is used if comparison is performed with a baseline (input2==NULL) 
 #'      and 0 is used if comparison is performed with input2 (i.e., input2 != NULL)
@@ -183,19 +190,25 @@
 #' @param return.plot (default=FALSE): If TRUE, return the list of plots, which can be displayed in R studio, for instance.
 #'    Quality will vary depending on your R studio settings, so this option is not recommended for good quality figures. 
 #'    
+#' @param return.stat (default=FALSE): If TRUE, return the R object with the stats for each model 
+#'    
+#' @param return.processed.data (default=FALSE): If TRUE, return the processed data 
+#'    
 #'
 #' @returns Nothing.
 #' @export
 MixTCRviz <- function(input1, output.path=NULL,
                       input2=NULL, baseline=NULL,
-                      use.allele=F, correct.gene.names=T, use.mouse.strain=F, check.cdr3.mode=1,
+                      use.allele=F, correct.gene.names=T, use.mouse.strain=F, check.cdr3.mode=1, start.lg=1, end.lg=2,
                       renormVJ=NULL, N.min=1, output.stat=F, output.processed.data=F, 
-                      set.cdr3a.length=NA, set.cdr3b.length=NA, plot.title=T, return.plot=F,
+                      set.cdr3a.length=NA, set.cdr3b.length=NA, plot.title=T, 
+                      return.plot=F, return.stat=F, return.processed.data=F,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
                       label.min.fr=c(0.05,0.05), chain.list.output="AB", keep.incomplete.chain=T,
-                      input1.name="Input", input2.name=NULL, output.format="pdf", interactive.plots = F, print.size=T){
+                      input1.name="Input", input2.name=NULL, output.format="pdf", 
+                      interactive.plots = F, print.size=T){
 
   
   #######
@@ -222,20 +235,32 @@ MixTCRviz <- function(input1, output.path=NULL,
     return.plot <- F
   }
   
+  if(!is.logical(return.stat)){
+    print("Invalid value for return.stat. Default value of FALSE will be used")
+    return.stat <- F
+  }
+  if(!is.logical(return.processed.data)){
+    print("Invalid value for return.processed.data. Default value of FALSE will be used")
+    return.processed.data <- F
+  }
   if(!is.logical(plot.all.length)){
     print("Invalid value for plot.oneline. Default value of FALSE will be used")
     plot.all.length <- F
   }
   
   if(!return.plot){
-    if(!is.character(output.path) | length(output.path)>1 | is.null(output.path)){
-      stop("Invalid value for output.path. Should be a single string of character indicating path where to save the plots")
+    if (is.null(output.path)){
+      stop("Invalid value for output.path. Output.path can only be ommitted if return.plot=TRUE")
+    } else if(!is.character(output.path) | length(output.path)>1){
+      stop("Invalid value for output.path. Should be a single string of character indicating path where to save the plots.")
     } 
   } else {
     if(output.stat | output.processed.data | plot.all.length | interactive.plots){
-      if(!is.character(output.path) | length(output.path)>1 | is.null(output.path)){
-        stop("Invalid value for output path. Should be a single string of character indicating path where to save the plots")
-      }
+      if (is.null(output.path)){
+        stop("Invalid value for output.path. Output.path can only be ommitted if return.plot=TRUE")
+      } else if(!is.character(output.path) | length(output.path)>1){
+        stop("Invalid value for output.path. Should be a single string of character indicating path where to save the plots.")
+      } 
     } else {
       if(is.null(output.path)){
         print("Motifs will only be returned as ggplot objects, and not printed to any file.")
@@ -264,6 +289,16 @@ MixTCRviz <- function(input1, output.path=NULL,
   if(!check.cdr3.mode %in% c(0,1,2)){
     print("Invalid value for check.cdr3.mode. Default value of 1 will be used")
     check.cdr3.mode <- 1
+  }
+  
+  if(!start.lg %in% 0:3){
+    print("Invalid value for start.lg. Default value of 1 will be used")
+    start.lg <- 1
+  }
+  
+  if(!end.lg %in% 0:5){
+    print("Invalid value for end.lg. Default value of 2 will be used")
+    end.lg <- 2
   }
   
   if(is.null(renormVJ)){
@@ -494,8 +529,8 @@ MixTCRviz <- function(input1, output.path=NULL,
                         species.default = species.default, model.default = model.default, input.list=input1.list)
   if(!input1.list){
     input1 <- clean_input(input=input1, use.allele=use.allele, correct.gene.names = correct.gene.names, 
-                          use.mouse.strain = use.mouse.strain, chain.list.output = chain.list.output, 
-                          species.default = species.default, check.cdr3.mode = check.cdr3.mode, verbose=verbose)
+                          use.mouse.strain = use.mouse.strain, chain.list.output = chain.list.output, keep.incomplete.chain = keep.incomplete.chain,
+                          species.default = species.default, check.cdr3.mode = check.cdr3.mode, start.lg=start.lg, end.lg=end.lg, verbose=verbose)
   }
   #############
   # Load input2
@@ -530,8 +565,8 @@ MixTCRviz <- function(input1, output.path=NULL,
                           species.default = species.default, model.default = model.default, input.list=input2.list)
     if(!input2.list){
       input2 <- clean_input(input=input2, use.allele = use.allele, correct.gene.names = correct.gene.names,
-                            use.mouse.strain = use.mouse.strain, chain.list.output = chain.list.output, 
-                            species.default = species.default, check.cdr3.mode = check.cdr3.mode, verbose=verbose)
+                            use.mouse.strain = use.mouse.strain, chain.list.output = chain.list.output, keep.incomplete.chain = keep.incomplete.chain,
+                            species.default = species.default, check.cdr3.mode = check.cdr3.mode, start.lg=start.lg, end.lg=end.lg, verbose=verbose)
     }
   }
   
@@ -575,8 +610,19 @@ MixTCRviz <- function(input1, output.path=NULL,
 
   comb_res <- list()
   if(return.plot){
-    plot.list <- list()
+    plot.lst <- list()
   }
+  if(return.stat){
+    es.lst <- list()
+  }
+  if(return.processed.data){
+    if(!input1.list){
+      input1.lst <- list()
+    } else {
+      print("Will not be able to return processed data for input1 since it does not contain raw data ")
+    }
+  }
+  
   # Will be used when plot.modelsCombined=TRUE to store values from each model.
   for(model in model.list){
 
@@ -609,6 +655,12 @@ MixTCRviz <- function(input1, output.path=NULL,
     } else {
       es <- input1
       species <- input1$species
+    }
+    if(return.stat){
+      es.lst[[model]] <- es
+    }
+    if(return.processed.data){
+      input1.lst[[model]] <- input1.es
     }
     
     if(output.stat){
@@ -1081,7 +1133,7 @@ MixTCRviz <- function(input1, output.path=NULL,
           ggsave(fig, filename=paste(output.path,"/",model,".", output.format, sep=""), device=output.format, width = width/div, height = height)
         }
         if(return.plot){
-          plot.list[[model]] <- fig
+          plot.lst[[model]] <- fig
         }
         if(interactive.plots){
           
@@ -1229,8 +1281,20 @@ MixTCRviz <- function(input1, output.path=NULL,
     })
 
   }
-  if(return.plot){
-    return(plot.list)
+  if(return.plot | return.stat | return.processed.data){
+    return.list <- list()
+    if(return.plot){
+      return.list$plot <- plot.lst
+    }
+    if(return.stat){
+      return.list$stat <- es.lst
+    }
+    if(return.processed.data){
+      if(!input1.list){
+        return.list$input1 <- input1.lst
+      }
+    }
+    return(return.list)
   }
 }
 
