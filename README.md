@@ -99,8 +99,7 @@ version from above or if you used library(MixTCRviz)).
 
  - output.path: name of the output directory (if not already existing, it
    will be created). If existing the files with the same name will be overwritten.
-   It can be left empty ONLY with the options return.plot=TRUE and
-   plot.all.length=FALSE AND interactive.plots=FALSE AND output.stat=FALSE AND output.processed.data=FALSE
+   It can be left empty ONLY with the option return.object=2.
 
 ## Optional parameters:
 
@@ -157,11 +156,14 @@ version from above or if you used library(MixTCRviz)).
  - N.min (default=10) Minimum number of TCR (i.e., V-J-CDR3) for at least
    one chain. This number is computed after cleaning the data.
 
- - output.stat (default=FALSE) If T, Create a stat/ folder with .rds objects summarizing the raw statistics for each model.
-   This includes countL, countV, countJ, countCDR3.L, etc. for each chain used in input.
+ - output.stat (default=FALSE)
+    * FALSE: Do not print the stat to a file
+    * TRUE: create a output.path/stat/ folder with .rds files summarizing the raw statistics for each model. Only supported if return.object != 2
 
- - output.processed.data (default=FALSE) If T, Create a processed_data/ folder with the data for each model after the different processing steps
-   (e.g., removing alleles, correcting V/J names, removing inconsistent CDR3, etc. depending on the cleaning option selected).
+
+ - output.processed.data (default=FALSE)
+    * FALSE: Do not print the processed/clean data to a file
+    * TRUE: create a output.path/processed_data/ folder with the data for each model after the different processing steps (e.g., removing alleles, correcting V/J names, removing inconsistent CDR3, etc. depending on the cleaning option selected). Only supported if return.object != 2
 
  - set.cdr3a.length (default=NA) Length for the CDR3a motif to be shown in the main plot.
    By default the value corresponding to the most frequent CDR3a length in input1 (and also present in input2 if input2 is given) is chosen.
@@ -185,8 +187,8 @@ version from above or if you used library(MixTCRviz)).
     * 3: Write all putatitive issues + cases that were corrected in the terminal
 
  - plot (default=TRUE)
-    * F: Do not write the pdf/png/jpg files with the motifs
-    * T: Write the pdf/png/jpg files with the motifs in output.path/
+    * F: Do not build the motifs. This overrides plot.all.length=T and interactive.plots=T
+    * T: Build the motifs
 
  - plot.cdr12.motif (default=FALSE)
     * F: Only show motifs for CDR3 of the most frequent length.
@@ -199,7 +201,8 @@ version from above or if you used library(MixTCRviz)).
 
  - plot.all.length (default=FALSE)
     * F: Show only the CDR3 motifs for the most frequent CDR3 length.
-    * T: Write in output.path/CDR3_length separate plot the V usage, J usage and CDR3 motifs for all CDR3 length, for both alpha and beta chains.
+    * T: Write in output.path/CDR3_length separate plot the V usage, J usage and CDR3 motifs
+     for all CDR3 length. Only applicable if return.object != 2 and plot=T.
 
  - plot.cdr3.norm (default=0)
     * 0: Show the CDR3 motifs of the input and of the baseline repertoire or input2, possibly | P(VJ).
@@ -253,17 +256,17 @@ version from above or if you used library(MixTCRviz)).
 
  - interactive.plots (default=F):
     * F: Do not create an html file with interactive plots.
-    * T: Create an html file with interactive plots.
+    * T: Create an html file with interactive plots. Only applicable if return.object != 2 and plot=T
 
  - print.size (default=TRUE): If TRUE, print the number of TCRs in input1 in the plots.
 
  - plot.title (default=TRUE): If TRUE, print the model name as title to the plots.
 
- - return.plot (default=FALSE): If TRUE, return the list of plots, which can be displayed in R studio, for instance. Quality will vary depending on your plot settings, so this option is not recommended for high-quality figures.
-
- - return.stat (default=FALSE): If TRUE, return the R object with the stats for each model
-
- - return.processed.data (default=FALSE): If TRUE, return the processed data
+ - return.object (default=0):
+    * 0: do not return any object.
+    * 1: return an object with plots ($plot, if plot=T), statistics ($stat) and processed.data ($processed.data, if input1 is not a precomputed list with the stat) for each model
+    * 2: Only return an object and do not write anything to file. In this case output.path can be omitted.
+    Plots can be displayed in R studio, for instance. Quality will vary depending on your R studio settings, so this option is not recommended for good quality figures.
 
 # OUTPUT
 
