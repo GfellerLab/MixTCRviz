@@ -195,7 +195,7 @@
 #'    * 1: return an object with plots ($plot, if plot=T), statistics ($stat) and processed.data ($processed.data, if input1 is not a precomputed list with the stat) for each model
 #'    * 2: Only return an object and do not write anything to file. In this case output.path can be omitted
 #'    Plots can be displayed in R studio, for instance.
-#'    Quality will vary depending on your R studio settings, so this option is not recommended for good quality figures. 
+#'    Quality will vary depending on your R studio settings, so this option is not recommended for high-quality figures. 
 #'    
 #'
 #' @returns Nothing.

@@ -266,16 +266,17 @@ version from above or if you used library(MixTCRviz)).
     * 0: do not return any object.
     * 1: return an object with plots ($plot, if plot=T), statistics ($stat) and processed.data ($processed.data, if input1 is not a precomputed list with the stat) for each model
     * 2: Only return an object and do not write anything to file. In this case output.path can be omitted.
-    Plots can be displayed in R studio, for instance. Quality will vary depending on your R studio settings, so this option is not recommended for good quality figures.
+    Plots can be displayed in R studio, for instance. Quality will vary depending on your R studio settings, so this option is not recommended for high-quality figures.
 
 # OUTPUT
 
 
 MixTCRviz creates a directory (output.path). The output.path/ directory contains the motifs (e.g. pdf files) for each model.
 
-- If output.stat==T, the output.path/stats/ contains .rds files with all values for each motif.
+- If output.stat==T, the output.path/stats/ contains .rds files with all the stats for each model.
 - If output.processed.data==T, the output.path/processed_data/ contains .csv files with the actual data used to build the motifs.
 - If plot.logo.length==1, the output.path/CDR3_length/ directory shows the V/J usage and CDR3 motifs for multiple lengths for both chains.
+- If return.plot==1 or 2, the motifs, stats and processed data are returns as lists
 
 
 # OTHER INFORMATION
@@ -305,5 +306,5 @@ In case you are using the same model (e.g.,MHC_peptide) with both human and mous
 * When using use.allele=1, it is important to realize that presence/absence of specific alleles in a given sample also reflects the genetic background of the donor.
 For these reasons, some alleles may appear to be enriched in the input TCRs versus default baseline repertoires, but this enrichment may not be linked to any signal of specificity (e.g., epitope specificity).
 In addition, determining the correct allele from TCR-Seq data can be challenging, and sequencing errors can easily result in wrong allele calls.
-We therefore recommend analyzing data at the gene level (use.allele=0) to avoid confounding factors related to genetic background/TCR reconstruction issues.
-Alternatively, the baseline TCR repertoire can also be sequenced in each patient, and used as input for MixTCRviz (baseline.file parameter).
+We therefore recommend analyzing data at the gene level (use.allele=F) to avoid confounding factors related to genetic background/TCR reconstruction issues.
+Alternatively, the baseline TCR repertoire can also be sequenced in each patient, and used as input for MixTCRviz (baseline parameter).
