@@ -147,7 +147,7 @@ for (tsp in species.list){
     TCRgene2aes[[tsp]][[s]]$color1 <- setNames(cols[g1], cGenes)
     
     #Set pseudogenes or ORF,... to light grey
-    ind <- which(gene.type[[tsp]][names(TCRgene2aes[[tsp]][[s]]$color1)] %in% c("P", "ORF"))
+    ind <- which(gene.type[[tsp]][names(TCRgene2aes[[tsp]][[s]]$color1)] %in% c("P", "ORF", "(ORF)", "(F)"))
     TCRgene2aes[[tsp]][[s]]$color1[ind] <- "grey95"
     
     TCRgene2aes[[tsp]][[s]]$shape1 <- setNames(shapes[g2], cGenes)

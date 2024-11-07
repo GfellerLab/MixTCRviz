@@ -262,6 +262,8 @@ version from above or if you used library(MixTCRviz)).
 
  - plot.title (default=TRUE): If TRUE, print the model name as title to the plots.
 
+ - set.title (default=NULL): Set the title of the plots. If empty, model names in input1 are used as title.
+
  - return.object (default=0):
     * 0: do not return any object.
     * 1: return an object with plots ($plot, if plot=T), statistics ($stat) and processed.data ($processed.data, if input1 is not a precomputed list with the stat) for each model

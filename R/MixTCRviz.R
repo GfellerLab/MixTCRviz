@@ -3,7 +3,7 @@
 #' MixTCRviz is an R package to display TCR motifs for a set of TCRs provided by the user.
 #' Typically, the input TCRs correspond to TCRs binding to a specific epitope, or isolated in a specific experiment.
 #' MixTCRviz compares V usage, J usage, CDR3 length distribution and CDR3 sequence motifs to those expected from baseline TCR repertoire.
-#' Mandatory parameters
+#' Mandatory parameters.
 #'
 #' @param input1 .csv files or data.frame with the input TCRs. 
 #'    * Columns should include "TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB" (one chain is allowed if chain.list.output = "A" or "B", respectively)
@@ -191,6 +191,8 @@
 #' 
 #' @param plot.title (default=TRUE): If TRUE, print the model name as title to the plots.
 #' 
+#' @param set.title (default=NULL): Set the title of the plots. If empty, model names in input1 are used as title.
+#'  
 #' @param return.object (default=0): 
 #'    * 0: do not return any object.
 #'    * 1: return an object with plots ($plot, if plot=T), statistics ($stat) and processed.data ($processed.data, if input1 is not a precomputed list with the stat) for each model
@@ -205,7 +207,7 @@ MixTCRviz <- function(input1, output.path=NULL,
                       input2=NULL, baseline=NULL,
                       use.allele=F, correct.gene.names=T, use.mouse.strain=F, check.cdr3.mode=1, start.lg=1, end.lg=2,
                       renormVJ=NULL, N.min=1, output.stat=F, output.processed.data=F, 
-                      set.cdr3a.length=NA, set.cdr3b.length=NA, plot.title=T, return.object=0,
+                      set.cdr3a.length=NA, set.cdr3b.length=NA, plot.title=T, set.title=NULL, return.object=0,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1,
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
@@ -424,6 +426,13 @@ MixTCRviz <- function(input1, output.path=NULL,
   if(!is.logical(plot.title)){
     print("Invalid value for plot.title. Default value of TRUE will be used")
     plot.title <- T
+  }
+  
+  if(!is.null(set.title)){
+    if(!is.character(set.title) | length(set.title)!=1){
+      print("Invalid value for set.title. Model names will be used")
+      set.title=NULL
+    }
   }
   
   modelsCombinded_name <- "modCombined"
@@ -1087,7 +1096,11 @@ MixTCRviz <- function(input1, output.path=NULL,
           spacer.size=0.02
           spacer <- ggplot() + theme_void() + theme(plot.margin = unit(c(1, 0, 0, 0), "cm"))
           fig <- ggarrange(spacer, pg.both, ncol=1, nrow=2, heights=c(spacer.size,1))
-          fig <- annotate_figure(fig, top = text_grob(label=model, face = "bold", size = 16))
+          if(!is.null(set.title)){
+            fig <- annotate_figure(fig, top = text_grob(label=set.title, face = "bold", size = 16))
+          } else {
+            fig <- annotate_figure(fig, top = text_grob(label=model, face = "bold", size = 16))
+          }
           fig <- ggarrange(spacer, fig,ncol=1, nrow=2, heights=c(spacer.size,1))
         } else {
           fig <- pg.both
@@ -1142,6 +1155,14 @@ MixTCRviz <- function(input1, output.path=NULL,
         if(interactive.plots){
           
           # Create JavaScript code with simple string concatenation
+          if(!is.null(set.title)){
+            ttl <- set.title
+          } else {
+            ttl <- model
+          }
+          if(!plot.title){
+            ttl <- ""
+          }
           js_code <- paste0(
             "
               function(el, x) {
@@ -1149,7 +1170,7 @@ MixTCRviz <- function(input1, output.path=NULL,
             
                 // Style for the title
                 var titleDiv = document.createElement('div');
-                titleDiv.innerHTML = '", model, "';
+                titleDiv.innerHTML = '", ttl, "';
                 titleDiv.style.textAlign = 'center';
                 titleDiv.style.fontSize = '24px';
                 titleDiv.style.fontWeight = 'bold';
