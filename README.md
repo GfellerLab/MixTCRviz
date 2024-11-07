@@ -232,7 +232,7 @@ version from above or if you used library(MixTCRviz)).
 
  - label.diag (default=0.3): Decide to keep some label along the diagonal inthe upper corner, based on label.diag value. This can be useful when comparing two epitope-specific TCRs
 
- - label.min.fr (default=c(0.05,0.05)): Region (rectangle) of the left corner of V/J plots with no gene label
+ - label.min.fr (default=c(0.05,0.05)): Region (i.e., X - Y rectangle) of the left corner of V/J plots with no gene label. If only one number is provided, it will be used on both the X and Y axes.
 
  - keep.incomplete.chain (default=T): If False, incomplete chains are discarded.
      Even if input only consists of complete chains, incomplete chain can occur when one V/J gene cannot be corrected,
@@ -276,7 +276,7 @@ MixTCRviz creates a directory (output.path). The output.path/ directory contains
 - If output.stat==T, the output.path/stats/ contains .rds files with all the stats for each model.
 - If output.processed.data==T, the output.path/processed_data/ contains .csv files with the actual data used to build the motifs.
 - If plot.logo.length==1, the output.path/CDR3_length/ directory shows the V/J usage and CDR3 motifs for multiple lengths for both chains.
-- If return.plot==1 or 2, the motifs, stats and processed data are returns as lists
+- If return.object==1 or 2, the motifs, stats and processed data are returns as lists
 
 
 # OTHER INFORMATION

@@ -164,7 +164,7 @@ By default the value corresponding to the most frequent CDR3b length in input1 (
 \item 1: return an object with plots ($plot, if plot=T), statistics ($stat) and processed.data ($processed.data, if input1 is not a precomputed list with the stat) for each model
 \item 2: Only return an object and do not write anything to file. In this case output.path can be omitted
 Plots can be displayed in R studio, for instance.
-Quality will vary depending on your R studio settings, so this option is not recommended for good quality figures.
+Quality will vary depending on your R studio settings, so this option is not recommended for high-quality figures.
 }}
 
 \item{species.default}{(default="HomoSapiens"). Option to provide the species for all the TCR in input.
@@ -247,7 +247,8 @@ This can be useful when comparing two epitope-specific TCRs}
 \item F: Do not show standard deviation
 }}
 
-\item{label.min.fr}{(default=c(0.05,0.05)): Region (rectangle) of the left corner of V/J plots with no gene label.}
+\item{label.min.fr}{(default=c(0.05,0.05)): Region (i.e., X - Y rectangle) of the left corner of V/J plots with no gene label.
+If only one number is provided, it will be used on both the X and Y axes.}
 
 \item{chain.list.output}{(default="AB")
 \itemize{

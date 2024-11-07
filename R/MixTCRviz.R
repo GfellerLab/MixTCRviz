@@ -160,7 +160,8 @@
 #' @param label.diag (default=0.3): Decide to keep some label in the upper right corner, based on label.diag value. 
 #'        This can be useful when comparing two epitope-specific TCRs
 #'
-#' @param label.min.fr (default=c(0.05,0.05)): Region (rectangle) of the left corner of V/J plots with no gene label.
+#' @param label.min.fr (default=c(0.05,0.05)): Region (i.e., X - Y rectangle) of the left corner of V/J plots with no gene label. 
+#' If only one number is provided, it will be used on both the X and Y axes.
 #' 
 #' @param keep.incomplete.chain (default=T): If False, incomplete chains are discarded. 
 #'      Even if input only consists of complete chains, incomplete chain can occur when one V/J gene cannot be corrected, 
@@ -391,10 +392,13 @@ MixTCRviz <- function(input1, output.path=NULL,
     label.neg <- 0.3
   }
   
-  if(!is.numeric(label.min.fr) | length(label.min.fr) != 2){
+  if(!is.numeric(label.min.fr) | !length(label.min.fr) %in% c(1,2) | max(label.min.fr)>1 | min(label.min.fr)<0){
     print("Invalid value for label.min.fr. Default value of c(0.05,0.05) will be used")
     label.min.fr <- c(0.05,0.05)
+  } else if(length(label.min.fr)==1){
+    label.min.fr <- c(label.min.fr,label.min.fr)
   }
+  
   
   if(! chain.list.output %in% c("A","B","AB")){
     print("Invalid value for chain.list.output. Default value of \"AB\" will be used")
