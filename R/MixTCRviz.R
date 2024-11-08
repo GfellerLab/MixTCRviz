@@ -963,6 +963,11 @@ MixTCRviz <- function(input1, output.path=NULL,
 
           if (!plot.modelsCombined){
             logo[["CDR3"]] <- ggarrange(CDR3$ES_max, CDR3$Baseline_max, nrow=2)
+       
+            if(length(es$countVJ.L[[chain]][[paste("L",lmax,sep="_")]])==0){
+              print(paste("No P(VJ|L) information in input1 to compute baseline CDR3 | P(VJ) for Lmax=",lmax,". Empty motif will be shown.",sep=""))
+              print("  This is typically due to many entries missing V or J information, or wrong V/J names which could not be corrected")
+            }
           } else {
             CDR3$ES_max$labels$title <- paste0(model, " - ", CDR3$ES_max$labels$title)
           }
