@@ -853,12 +853,28 @@ check_input <- function(input, chain.list.output="AB", name="input1", species.de
   if(is.data.frame(input) & !input.list){
     if(chain.list.output=="AB"){
       col <- c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB")
+      alternative.names <- c("CDR3a", "CDR3A", "CDR3b", "CDR3B")
+      corrected.names <- c("cdr3_TRA","cdr3_TRA", "cdr3_TRB","cdr3_TRB")
+      names(corrected.names) <- alternative.names
     }
     if(chain.list.output=="A"){
       col <- c("TRAV","TRAJ","cdr3_TRA")
+      alternative.names <- c("CDR3a", "CDR3A", "CDR3", "CDR3_seq")
+      corrected.names <- c("cdr3_TRA","cdr3_TRA", "cdr3_TRA", "cdr3_TRA")
+      names(corrected.names) <- alternative.names
     }
     if(chain.list.output=="B"){
+      alternative.names <- c("CDR3b", "CDR3B", "CDR3", "CDR3_seq")
+      corrected.names <- c("cdr3_TRB","cdr3_TRB", "cdr3_TRB", "cdr3_TRB")
+      names(corrected.names) <- alternative.names
       col <- c("TRBV","TRBJ","cdr3_TRB")
+    }
+    
+    for(i in 1:length(colnames(input))){
+      if(colnames(input)[i] %in% alternative.names & !corrected.names[colnames(input.train)[i]] %in% colnames(input.train)[i]){
+        print(paste("Column name",colnames(input)[i]),"will be changed into",corrected.names[colnames(input)[i]])
+        colnames(input)[i] <- corrected.names[colnames(input)[i]]
+      }
     }
     
     #Check missing input
