@@ -448,10 +448,10 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
       geom_abline(col="orange",linetype="dashed",linewidth=1)
    
     if(!is.null(sd.es) & plot.sd){
-      count.plot <- count.plot + geom_errorbar(aes(ymax=Y+SD_es, ymin=sapply(Y-SD_es, function(x){max(0.001,x)})), width=0.015*lim.x, linewidth=0.4, color="grey40", linetype="dashed")
+      count.plot <- count.plot + geom_errorbar(aes(ymax=Y+SD_es, ymin=sapply(Y-SD_es, function(x){max(0.001,x)})), width=0.015*lim.x, linewidth=0.4, color="grey50")
     }
     if(!is.null(sd.rep) & plot.sd){
-      count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD_rep, xmin=sapply(X-SD_rep, function(x){max(0.001,x)})), height=0.015*lim.y, linewidth=0.4, color="grey40", linetype="dashed")
+      count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD_rep, xmin=sapply(X-SD_rep, function(x){max(0.001,x)})), height=0.015*lim.y, linewidth=0.4, color="grey50")
     }
     
     if (pType == 1.3){
@@ -476,13 +476,13 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
     }
     count.plot <- count.plot +
       ggtitle(gene) +
-      xlim(0, lim.x) + ylim(0,lim.y) +
+      xlim(0, lim.x) + ylim(0,lim.y) + theme_bw() +
       theme(plot.title = element_text(size = 14, hjust=0.5),
         axis.text=element_text(size=10), axis.title=element_text(size=14)) +
       geom_label_repel(aes(fill=gene), size = 3, nudge_y=0.02, box.padding = 0.25,
         show.legend=F, na.rm=T) +
       scale_fill_manual(values=colorScale, guide="none") +
-      xlab(xlab) + ylab(ylab) 
+      xlab(xlab) + ylab(ylab) + theme(panel.grid.minor = element_blank())
     
   
     
@@ -626,16 +626,13 @@ plotLD <- function(countL.es, countL.rep, info, sd.es=NULL, sd.rep=NULL, plot.on
       if(nchar(info[2])>23){legend.size=11}
       if(nchar(info[2])>25){legend.size=10}
     }
-    if(comp.baseline==1){
-      ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3, linetype=v3)) +
-        guides(color = guide_legend(ncol = 1, order=1), linetype= "none")
-    } else {
-      ld.plot <- ggplot(ld.df, aes(x=v1, y=v2, color=v3)) +
-        guides(color = guide_legend(ncol = 1, order=1))
-    }
+    
+    ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3, shape=v3)) +
+      guides(color = guide_legend(ncol = 1, order=1), shape=guide_legend(ncol = 1, order=1))
+   
     if(plot.sd & (!is.null(sd.es) | !is.null(sd.rep))){
       ld.plot <- ld.plot + 
-        geom_errorbar(aes(ymax=v2+SD, ymin=sapply(v2-SD, function(x){max(0.001,x)})), width=0.2, linewidth=0.4, linetype="dashed")
+        geom_errorbar(aes(ymax=v2+SD, ymin=sapply(v2-SD, function(x){max(0.001,x)})), width=0.3, linewidth=0.4)
     }
     
     # The rest of the plot is the same if combined.resList was NULL or if showing
@@ -651,12 +648,18 @@ plotLD <- function(countL.es, countL.rep, info, sd.es=NULL, sd.rep=NULL, plot.on
       guides(linetype=guide_legend(nrow=1, order=2), color="none")
   }
 
-  ld.plot <- ld.plot + geom_point() + geom_line() +
+  if(plot.oneline==0){
+    size <- 2.5
+  } else {
+    size <- 2
+  }
+  
+  ld.plot <- ld.plot + geom_point(size=size) + geom_line() + theme_bw() +
     theme(legend.key.size = unit(0.65, 'cm'), legend.position="top",
       legend.title=element_blank(), legend.text=element_text(size=legend.size)) +
     xlab(paste("Length_CDR3",info[1],sep="")) + ylab("") +
     theme(axis.text=element_text(size=12), axis.title=element_text(size=14),
-      plot.title = element_text(size=15,hjust = 0.5))
+      plot.title = element_text(size=15,hjust = 0.5)) + theme(panel.grid.minor = element_blank())
 
   
   
