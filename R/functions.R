@@ -874,7 +874,7 @@ check_input <- function(input, chain.list.output="AB", name="input1", species.de
     }
     
     for(i in 1:length(colnames(input))){
-      if(colnames(input)[i] %in% alternative.names & !corrected.names[colnames(input.train)[i]] %in% colnames(input.train)[i]){
+      if(colnames(input)[i] %in% alternative.names & !corrected.names[colnames(input)[i]] %in% colnames(input)[i]){
         print(paste("Column name",colnames(input)[i]),"will be changed into",corrected.names[colnames(input)[i]])
         colnames(input)[i] <- corrected.names[colnames(input)[i]]
       }
