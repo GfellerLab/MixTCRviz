@@ -1028,7 +1028,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
       if(use.species.default){
         al <- allele.default[[species.default]][input[ind,s]]
       } else {
-        al <- allele.default[[input[ind,"species"]]][input[ind,s]]
+        al <- sapply(ind, function(i){allele.default[[input[i,"species"]]][input[i,s]]})
       }
       al[is.na(al)] <- "01" #This happens in case of wrong gene names, since gene names were not yet corrected
       input[ind,s] <- paste(input[ind,s], al, sep="*")
