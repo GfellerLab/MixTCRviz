@@ -342,17 +342,30 @@ if(print.ref){
   }
 }
 
+#Establish a mapping of alternative column names
+
+mapping.colnames <- list()
+
+m <- read.csv("data_raw/TidyVJ/mapping_colnames.csv")
+for(chain in c("A","B","AB")){
+  ind <- which(grepl(chain,m[,"chain"]))
+  mapping.colnames[[chain]] <- m[ind,"CorrectedName"]
+  names(mapping.colnames[[chain]]) <- m[ind,"Name"]
+}
+
+
+
 # Saving all these variable for internal use within the package ------------------
 # functions
 
 usethis::use_data(gene.allele.list, gene.list, allele.default,
   merge.mouse.TRAV, map, cdr123, Jseq, ref.cdr3.first, ref.cdr3.last,
-  th, yl, aa, aa.list, N.aa,
+  th, yl, aa, aa.list, N.aa, mapping.colnames,
   chain.small, gap, Lmin, Lmax, species.list, TCRgene2aes,
   overwrite=T, internal=T)
 
 usethis::use_data(gene.allele.list, gene.list, allele.default,
-  merge.mouse.TRAV, map, cdr123, Jseq, ref.cdr3.first, ref.cdr3.last, 
+  merge.mouse.TRAV, map, cdr123, Jseq, ref.cdr3.first, ref.cdr3.last, mapping.colnames,
   overwrite=T, internal=F)
 
 # usethis::use_data(gene.allele.list, gene.list, allele.default,
