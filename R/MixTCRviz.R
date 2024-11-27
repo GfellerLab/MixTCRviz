@@ -733,6 +733,12 @@ MixTCRviz <- function(input1, output.path=NULL,
           }
           colnames(tinput1.es) <- cn
         }
+        quote_if_comma <- function(x) {
+          ifelse(grepl(",", x), paste0('"', x, '"'), x)
+        }
+        tinput1.es <- lapply(tinput1.es, function(col) {
+          if (is.character(col)) quote_if_comma(col) else col
+        })
         write.csv(tinput1.es, file=paste(output.path,"/processed_data/",model,".csv", sep=""), quote=F, row.names = F, na = "")
       }
     }

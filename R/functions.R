@@ -1674,7 +1674,7 @@ verify.chain <- function(input, chain.list.output){
   # Check cases where people leave the chain.list.output="AB",
   # but actually provide single chain data, including with ambiguous colnames like V,J,CDR3_seq
   
-  format <- determine.format(input)
+  format <- determine.format(input, verbose=0)
   #Only check for the format not based on clone.id (cases with formats based on clone.id will always be treated as alpha+beta, evn if one chain is empty)
   if(!format %in% names(clone.format.col)){
     if(chain.list.output=="AB"){
@@ -1731,7 +1731,7 @@ verify.chain <- function(input, chain.list.output){
 }
 
 #Determine the format
-determine.format <- function(input){
+determine.format <- function(input, verbose=1){
   
   col <- c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB")
   col.A <- col[1:3]
@@ -1746,7 +1746,10 @@ determine.format <- function(input){
       #Check that the three field for specific formats are present, and none of the standard colnames in MixTCRviz
       if(length(intersect(colnames(input), clone.format.col[[f]]))==3 & length(intersect(colnames(input),col))==0){
         format <- f   
-        print(paste("Inferred format:",f))
+        if(verbose==1){
+          print(paste("Inferred format:",f))
+        }
+        break
       }
     }
   }
@@ -1787,6 +1790,9 @@ stack_clones <- function(input, format){
     input.f <- t(input.f)
     colnames(input.f) <- c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB",other.col)
     input.f <- as.data.frame(input.f)
+    if(format=="VDJdb" & "complex.id" %in% colnames(input.f)){
+      input.f[,"complex.id"] <- as.numeric(input.f[,"complex.id"])
+    }
   } else {
     input.f <- input
   }
@@ -1874,10 +1880,15 @@ merge_clones <- function(input, format){
       }
     }
     colnames(input.f) <- c(col, other.col)
+    if(format=="VDJdb" & "complex.id" %in% colnames(input.f)){
+      input.f[,"complex.id"] <- as.numeric(input.f[,"complex.id"])
+      print(input.f[,"complex.id"])
+    }
     return(input.f)
     
   } else {
-    print(paste("WARNING: missing clone.id, should be in",clone.id))
+    print(paste("WARNING: Unable to reconstruct clones. Clone_id should be exactly one element in",paste(clone.id, collapse=" / ")))
+    print("  Try using build.clones = F")
     return(input)
   }
   

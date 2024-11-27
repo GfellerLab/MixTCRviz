@@ -265,7 +265,7 @@ for(species in species.list){
 
 }
 
-#Build reference sequences for the beginning and end of CDR3, allowing mapping to muliple alleles in most cases
+#Build reference sequences for the beginning and end of CDR3, allowing mapping to multiple alleles in most cases
 
 
 ref.cdr3.first <- list()
@@ -320,6 +320,8 @@ ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*01"]] <- "CASS"
 ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*04"]] <- "CASS"
 ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*05"]] <- "CASS"
 
+# This is because TRBJ2-7*02 (SYEQYV) is an ORF. 
+# We see it very rarely (and these could be sequencing issues) but I'm not 100% sure it's really a good idea to exclude it.
 ref.cdr3.last$HomoSapiens$TRB[["TRBJ2-7"]] <- "SYEQYF"
 ref.cdr3.last$HomoSapiens$TRB[["TRBJ2-7*01"]] <- "SYEQYF"
 
