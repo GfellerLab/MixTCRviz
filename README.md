@@ -36,7 +36,6 @@ There are different ways of "installing" MixTCRviz:
   1) It can be directly installed from the GitHub page (you need to have
     credentials correctly set so that Rstudio can access the private repository):<br />
     ` r` <br />
-    `# install.packages("devtools") # Only needed if you don't already have devtools` <br />
     `devtools::install_github("GfellerLab/MixTCRviz")` <br />
 
   2) You can download the MixTCRviz directory from the GitHub page and then open
@@ -46,20 +45,6 @@ There are different ways of "installing" MixTCRviz:
     `devtools::build()` <br />
     `install.packages("../MixTCRviz_0.0.2.tar.gz", repos=NULL)` <br />
 
-
-  3) If you don't need to use it through Rscript and are in process of developing
-    the package, it would be tiring to always build it, install it, reload it,
-    etc. Instead, you can set the working directory to the MixTCRviz folder and
-    then simply:<br />
-    ` r` <br />
-    `devtools::load_all()` <br />
-    You can reuse this command everytime changes are made to the code so that
-    the updates are directly available in the R environment. (You need to reuse
-    this load_all in every new R session to use this in dev code instead of the
-    installed package). And you should of course not do a "library(MixTCRviz)"
-    if using the load_all, this command makes as if you had done such one (the
-    library... would probably load the built+installed package not the
-    development version).
 
 You may be prompted to install several packages.
 
@@ -76,11 +61,9 @@ The output in test/out should be the same as in test/out_compare
 # RUNNING
 
 
-MixTCRviz should be primarily run in R, by calling the MixTCRviz function. To
-this end, in R, you need to call the MixTCRviz function with the mandatory
-parameters (e.g., MixTCRviz::MixTCRviz(input1=input, output.path=output)).
-(note that the "MixTCRviz::" isn't needed if using the "load_all"
-version from above or if you used library(MixTCRviz)).
+MixTCRviz should be primarily run in R, by loading the MixTCRviz library and calling the MixTCRviz function with the mandatory
+parameters (e.g., MixTCRviz(input1=input, output.path=output)).
+
 
 
 ## Mandatory parameters:
@@ -284,6 +267,7 @@ version from above or if you used library(MixTCRviz)).
 
 MixTCRviz creates a directory (output.path). The output.path/ directory contains the motifs (e.g. pdf files) for each model.
 
+- If interactive.plots==T, interactive html files are also created, and you can mouse over the V/J genes to see the names.
 - If output.stat==T, the output.path/stats/ contains .rds files with all the stats for each model.
 - If output.processed.data==T, the output.path/processed_data/ contains .csv files with the actual data used to build the motifs.
 - If plot.logo.length==1, the output.path/CDR3_length/ directory shows the V/J usage and CDR3 motifs for multiple lengths for both chains.
