@@ -296,9 +296,10 @@ By default, MixTCRviz uses column names c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ"
 - For single-chain data, only one chain can be provided. In those cases, it is recommanded to define the chain in chain.output.list="A" or "B".
 - "model" can be skipped, in which case all TCRs will be analyzed together and the output file will take the name given in model.default (default="Model_default").
 - "species" can be skipped, in which case all TCRs are assumed to come from the same species given in species.default (default="HomoSapiens"). If you have data coming from multiple species, you need to have the "species" column.
-- Other column names are supported, including "Va", "V_alpha", "CDR3a", "CDR3A", "CDR3_alpha" for data with both chain. Or "V", "v_gene","V-region","aaSeqCDR3","CDR3",... see list in data_raw/TidyVJ/mapping_colnames.csv for single chain data
+- Other column names are supported, including "Va", "V_alpha", "CDR3a", "CDR3A", "CDR3_alpha", etc. for data with both chain.
+ Or "V", "v_gene","V-region","aaSeqCDR3","CDR3",etc for single chain data, see list in data_raw/TidyVJ/mapping_colnames.csv for a full description
 
-Other formats which are supported include:
+Other supported formats treating each chain in a different row include:
 
  - VDJdb with the columns: c("V", "J", "CDR3")
  - 10X Genomics format with columns: c("v_gene", "j_gene", "cdr3")
@@ -307,6 +308,10 @@ Other formats which are supported include:
  - Adaptive Biotech v4 with the columns: c("v_resolved", "j_resolved", "amino_acid")
  - AIRR with the columns: c("v_call", "j_call", "junction_aa")
  - MiXCR with the columns: c("allVHitsWithScore", "allJHitsWithScore", "aaSeqCDR3")
+
+By default, both chains are treated independently, without reconstructing clones.
+To reconstruct alpha-beta clones, you can use the build.clones=T.
+However, you need to have *exactly* one colum indicating the clone_id labelled (can be any of "clone_id", "cell_id", "cloneId", "barcode", "complex.id)
 
 
 
