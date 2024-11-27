@@ -23,7 +23,7 @@ Copyright (2024) David Gfeller
 
 MixTCRviz is a tool to visualize important properties of a set of TCRs (e.g., epitope-specific TCRs).
 It focuses on V usage, J usage, CDR3 length distribution and CDR3 motifs, for both the alpha and the beta chains.
-These define the so-called **_TCR binding motifs_**.
+These define the so-called **TCR binding motifs**.
 
 By default, properties of the input TCRs are compared to those of a "baseline" TCR repertoire (from HomoSapiens or MusMusculus). Alternatively, users can choose to compare with another set of TCRs ("input2").
 
