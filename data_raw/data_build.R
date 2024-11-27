@@ -353,6 +353,18 @@ for(chain in c("A","B","AB")){
   names(mapping.colnames[[chain]]) <- m[ind,"Name"]
 }
 
+#Data for formats based on clone.id
+
+clone.format.col <- list()
+clone.format.col[["AIRR"]] <- c("v_call", "j_call", "junction_aa")
+clone.format.col[["10X"]] <- c("v_gene", "j_gene", "cdr3")
+clone.format.col[["MiXCR"]] <- c("allVHitsWithScore", "allJHitsWithScore", "aaSeqCDR3")
+clone.format.col[["Qiagen"]] <- c("V-region", "J-region", "CDR3 amino acid seq")
+clone.format.col[["Adaptive.v4"]] <- c("v_resolved", "j_resolved", "amino_acid")
+clone.format.col[["Adaptive"]] <- c("vGeneName", "jGeneName", "aminoAcid")
+clone.format.col[["VDJdb"]] <- c("V", "J", "CDR3")
+
+clone.id <- c("clone_id", "cell_id", "cloneId", "barcode", "complex.id")
 
 
 # Saving all these variable for internal use within the package ------------------
@@ -360,11 +372,11 @@ for(chain in c("A","B","AB")){
 
 usethis::use_data(gene.allele.list, gene.list, allele.default,
   merge.mouse.TRAV, map, cdr123, Jseq, ref.cdr3.first, ref.cdr3.last,
-  th, yl, aa, aa.list, N.aa, mapping.colnames,
+  th, yl, aa, aa.list, N.aa, mapping.colnames, clone.format.col, clone.id,
   chain.small, gap, Lmin, Lmax, species.list, TCRgene2aes,
   overwrite=T, internal=T)
 
-usethis::use_data(gene.allele.list, gene.list, allele.default,
+usethis::use_data(gene.allele.list, gene.list, allele.default, clone.format.col, clone.id,
   merge.mouse.TRAV, map, cdr123, Jseq, ref.cdr3.first, ref.cdr3.last, mapping.colnames,
   overwrite=T, internal=F)
 

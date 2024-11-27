@@ -6,7 +6,7 @@
 \alias{MixTCRviz.package}
 \title{MixTCRviz: Visualize important properties of a set of TCRs}
 \description{
-What the package does (one paragraph).
+MixTCRviz builds TCR binding motifs for a set of TCR.
 }
 \author{
 \strong{Maintainer}: David Gfeller \email{david.gfeller@unil.ch} (\href{https://orcid.org/0000-0002-3952-0930}{ORCID})
@@ -14,6 +14,7 @@ What the package does (one paragraph).
 Other contributors:
 \itemize{
   \item Julien Racle \email{julien.racle@unil.ch} (\href{https://orcid.org/0000-0002-0100-0323}{ORCID}) [contributor]
+  \item Daniel Tadros \email{daniel.tadros@unil.ch} [contributor]
 }
 
 }

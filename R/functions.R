@@ -321,7 +321,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
       }
     }
     
-
+    
     if(is.null(sd.es) | !plot.sd){
       lim.y <- max(count.df[,"Y"] )*1.4
     } else {
@@ -364,7 +364,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
     }
     #If we still have too many labels, take those with the top logFC
     
-  
+    
     if(length(which(!is.na(label))) > n_lab_max){
       if(verbose>=1){
         print(paste("Too many labels for ",gene,", selection will be based primarily on logFC:",sep=""))
@@ -854,15 +854,44 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
 
 
 check_input <- function(input, chain.list.output="AB", name="input1", species.default="HomoSapiens",
-                        model.default="Model_default", input.list=F){
+                        model.default="Model_default", input.list=F, build.clones=F){
   
   #Check if some columns are missing, and add them with default values
   map.back.colnames <- list()
   if(is.data.frame(input) & !input.list){
     
+    format <- determine.format(input)
+    
+    #Do some corrections specific for VDJdb
+    if(format=="VDJdb"){
+      if("Species" %in% colnames(input)){
+        colnames(input)[colnames(input)=="Species"] <- "species"
+        map.back.colnames$species <- "Species"
+      }
+      #If not model, use the MHC_Epitope, or only the Epitope
+      if(length(intersect(colnames(input),"model"))==0){
+        if("Epitope" %in% colnames(input)){
+          print("WARNING: Epitopes will be used as models - this is risky if the same epitope is restricted to multiple MHCs.")
+          print("  Consider adding a \'model\' column to your data.")
+          input$model <- input$Epitope
+        }
+      }
+    }
+    
+    #Handle the format with alpha and beta chains on different rows (e.g., with clone.id)
+    if(format %in% names(clone.format.col)){
+      if(!build.clones){
+        input <- stack_clones(input, format)
+      } else {
+        input <- merge_clones(input, format)
+      }
+    }
+    
     chain <- strsplit(chain.list.output,split="")[[1]]
     col <- as.character(sapply(chain, function(x){c(paste("TR",x,"V",sep=""), paste("TR",x,"J",sep=""),paste("cdr3_TR",x,sep=""))}))
     
+    #Deal with cases where column name do not follow the default of MixTCRviz
+    #Do different corrections for single chain (e.g., allow V or CDR3) and paired data (allow only Va or CDR3a).
     for(i in 1:length(colnames(input))){
       cl <- colnames(input)[i]
       #Check if the col.names is in the mapping
@@ -984,6 +1013,12 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
     nc <- nchar(input[,cdr3])
     ind <- which( nc < Lmin | nc > Lmax | grepl('[^ACDEFGHIKLMNPQRSTVWY]', input[,cdr3]) == T)
     input[ind,cdr3] <- NA
+  }
+  
+  #Remove anything that comes after parenthesis (this is the case for MiXCR data for instance)
+  for(s in segment.list){
+    ind <- which(grepl("\\(",input[,s]))
+    input[ind,s] <- sapply(ind,function(i){strsplit(input[i,s], split="\\(")[[1]][1]})
   }
   
   #If multiple V or J genes (separated by "," or "\" or ";" or " or "), keep only the first one
@@ -1421,61 +1456,6 @@ merge_mouse_TRAV <- function(input){
   
 }
 
-verify.chain <- function(input, chain.list.output){
-  
-  if(chain.list.output=="AB"){
-
-    map.A <- names(mapping.colnames[["AB"]][which(mapping.colnames[["AB"]] %in% c("TRAV", "TRAJ", "cdr3_TRA"))])
-    map.B <- names(mapping.colnames[["AB"]][which(mapping.colnames[["AB"]] %in% c("TRBV", "TRBJ", "cdr3_TRB"))])
-    inter.A <- intersect(colnames(input), c("TRAV", "TRAJ", "cdr3_TRA", map.A))
-    inter.B <- intersect(colnames(input), c("TRBV", "TRBJ", "cdr3_TRB", map.B))
-    
-    if(length(inter.A)==0 | length(inter.B)==0){                                          
-      if(length(inter.A)==0 & length(inter.B)>0){
-        print("Missing data for alpha chain, only beta chain will be considered") 
-        chain.list.output <- "B"
-      } else if(length(inter.A)>0 & length(inter.B)==0){
-        print("Missing data for beta chain, only alpha chain will be considered") 
-        chain.list.output <- "A"
-      } else if(length(inter.A)==0 & length(inter.B)==0){
-        # Check if the a single chain can be inferred.
-        # This is the case for instance when providing data in AIRR format without specifying the chain
-        map.unk <- names(mapping.colnames[["A"]][which(mapping.colnames[["A"]] == "TRAV")])
-        if(length(intersect(map.unk, colnames(input)))==1){
-          p <- intersect(map.unk, colnames(input))[1]
-          if("TRA" %in% unique(substr(input[,p],1,3)) & ! "TRB" %in% unique(substr(input[,p],1,3))){
-            print("Missing data for beta chain, only alpha chain will be considered") 
-            chain.list.output <- "A"
-          } else if("TRB" %in% unique(substr(input[,p],1,3)) & ! "TRA" %in% unique(substr(input[,p],1,3))){
-            print("Missing data for alpha chain, only beta chain will be considered") 
-            chain.list.output <- "B"
-          } else {
-            chain.list.output <- ""
-          }
-        }
-      } 
-    }
-  } else if(chain.list.output=="A"){
-  
-    map.A <- names(mapping.colnames[["A"]][which(mapping.colnames[["A"]] %in% c("TRAV", "TRAJ", "cdr3_TRA"))])
-    inter.A <- intersect(colnames(input), c("TRAV", "TRAJ", "cdr3_TRA", map.A))
-    if(length(inter.A)==0){
-      chain.list.output <- ""
-    } 
-    
-  } else if(chain.list.output=="B"){
-    
-    map.B <- names(mapping.colnames[["B"]][which(mapping.colnames[["B"]] %in% c("TRBV", "TRBJ", "cdr3_TRB"))])
-    inter.B <- intersect(colnames(input), c("TRBV", "TRBJ", "cdr3_TRB", map.B))
-    if(length(inter.B)==0){
-      chain.list.output <- ""
-    }
-    
-  }
-  
-  return(chain.list.output)
-}
-
 #' Take the gene + allele.
 #' If allele is empty, try to correct the gene if needed, and return only the gene.
 #' If allele is not empty, try to correct the gene\*allele.
@@ -1687,3 +1667,222 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
   
   return(combined_plots)
 }
+
+
+verify.chain <- function(input, chain.list.output){
+  
+  # Check cases where people leave the chain.list.output="AB",
+  # but actually provide single chain data, including with ambiguous colnames like V,J,CDR3_seq
+  
+  format <- determine.format(input)
+  #Only check for the format not based on clone.id (cases with formats based on clone.id will always be treated as alpha+beta, evn if one chain is empty)
+  if(!format %in% names(clone.format.col)){
+    if(chain.list.output=="AB"){
+      
+      map.A <- names(mapping.colnames[["AB"]][which(mapping.colnames[["AB"]] %in% c("TRAV", "TRAJ", "cdr3_TRA"))])
+      map.B <- names(mapping.colnames[["AB"]][which(mapping.colnames[["AB"]] %in% c("TRBV", "TRBJ", "cdr3_TRB"))])
+      inter.A <- intersect(colnames(input), c("TRAV", "TRAJ", "cdr3_TRA", map.A))
+      inter.B <- intersect(colnames(input), c("TRBV", "TRBJ", "cdr3_TRB", map.B))
+      
+      if(length(inter.A)==0 | length(inter.B)==0){                                          
+        if(length(inter.A)==0 & length(inter.B)>0){
+          print("Missing columns for alpha chain, only beta chain will be considered") 
+          chain.list.output <- "B"
+        } else if(length(inter.A)>0 & length(inter.B)==0){
+          print("Missing columns for beta chain, only alpha chain will be considered") 
+          chain.list.output <- "A"
+        } else if(length(inter.A)==0 & length(inter.B)==0){
+          # Check if the a single chain can be inferred.
+          # This is the case for instance when providing data in AIRR format without specifying the chain
+          map.unk <- names(mapping.colnames[["A"]][which(mapping.colnames[["A"]] == "TRAV")])
+          if(length(intersect(map.unk, colnames(input)))==1){
+            p <- intersect(map.unk, colnames(input))[1]
+            if("TRA" %in% unique(substr(input[,p],1,3)) & ! "TRB" %in% unique(substr(input[,p],1,3))){
+              print("Missing data for beta chain, only alpha chain will be considered") 
+              chain.list.output <- "A"
+            } else if("TRB" %in% unique(substr(input[,p],1,3)) & ! "TRA" %in% unique(substr(input[,p],1,3))){
+              print("Missing data for alpha chain, only beta chain will be considered") 
+              chain.list.output <- "B"
+            } else {
+              chain.list.output <- ""
+            }
+          }
+        } 
+      }
+    } else if(chain.list.output=="A"){
+      
+      map.A <- names(mapping.colnames[["A"]][which(mapping.colnames[["A"]] %in% c("TRAV", "TRAJ", "cdr3_TRA"))])
+      inter.A <- intersect(colnames(input), c("TRAV", "TRAJ", "cdr3_TRA", map.A))
+      if(length(inter.A)==0){
+        chain.list.output <- ""
+      } 
+      
+    } else if(chain.list.output=="B"){
+      
+      map.B <- names(mapping.colnames[["B"]][which(mapping.colnames[["B"]] %in% c("TRBV", "TRBJ", "cdr3_TRB"))])
+      inter.B <- intersect(colnames(input), c("TRBV", "TRBJ", "cdr3_TRB", map.B))
+      if(length(inter.B)==0){
+        chain.list.output <- ""
+      }
+      
+    }
+  }
+  return(chain.list.output)
+}
+
+#Determine the format
+determine.format <- function(input){
+  
+  col <- c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB")
+  col.A <- col[1:3]
+  col.B <- col[4:6]
+  
+  format.list <- names(clone.format.col)
+  format <- "custom"
+  if(length(intersect(colnames(input), col.A))==3 | length(intersect(colnames(input), col.B))==3){
+    format <- "MixTCRviz"
+  } else {
+    for(f in format.list){
+      #Check that the three field for specific formats are present, and none of the standard colnames in MixTCRviz
+      if(length(intersect(colnames(input), clone.format.col[[f]]))==3 & length(intersect(colnames(input),col))==0){
+        format <- f   
+        print(paste("Inferred format:",f))
+      }
+    }
+  }
+  return(format)
+}
+#Build input files with stacked alpha and beta chains on different rows if the data are provided in a format based on clone IDs.
+#In this case, the actual clones are not reconstructed, and data are treated as unpaired
+stack_clones <- function(input, format){
+  
+  if(format %in% names(clone.format.col)){
+    
+    col <- clone.format.col[[format]]
+    other.col <- setdiff(colnames(input), col)
+    
+    input.f <- apply(input,1,function(x){
+      if(substr(x[col[1]],1,3)=="TRA"){
+        v <- c(x[col],NA,NA,NA,x[other.col])
+      } else if(substr(x[col[1]],1,3)=="TRB"){
+        v <- c(NA,NA,NA,x[col],x[other.col])
+      } else if(format=="VDJdb" & "Gene" %in% names(x)){
+        if(x["Gene"]=="TRA"){
+          v <- c(x[col],NA,NA,NA,x[other.col])
+        } else if(x["Gene"]=="TRB"){
+          v <- c(NA,NA,NA,x[col],x[other.col])
+        }
+      } else if("chain" %in% names(x)){
+        if(x[chain]=="TRA"){
+          v <- c(x[col],NA,NA,NA,x[other.col])
+        } else if(x[chain]=="TRB"){
+          v <- c(NA,NA,NA,x[col],x[other.col])
+        }
+      } else {
+        #In this case, inferring the chain failed
+        v <- c(NA,NA,NA,NA,NA,NA,x[other.col])
+      }
+      return(v)
+    })
+    input.f <- t(input.f)
+    colnames(input.f) <- c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB",other.col)
+    input.f <- as.data.frame(input.f)
+  } else {
+    input.f <- input
+  }
+  return(input.f)
+}
+
+#Build actual clones if the data are provided in a format based on clone IDs.
+merge_clones <- function(input, format){
+  
+  col <- c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB")
+  
+  if(length(intersect(colnames(input), clone.id))==1){
+    
+    TCR.col <- clone.format.col[[format]]
+    Vn <- TCR.col[1]
+    barcode.label <- intersect(colnames(input), clone.id)
+    
+    #other.col <- setdiff(colnames(input), TCR.col) #keep all columns (can be complex if different values are used with the same barcode)
+    other.col <- intersect(colnames(input),c(barcode.label,"model","species")) #keep only the barcode, the model and the species (if present)
+    input.f <- as.data.frame(matrix(nrow=0, ncol=6+length(other.col)))
+    
+    if("model" %in% colnames(input)){
+      barcode.list <- paste(input[,barcode.label], input[,"model"]) #Include the possibility of having redundant barcodes for different models.
+    } else {
+      barcode.list <- input[,barcode.label]
+    }
+    
+    input.t <- input[order(barcode.list),]
+    barcode.list <- sort(barcode.list)
+    
+    #Go through all clone IDs
+    i <- 1
+    while(i<=dim(input.t)[1]){
+      seq.A <- list()
+      seq.B <- list()
+      ct.A <- 0
+      ct.B <- 0
+      #This is the special case of the '0' complex.id for VDJdb which contains all single chain entries
+      if(input.t[i,barcode.label]==0 & format=="VDJdb"){
+        ind.A <- which(input.t[,barcode.label]==0 & substr(input.t$V,1,3)=="TRA")
+        ind.B <- which(input.t[,barcode.label]==0 & substr(input.t$V,1,3)=="TRB")
+        if(length(ind.A)>0){
+          input.f <- rbind(input.f,cbind(input.t[ind.A,TCR.col],NA,NA,NA,input.t[ind.A,other.col]))
+        }
+        if(length(ind.B)>0){
+          input.f <- rbind(input.f,cbind(NA,NA,NA,input.t[ind.B,TCR.col],input.t[ind.B,other.col]))
+        }
+        i <- i+length(ind.A)+length(ind.B)
+        
+      } else {
+        for(j in 0:(dim(input.t)[1]-i)){
+          if(barcode.list[i+j]==barcode.list[i]){
+            if(substr(input.t[i+j,Vn],1,3)=="TRA"){
+              ct.A <- ct.A+1
+              seq.A[[ct.A]] <- as.character(input.t[i+j,TCR.col])
+            } else if(substr(input.t[i+j,Vn],1,3)=="TRB"){
+              ct.B <- ct.B+1
+              seq.B[[ct.B]] <- as.character(input.t[i+j,TCR.col])
+            }
+          } else {
+            break
+          }
+        }
+        
+        
+        if(length(seq.A)>0 & length(seq.B)>0){
+          for(sA in seq.A){
+            for(sB in seq.B){
+              seq.all <- c(sA,sB,unlist(input.t[i,other.col]))
+              input.f <- rbind(input.f, seq.all)
+            }
+          }
+        } else if(length(seq.A)>0 & length(seq.B)==0){
+          for(sA in seq.A){
+            seq.all <- c(sA,c(NA,NA,NA),unlist(input.t[i,other.col]))
+            input.f <- rbind(input.f, seq.all)
+          }
+        } else if(length(seq.A)==0 & length(seq.B)>0){
+          for(sB in seq.B){
+            seq.all <- c(c(NA,NA,NA),sB,unlist(input.t[i,other.col]))
+            input.f <- rbind(input.f, seq.all)
+          }
+        }
+        i <- i+ct.A+ct.B
+      }
+    }
+    colnames(input.f) <- c(col, other.col)
+    return(input.f)
+    
+  } else {
+    print(paste("WARNING: missing clone.id, should be in",clone.id))
+    return(input)
+  }
+  
+  
+}
+
+
+

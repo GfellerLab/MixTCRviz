@@ -9,6 +9,7 @@
 ## here and instead call the needed functions through
 ## ggseqlogo::ggseqlogo(...) for example)
 #' @import ggplot2
+#' @import readr
 #' @import ggpubr
 #' @import ggseqlogo
 #' @import seqinr
