@@ -23,7 +23,7 @@ Copyright (2024) David Gfeller
 
 MixTCRviz is a tool to visualize important properties of a set of TCRs (e.g., epitope-specific TCRs).
 It focuses on V usage, J usage, CDR3 length distribution and CDR3 motifs, for both the alpha and the beta chains.
-These define the so-called **TCR binding motifs**.
+These define the so-called **_TCR binding motifs_**.
 
 By default, properties of the input TCRs are compared to those of a "baseline" TCR repertoire (from HomoSapiens or MusMusculus). Alternatively, users can choose to compare with another set of TCRs ("input2").
 
@@ -311,7 +311,7 @@ Other supported formats treating each chain in a different row include:
 
 By default, both chains are treated independently, without reconstructing clones.
 To reconstruct alpha-beta clones, you can use the build.clones=T.
-However, you need to have *exactly* one colum indicating the clone_id labelled (can be any of "clone_id", "cell_id", "cloneId", "barcode", "complex.id)
+However, you need to have *exactly* one colum indicating the clone_id labelled as "clone_id", "cell_id", "cloneId", "barcode" or "complex.id"
 
 
 
