@@ -764,9 +764,9 @@ MixTCRviz <- function(input1, output.path=NULL,
           if(species=="MusMusculus"){
             if(!use.allele.es){  #N.B. Currently always the case in mouse
               if(use.mouse.strain){
-                baseline <- MixTCRviz::baseline_MusMusculus_SEQTR
+                baseline <- MixTCRviz::baseline_MusMusculus_Strain_SEQTR
               } else {
-                baseline <- MixTCRviz::baseline_MusMusculus_noStrain_SEQTR
+                baseline <- MixTCRviz::baseline_MusMusculus_SEQTR
               }
             }
           }
@@ -780,7 +780,11 @@ MixTCRviz <- function(input1, output.path=NULL,
             if(species=="HomoSapiens"){
               baseline <- MixTCRviz::baseline_HomoSapiens_SEQTR
             } else if(species=="MusMusculus"){
-              baseline <- MixTCRviz::baseline_MusMusculus_SEQTR
+              if(use.mouse.strain){
+                baseline <- MixTCRviz::baseline_MusMusculus_Strain_SEQTR
+              } else{
+                baseline <- MixTCRviz::baseline_MusMusculus_SEQTR
+              }
             }
           } else if(baseline=="Default"){
             if(species=="HomoSapiens"){
@@ -790,7 +794,11 @@ MixTCRviz <- function(input1, output.path=NULL,
                 baseline <- MixTCRviz::baseline_HomoSapiens
               }
             } else if(species=="MusMusculus"){
-              baseline <- MixTCRviz::baseline_MusMusculus_SEQTR
+              if(use.mouse.strain){
+                  baseline <- MixTCRviz::baseline_MusMusculus_Strain_SEQTR
+                } else {
+                  baseline <- MixTCRviz::baseline_MusMusculus_SEQTR
+                }
             }
           } else if(file.exists(baseline)){
             st <- strsplit(baseline, split=".", fixed = T)[[1]]

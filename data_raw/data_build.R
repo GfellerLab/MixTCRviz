@@ -410,10 +410,10 @@ if (FALSE){
   baseline_HomoSapiens <- readRDS(paste(path.rep,"/baseline_HomoSapiens_mean_bulk_and_paired.rds",sep=""))
   baseline_HomoSapiens_allele <- readRDS(paste(path.rep,"/baseline_HomoSapiens_mean_bulk_and_paired_allele.rds",sep=""))
   baseline_HomoSapiens_SEQTR <- readRDS(paste(path.rep,"/baseline_HomoSapiens_SEQTR.rds",sep=""))
-  baseline_MusMusculus_noStrain_SEQTR <- readRDS(paste(path.rep,"/baseline_MusMusculus_noStrain_SEQTR.rds",sep=""))
+  baseline_MusMusculus_Strain_SEQTR <- readRDS(paste(path.rep,"/baseline_MusMusculus_Strain_SEQTR.rds",sep=""))
   baseline_MusMusculus_SEQTR <- readRDS(paste(path.rep,"/baseline_MusMusculus_SEQTR.rds",sep=""))
   usethis::use_data(baseline_HomoSapiens, baseline_HomoSapiens_allele, baseline_HomoSapiens_SEQTR,
-                    baseline_MusMusculus_noStrain_SEQTR,
+                    baseline_MusMusculus_Strain_SEQTR,
                     baseline_MusMusculus_SEQTR, overwrite=T, internal=F)
 }
 
