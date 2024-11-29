@@ -723,7 +723,6 @@ MixTCRviz <- function(input1, output.path=NULL,
         
         if(keep.colnames.origin){
           cn <- colnames(input1.es)
-          
           if(length(map.back.colnames)>0){
             for(i in 1:length(cn)){
               if(!is.null(map.back.colnames[[cn[i]]])){
@@ -733,12 +732,9 @@ MixTCRviz <- function(input1, output.path=NULL,
           }
           colnames(tinput1.es) <- cn
         }
-        quote_if_comma <- function(x) {
-          ifelse(grepl(",", x), paste0('"', x, '"'), x)
-        }
-        tinput1.es <- lapply(tinput1.es, function(col) {
-          if (is.character(col)) quote_if_comma(col) else col
-        })
+        quote_if_comma <- function(x) {  ifelse(grepl(",", x), paste0('"', x, '"'), x) }
+        tinput1.es <- lapply(tinput1.es, function(col) { if (is.character(col)) quote_if_comma(col) else col })
+        
         write.csv(tinput1.es, file=paste(output.path,"/processed_data/",model,".csv", sep=""), quote=F, row.names = F, na = "")
       }
     }
