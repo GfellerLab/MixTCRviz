@@ -19,7 +19,7 @@ v_resolved,TRAV,A
 allVHitsWithScore,TRAV,A
 V-region,TRAV,A
 v_gene,TRAV,A
-V,TRA,A
+V,TRAV,A
 j_call,TRAJ,A
 jGeneName,TRAJ,A
 j_resolved,TRAJ,A
