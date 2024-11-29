@@ -1427,7 +1427,7 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
   return(input)
 }
 
-
+#' @export
 merge_mouse_TRAV <- function(input){
   
   # This has to be run after alleles have been removed and genes have been corrected
