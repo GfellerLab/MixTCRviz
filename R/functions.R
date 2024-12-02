@@ -256,8 +256,10 @@ find_mhc <- function(m){
 #' @param label.diag (default=0.3): Print label on the diagonal above a certain value for both x and y axis
 #' @param label.min.fr (default=c(0.05, 0.05)): Region (rectangle) of the left corner of V/J plots with no gene label
 
-plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.baseline, pType=1, 
-                   species="HomoSapiens", ret.resList=F, combined.resList=NULL, label.neg=F, label.diag=0.3, label.min.fr=c(0.05, 0.05), print.size=T, plot.sd=T, verbose=1){
+plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info=NULL, comp.baseline=T, pType=1, 
+                   species="HomoSapiens", ret.resList=F, combined.resList=NULL, label.neg=F, 
+                   label.diag=0.3, label.min.fr=c(0.05, 0.05), print.size=T, plot.sd=T, verbose=1){
+  
   if (is.null(combined.resList)){
     if (length(count.es) == 0){
       # Can directly return an empty plot when this doesn't contain any data.
@@ -268,20 +270,18 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
       }
     }
     #count.es is on the Y axis, count.rep on the X
-    gene <- info[1]  # e.g., TRAV
+    gene <- info["gene"]  # e.g., TRAV
     n.es <- sum(count.es)
     
     n.rep <- sum(count.rep)
     v <- c(names(count.rep), names(count.es))
     nm <- unique(v)
-    type1 <- info[2] # e.g., Input1
-    type2 <- info[3] # e.g., Baseline
-    cn <- c(type1, type2)
+    cn <- c(info["input1.name"], info["baseline.name"])
     count <- matrix(0, nrow=length(nm), ncol=2)
     rownames(count) <- nm
     colnames(count) <- cn
-    for(i in 1:length(count.es)){ count[names(count.es[i]),type1] <- count.es[i] }
-    for(i in 1:length(count.rep)){ count[names(count.rep[i]),type2] <- count.rep[i] }
+    for(i in 1:length(count.es)){ count[names(count.es[i]),info["input1.name"]] <- count.es[i] }
+    for(i in 1:length(count.rep)){ count[names(count.rep[i]),info["baseline.name"]] <- count.rep[i] }
     count <- scale(count, center=F, scale=colSums(count))
     count.df <- data.frame(count)
     colnames(count.df) <- c("Y","X")
@@ -389,14 +389,14 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
       }
     }
     if(print.size){
-      ylab <- paste(type1," (",n.es,")", sep="")
+      ylab <- paste(info["input1.name"]," (",n.es,")", sep="")
     } else {
-      ylab <- type1
+      ylab <- info["input1.name"]
     }
     if(comp.baseline==1 | !print.size){  
-      xlab <- type2 
+      xlab <- info["baseline.name"] 
     } else {
-      xlab <- paste(type2," (",n.rep,")", sep="")
+      xlab <- paste(info["baseline.name"]," (",n.rep,")", sep="")
     }
     if (floor(pType) == 1){
       count.df$label <- label
@@ -422,7 +422,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
     # 'baselineName' will be used to show the baseline value from the genes in the
     # bar plot.
     count.df$log2FC <- log2(ratio+1e-5)
-    count.df$model <- paste0(info[4], " (", n.es, ")")
+    count.df$model <- paste0(info["model"], " (", n.es, ")")
     
     if (ret.resList){
       return(list(count.df=count.df, namesToKeep=namesToKeep, gene=gene))
@@ -554,7 +554,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info, comp.base
 # indicating the model name).
 # And when combined.resList isn't NULL, we'll use the results from this list
 # to plot the results (from multiple models combined together).
-plotLD <- function(countL.es, countL.rep, info, sd.es=NULL, sd.rep=NULL, plot.oneline=0, ret.resList=F,
+plotLD <- function(countL.es, countL.rep, info=NULL, sd.es=NULL, sd.rep=NULL, plot.oneline=0, ret.resList=F,
                    combined.resList=NULL, comp.baseline=1, print.size=T, plot.sd=T){
   
   if (is.null(combined.resList)){
@@ -606,30 +606,30 @@ plotLD <- function(countL.es, countL.rep, info, sd.es=NULL, sd.rep=NULL, plot.on
     
     v1 <- c(L.all,L.all);
     v2 <- c(ld.es, ld.rep);
-    v3 <- c( rep(info[2], length(L.all)), rep(info[3], length(L.all))) ;
+    v3 <- c( rep(info["input1.name"], length(L.all)), rep(info["baseline.name"], length(L.all))) ;
     v4 <- c(lds.es,lds.rep)
     ld.df <- data.frame(v1,v2,v3,SD=v4)
-    ld.df$v3 <- factor(ld.df$v3, levels=c(info[2], info[3]))
+    ld.df$v3 <- factor(ld.df$v3, levels=c(info["input1.name"], info["baseline.name"]))
     
     if (ret.resList){
       if (length(info) < 4){
         stop("The 'info' vector given in plotLD input should have 4 elements ",
              "when ret.resList is T.")
       }
-      ld.df$model <- paste0(info[4], gsub(".*( \\(\\d+\\))", "\\1", info[2]))
+      ld.df$model <- paste0(info["model"], gsub(".*( \\(\\d+\\))", "\\1", info["input1.name"]))
       levels(ld.df$v3) <- gsub("(.*) \\(\\d+\\)", "\\1", levels(ld.df$v3))
-      # The number of sequences is inputted in info[2] (saved in v3 column of
+      # The number of sequences is inputted in info["input1.name"] (saved in v3 column of
       # lf.df). We instead indicate this information in the model column when
       # combining results from multiple models.
-      return(list(ld.df=ld.df, info=info[1]))
+      return(list(ld.df=ld.df, info=info["chain"]))
       # Return the data.frame, as well as info (but only 1st element as the other
       # are already encode in ld.df).
     }
     
     legend.size <- 12
     if(plot.oneline!=0){
-      if(nchar(info[2])>23){legend.size=11}
-      if(nchar(info[2])>25){legend.size=10}
+      if(nchar(info["input1.name"])>23){legend.size=11}
+      if(nchar(info["input1.name"])>25){legend.size=10}
     }
     
     ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3, shape=v3)) +
@@ -662,7 +662,7 @@ plotLD <- function(countL.es, countL.rep, info, sd.es=NULL, sd.rep=NULL, plot.on
   ld.plot <- ld.plot + geom_point(size=size) + geom_line() + theme_bw() +
     theme(legend.key.size = unit(0.65, 'cm'), legend.position="top",
           legend.title=element_blank(), legend.text=element_text(size=legend.size)) +
-    xlab(paste("Length_CDR3",info[1],sep="")) + ylab("") +
+    xlab(paste("Length_CDR3",info["chain"],sep="")) + ylab("") +
     theme(axis.text=element_text(size=12), axis.title=element_text(size=14),
           plot.title = element_text(size=15,hjust = 0.5)) + theme(panel.grid.minor = element_blank())
   
@@ -672,8 +672,8 @@ plotLD <- function(countL.es, countL.rep, info, sd.es=NULL, sd.rep=NULL, plot.on
 }
 
 
-plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
-                     comp.baseline, plot.oneline=0, plot.all.length=F,
+plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NULL,
+                     comp.baseline=T, plot.oneline=0, plot.all.length=F,
                      plot.cdr3.subtract.baseline=0, set.cdr3.length=NA, print.size=T){
   
   L.es <- as.numeric(lapply(names(countL.es), function(x){unlist(strsplit(x,split="_"))[2]}))
@@ -698,7 +698,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
         lmax <- set.cdr3.length
       } else {
         lmax <- as.numeric(unlist(strsplit(names(tl[which.max(tl)]), split="_"))[2])
-        print(paste("set.cdr3",info[1],".length=",set.cdr3.length," is incompatible with the input data. Default value of ",lmax," will be used.", sep=""))
+        print(paste("set.cdr3",info["chain"],".length=",set.cdr3.length," is incompatible with the input data. Default value of ",lmax," will be used.", sep=""))
       }
     }
     
@@ -749,22 +749,22 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
         x.norm <- scale(x.norm,center = F, scale=colSums(x.norm))
         y.inc <- 4
       }
-      title <- info[2]
+      title <- info["input1.name"]
       if(print.size){ title <- paste(title, " (",countL.es[[lc]],")", sep="")  }
-      title <- paste(title,", CDR3", info[1],"_",l, sep="")
+      title <- paste(title,", CDR3", info["chain"],"_",l, sep="")
       
       logo.CDR3.L.es[[lc]] <- ggseqlogoMOD(data=pwm.es[[lc]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8) +
         labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
       
-      title.baseline <- info[3]
+      title.baseline <- info["baseline.name"]
       if(comp.baseline==0 & print.size){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
       
       if(plot.cdr3.subtract.baseline==0){
-        title.baseline <- paste(title.baseline,", CDR3", info[1],"_",l, sep="")
+        title.baseline <- paste(title.baseline,", CDR3", info["chain"],"_",l, sep="")
       } else if(plot.cdr3.subtract.baseline==1){
-        title.baseline <- paste(title.baseline," subtract, CDR3", info[1],"_",l, sep="")
+        title.baseline <- paste(title.baseline," subtract, CDR3", info["chain"],"_",l, sep="")
       } else if(plot.cdr3.subtract.baseline==2){
-        title.baseline <- paste(title.baseline," renorm, CDR3", info[1],"_",l, sep="")
+        title.baseline <- paste(title.baseline," renorm, CDR3", info["chain"],"_",l, sep="")
       }
       
       if(plot.cdr3.subtract.baseline==0){
@@ -788,30 +788,30 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info,
       #So far, we redo everything, since the graphical outline has to be a little bit different,
       # but this is not optimal since any change has to be performed multiple times
       if(l==lmax){
-        title <- info[2]
+        title <- info["input1.name"]
         if(print.size){ title <- paste(title, " (",countL.es[[lc]],")", sep="")  }
-        title <- paste(title,", CDR3", info[1],"_",l, sep="")
+        title <- paste(title,", CDR3", info["chain"],"_",l, sep="")
         
-        title.baseline <- info[3]
+        title.baseline <- info["baseline.name"]
         if(comp.baseline==0 & print.size){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
         
         if(plot.cdr3.subtract.baseline==0){
-          title.baseline <- paste(title.baseline,", CDR3", info[1],"_",l, sep="")
+          title.baseline <- paste(title.baseline,", CDR3", info["chain"],"_",l, sep="")
         } else if(plot.cdr3.subtract.baseline==1){
-          title.baseline <- paste(title.baseline," subtract, CDR3", info[1],"_",l, sep="")
+          title.baseline <- paste(title.baseline," subtract, CDR3", info["chain"],"_",l, sep="")
         } else if(plot.cdr3.subtract.baseline==2){
-          title.baseline <- paste(title.baseline," renorm, CDR3", info[1],"_",l, sep="")
+          title.baseline <- paste(title.baseline," renorm, CDR3", info["chain"],"_",l, sep="")
         }
         
         if(plot.oneline!=0 & (nchar(title)>26 | nchar(title.baseline)>26)){
-          title <- paste("CDR3", info[1],"_",l," ",info[2], sep="")
+          title <- paste("CDR3", info["chain"],"_",l," ",info["input1.name"], sep="")
           if(print.size){ title <- paste(title,"\n(",countL.es[[lc]],")", sep="")}
           if(plot.cdr3.subtract.baseline==0){
-            title.baseline <- paste("CDR3", info[1],"_",l," ",info[3],"\n", sep="")
+            title.baseline <- paste("CDR3", info["chain"],"_",l," ",info["baseline.name"],"\n", sep="")
           } else if(plot.cdr3.subtract.baseline==1){
-            title.baseline <- paste("CDR3", info[1],"_",l," subtract \n",info[3], sep="")
+            title.baseline <- paste("CDR3", info["chain"],"_",l," subtract \n",info["baseline.name"], sep="")
           } else if(plot.cdr3.subtract.baseline==2){
-            title.baseline <- paste("CDR3", info[1],"_",l," renorm \n",info[3], sep="")
+            title.baseline <- paste("CDR3", info["chain"],"_",l," renorm \n",info["baseline.name"], sep="")
           }
           if(comp.baseline==0 & print.size){
             title.baseline <- paste(title.baseline, "(",countL.rep[[lc]],")", sep="")
