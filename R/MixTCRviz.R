@@ -760,9 +760,9 @@ MixTCRviz <- function(input1, output.path=NULL,
           if(species=="MusMusculus"){
             if(!use.allele.es){  #N.B. Currently always the case in mouse
               if(use.mouse.strain){
-                baseline <- MixTCRviz::baseline_MusMusculus_Strain_SEQTR
+                baseline <- MixTCRviz::baseline_MusMusculus_Strain
               } else {
-                baseline <- MixTCRviz::baseline_MusMusculus_SEQTR
+                baseline <- MixTCRviz::baseline_MusMusculus
               }
             }
           }

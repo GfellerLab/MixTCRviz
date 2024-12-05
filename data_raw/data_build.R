@@ -403,18 +403,18 @@ usethis::use_data(gene.allele.list, gene.list, allele.default, clone.format.col,
 # due to the size of these data). We could also put these in "inst/RData/"
 # folder for example and then in the code, use
 # "system.file("RData", package = "MixTCRviz")" to get path to this folder.
-if (FALSE){
+if (TRUE){
   # I did this only once and then deleted the RData folder, kept the code
   # in case we need to redo it later.
   path.rep <- "../MixTCR_scripts/data/Repertoires"
   baseline_HomoSapiens <- readRDS(paste(path.rep,"/baseline_HomoSapiens_mean_bulk_and_paired.rds",sep=""))
   baseline_HomoSapiens_allele <- readRDS(paste(path.rep,"/baseline_HomoSapiens_mean_bulk_and_paired_allele.rds",sep=""))
-  baseline_HomoSapiens_SEQTR <- readRDS(paste(path.rep,"/baseline_HomoSapiens_SEQTR.rds",sep=""))
-  baseline_MusMusculus_Strain_SEQTR <- readRDS(paste(path.rep,"/baseline_MusMusculus_Strain_SEQTR.rds",sep=""))
-  baseline_MusMusculus_SEQTR <- readRDS(paste(path.rep,"/baseline_MusMusculus_SEQTR.rds",sep=""))
-  usethis::use_data(baseline_HomoSapiens, baseline_HomoSapiens_allele, baseline_HomoSapiens_SEQTR,
-                    baseline_MusMusculus_Strain_SEQTR,
-                    baseline_MusMusculus_SEQTR, overwrite=T, internal=F)
+  baseline_MusMusculus_Strain <- readRDS(paste(path.rep,"/baseline_MusMusculus_Strain.rds",sep=""))
+  baseline_MusMusculus <- readRDS(paste(path.rep,"/baseline_MusMusculus.rds",sep=""))
+
+  usethis::use_data(baseline_HomoSapiens, baseline_HomoSapiens_allele,
+                    baseline_MusMusculus_Strain, baseline_MusMusculus,
+                    overwrite=T, internal=F)
 }
 
   # EOF ---------------------------------------------------------------------
