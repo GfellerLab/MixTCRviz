@@ -376,7 +376,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info=NULL, comp
       while(length(which(!is.na(label))) > n_lab_max){
         label[names(logFC.sort[t])] <- NA
         t <- t+1
-        print(t)
+        #print(t)
       }
     }
     if(label.diag){
