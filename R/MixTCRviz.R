@@ -478,7 +478,7 @@ MixTCRviz <- function(input1, output.path=NULL,
   }
   
   if(is.null(input2)){
-    comp.baseline <- 1
+    comp.baseline <- T
     if(is.null(input2.name)){
       baseline.name <- "Baseline"
     } else if(is.character(input2.name)){
@@ -487,7 +487,7 @@ MixTCRviz <- function(input1, output.path=NULL,
       stop("Invalid value for input2.name. Should be a character or NULL")
     }
   } else if(is.character(input2) | is.data.frame(input2) | is.list(input2)) {
-    comp.baseline <- 0
+    comp.baseline <- F
     
     if(is.null(input2.name)){
       baseline.name <- "Input2"
@@ -572,7 +572,7 @@ MixTCRviz <- function(input1, output.path=NULL,
   # Load input2
   #############
   
-  if(comp.baseline==0){
+  if(!comp.baseline){
     input2.list <- F
     if(is.character(input2)){
       if(file.exists(input2)){
@@ -601,6 +601,9 @@ MixTCRviz <- function(input1, output.path=NULL,
     cat("####\nChecking input2:\n")
     
     if(!input2.list){
+      if(length(unique(input2$model))>1){
+        stop("Issues with 'model' column in input2. All entries should have the same value.")
+      }
       ch <- verify.chain(input=input2, chain.list.output=chain.list.output)
       if(ch != chain.list.output){
         stop("Incompatible chains between input1 and input2")
@@ -741,7 +744,7 @@ MixTCRviz <- function(input1, output.path=NULL,
     
     if(plot){
       
-      if(comp.baseline==1){
+      if(comp.baseline){
         
         #####
         # Load the baseline repertoire corresponding to the species
@@ -839,7 +842,7 @@ MixTCRviz <- function(input1, output.path=NULL,
         
         #print(chain)
         
-        if(comp.baseline==1){
+        if(comp.baseline){
           #Check segments that were in the ES, but not in baseline
           miss.V.baseline <- setdiff(names(es$countV[[chain]]), names(baseline$countV[[chain]]))
           miss.J.baseline <- setdiff(names(es$countJ[[chain]]), names(baseline$countJ[[chain]]))
@@ -866,7 +869,7 @@ MixTCRviz <- function(input1, output.path=NULL,
             print(paste("WARNING: No ",chain,"J segment in input1", sep=""))
           }
           
-          if(comp.baseline==0){
+          if(!comp.baseline){
             if(length(baseline$countL[[chain]])==0){
               print(paste("WARNING: No CDR3", chain.small[chain]," segment in input2", sep=""))
             }
@@ -889,7 +892,7 @@ MixTCRviz <- function(input1, output.path=NULL,
           if(print.size){
             info["input1.name"] <- paste(info["input1.name"], " (", sum(es$countL[[chain]]),")",sep="")
             
-            if(comp.baseline==0){
+            if(!comp.baseline){
               info["baseline.name"] <- paste(info["baseline.name"], " (", sum(baseline$countL[[chain]]),")",sep="")
             }
           }
@@ -1021,9 +1024,11 @@ MixTCRviz <- function(input1, output.path=NULL,
           } else {
             bs <- baseline$countCDR3.L[[chain]]
           }
-          CDR3 <- plotCDR3(es$countL[[chain]], baseline$countL[[chain]], es$countCDR3.L[[chain]],
-                           bs, info, comp.baseline, plot.oneline, plot.all.length, plot.cdr3.norm,
-                           set.cdr3.length[[chain]], print.size=print.size)
+          CDR3 <- plotCDR3(countL.es=es$countL[[chain]], countL.rep=baseline$countL[[chain]], 
+                           countCDR3.es=es$countCDR3.L[[chain]], countCDR3.rep=bs,
+                           info=info, comp.baseline=comp.baseline, plot.oneline=plot.oneline, plot.all.length=plot.all.length, 
+                           plot.cdr3.subtract.baseline=plot.cdr3.norm, set.cdr3.length=set.cdr3.length[[chain]],
+                           print.size=print.size)
           
           logo.CDR3.L.es <- CDR3$ES
           logo.CDR3.L.baseline <- CDR3$Baseline
@@ -1182,7 +1187,19 @@ MixTCRviz <- function(input1, output.path=NULL,
           if(!is.null(set.title)){
             fig <- annotate_figure(fig, top = text_grob(label=set.title, face = "bold", size = 16))
           } else {
-            fig <- annotate_figure(fig, top = text_grob(label=model, face = "bold", size = 16))
+            if(comp.baseline){
+              fig <- annotate_figure(fig, top = text_grob(label=model, face = "bold", size = 16))
+            } else {
+              if(length(unique(input2$model))==0){
+                fig <- annotate_figure(fig, top = text_grob(label=model, face = "bold", size = 16))
+              } else {
+                if(unique(input2$model) == "Model_default"){
+                  fig <- annotate_figure(fig, top = text_grob(label=model, face = "bold", size = 16))
+                } else {
+                  fig <- annotate_figure(fig, top = text_grob(label=paste(model," / ",unique(input2$model),sep=""), face = "bold", size = 16))
+                }
+              }
+            }
           }
           fig <- ggarrange(spacer, fig,ncol=1, nrow=2, heights=c(spacer.size,1))
         } else {

@@ -393,7 +393,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info=NULL, comp
     } else {
       ylab <- info["input1.name"]
     }
-    if(comp.baseline==1 | !print.size){  
+    if(comp.baseline | !print.size){  
       xlab <- info["baseline.name"] 
     } else {
       xlab <- paste(info["baseline.name"]," (",n.rep,")", sep="")
@@ -555,7 +555,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info=NULL, comp
 # And when combined.resList isn't NULL, we'll use the results from this list
 # to plot the results (from multiple models combined together).
 plotLD <- function(countL.es, countL.rep, info=NULL, sd.es=NULL, sd.rep=NULL, plot.oneline=0, ret.resList=F,
-                   combined.resList=NULL, comp.baseline=1, print.size=T, plot.sd=T){
+                   combined.resList=NULL, comp.baseline=T, print.size=T, plot.sd=T){
   
   if (is.null(combined.resList)){
     
@@ -757,7 +757,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
         labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
       
       title.baseline <- info["baseline.name"]
-      if(comp.baseline==0 & print.size){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
+      if(!comp.baseline & print.size){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
       
       if(plot.cdr3.subtract.baseline==0){
         title.baseline <- paste(title.baseline,", CDR3", info["chain"],"_",l, sep="")
@@ -793,7 +793,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
         title <- paste(title,", CDR3", info["chain"],"_",l, sep="")
         
         title.baseline <- info["baseline.name"]
-        if(comp.baseline==0 & print.size){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
+        if(!comp.baseline & print.size){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
         
         if(plot.cdr3.subtract.baseline==0){
           title.baseline <- paste(title.baseline,", CDR3", info["chain"],"_",l, sep="")
@@ -813,7 +813,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
           } else if(plot.cdr3.subtract.baseline==2){
             title.baseline <- paste("CDR3", info["chain"],"_",l," renorm \n",info["baseline.name"], sep="")
           }
-          if(comp.baseline==0 & print.size){
+          if(!comp.baseline & print.size){
             title.baseline <- paste(title.baseline, "(",countL.rep[[lc]],")", sep="")
           }
         }
