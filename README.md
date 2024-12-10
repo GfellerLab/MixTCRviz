@@ -168,6 +168,10 @@ parameters (e.g., MixTCRviz(input1=input, output.path=output)).
    This is useful if your input does not contain a "model" column.
    In case the input contains the "model" column, model.default is not considered.
 
+- filename.output (default=NULL). Provide a name for the output file.
+  If NULL, the value(s) in the model column of input1 are used (i.e., input1$model).
+    If no 'model' column is provided, the value in model.default is used.
+
  - verbose (default=1)
     * 0: Do not write any QC in the output
     * 1: Write max 10 examples of putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
@@ -250,7 +254,8 @@ parameters (e.g., MixTCRviz(input1=input, output.path=output)).
 
  - plot.title (default=TRUE): If TRUE, print the model name as title to the plots.
 
- - set.title (default=NULL): Set the title of the plots. If empty, model names in input1 are used as title.
+ - set.title (default=NULL): Set the title of the plots.
+   If NULL, input1$model are used as titles. If not model column is provided in input1, model.default is used.
 
  - build.clones (default=F): If TRUE and if the data are provided in format with clone.id, reconstruct the actual clones in output
 
