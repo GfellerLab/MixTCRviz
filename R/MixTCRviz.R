@@ -693,6 +693,7 @@ MixTCRviz <- function(input1, output.path=NULL,
         print("Alleles currently not supported in mouse. The data will be treated at the gene level")
         use.allele.es <- F
       }
+     
       es <- build_stat(input1.es, chain.list=chain.list, species=species, comp.VJL=0)
       es$model <- model
       
@@ -749,23 +750,21 @@ MixTCRviz <- function(input1, output.path=NULL,
         #####
         # Load the baseline repertoire corresponding to the species
         #####
-        
         if(is.null(baseline)){
-          
           #These are the default repertoires.
           if(species=="HomoSapiens"){
             if(use.allele.es){
-              baseline <-  MixTCRviz::baseline_HomoSapiens_allele
+              baseline.model <-  MixTCRviz::baseline_HomoSapiens_allele
             } else {
-              baseline <- MixTCRviz::baseline_HomoSapiens
+              baseline.model <- MixTCRviz::baseline_HomoSapiens
             }
           }
           if(species=="MusMusculus"){
             if(!use.allele.es){  #N.B. Currently always the case in mouse
               if(use.mouse.strain){
-                baseline <- MixTCRviz::baseline_MusMusculus_Strain
+                baseline.model <- MixTCRviz::baseline_MusMusculus_Strain
               } else {
-                baseline <- MixTCRviz::baseline_MusMusculus
+                baseline.model <- MixTCRviz::baseline_MusMusculus
               }
             }
           }
@@ -777,34 +776,34 @@ MixTCRviz <- function(input1, output.path=NULL,
             use.allele=F
             
             if(species=="HomoSapiens"){
-              baseline <- MixTCRviz::baseline_HomoSapiens_SEQTR
+              baseline.model <- MixTCRviz::baseline_HomoSapiens_SEQTR
             } else if(species=="MusMusculus"){
               if(use.mouse.strain){
-                baseline <- MixTCRviz::baseline_MusMusculus_Strain_SEQTR
+                baseline.model <- MixTCRviz::baseline_MusMusculus_Strain_SEQTR
               } else{
-                baseline <- MixTCRviz::baseline_MusMusculus_SEQTR
+                baseline.model <- MixTCRviz::baseline_MusMusculus_SEQTR
               }
             }
           } else if(baseline=="Default"){
             if(species=="HomoSapiens"){
               if(use.allele){
-                baseline <- MixTCRviz::baseline_HomoSapiens_allele
+                baseline.model <- MixTCRviz::baseline_HomoSapiens_allele
               } else {
-                baseline <- MixTCRviz::baseline_HomoSapiens
+                baseline.model <- MixTCRviz::baseline_HomoSapiens
               }
             } else if(species=="MusMusculus"){
               if(use.mouse.strain){
-                baseline <- MixTCRviz::baseline_MusMusculus_Strain_SEQTR
+                baseline.model <- MixTCRviz::baseline_MusMusculus_Strain_SEQTR
               } else {
-                baseline <- MixTCRviz::baseline_MusMusculus_SEQTR
+                baseline.model <- MixTCRviz::baseline_MusMusculus_SEQTR
               }
             }
           } else if(file.exists(baseline)){
             st <- strsplit(baseline, split=".", fixed = T)[[1]]
             if(st[length(st)]=="rds"){
-              baseline <- readRDS(file=baseline)
+              baseline.model <- readRDS(file=baseline)
             } else if(st[length(st)]=="rda" | st[length(st)]=="rdata"){
-              load(baseline)
+              load(baseline.model)
             } else{
               stop("Unsupported format for baseline file. Should be .rds, .rda or .rdata")
             }
@@ -813,7 +812,7 @@ MixTCRviz <- function(input1, output.path=NULL,
             stop("Missing baseline file")
           }
         } else if (is.list(baseline)){
-          baseline <- baseline
+          baseline.model <- baseline
         } else {
           stop("Unable to use the baseline provided in input")
         }
@@ -828,9 +827,9 @@ MixTCRviz <- function(input1, output.path=NULL,
                "additional input2 data instead of a baseline repertoire.")
         }
         if(!input2.list){
-          baseline <- build_stat(input2, chain.list=chain.list, species=species, comp.VJL=renormVJ)
+          baseline.model <- build_stat(input2, chain.list=chain.list, species=species, comp.VJL=renormVJ)
         } else {
-          baseline <- input2
+          baseline.model <- input2
           
           if(input2$species != species){
             stop(paste("Different species between input1 (",model,") and input2.", sep=""))
@@ -844,8 +843,8 @@ MixTCRviz <- function(input1, output.path=NULL,
         
         if(comp.baseline){
           #Check segments that were in the ES, but not in baseline
-          miss.V.baseline <- setdiff(names(es$countV[[chain]]), names(baseline$countV[[chain]]))
-          miss.J.baseline <- setdiff(names(es$countJ[[chain]]), names(baseline$countJ[[chain]]))
+          miss.V.baseline <- setdiff(names(es$countV[[chain]]), names(baseline.model$countV[[chain]]))
+          miss.J.baseline <- setdiff(names(es$countJ[[chain]]), names(baseline.model$countJ[[chain]]))
           if(verbose>0){
             if(length(miss.V.baseline)>=1){
               print(paste("WARNING: ",chain,"V in Input TCRs, but absent from baseline: ", sep=""))
@@ -870,13 +869,13 @@ MixTCRviz <- function(input1, output.path=NULL,
           }
           
           if(!comp.baseline){
-            if(length(baseline$countL[[chain]])==0){
+            if(length(baseline.model$countL[[chain]])==0){
               print(paste("WARNING: No CDR3", chain.small[chain]," segment in input2", sep=""))
             }
-            if(length(baseline$countV[[chain]])==0){
+            if(length(baseline.model$countV[[chain]])==0){
               print(paste("WARNING: No ", chain,"V segment in input2", sep=""))
             }
-            if(length(baseline$countJ[[chain]])==0){
+            if(length(baseline.model$countJ[[chain]])==0){
               print(paste("WARNING: No ",chain,"J segment in input2", sep=""))
             }
           }
@@ -886,37 +885,37 @@ MixTCRviz <- function(input1, output.path=NULL,
         # Plot length distribution
         #######
         
-        if(length(es$countL[[chain]])>0 & length(baseline$countL[[chain]])>0){
+        if(length(es$countL[[chain]])>0 & length(baseline.model$countL[[chain]])>0){
           info <- c(chain.small[chain], input1.name, baseline.name, model)
           names(info) <- c("chain", "input1.name", "baseline.name", "model")
           if(print.size){
             info["input1.name"] <- paste(info["input1.name"], " (", sum(es$countL[[chain]]),")",sep="")
             
             if(!comp.baseline){
-              info["baseline.name"] <- paste(info["baseline.name"], " (", sum(baseline$countL[[chain]]),")",sep="")
+              info["baseline.name"] <- paste(info["baseline.name"], " (", sum(baseline.model$countL[[chain]]),")",sep="")
             }
           }
           
           if(renormVJ==1){
-            if(length(es$countVJ[[chain]])>0 & !is.null(baseline$countL.VJ[[chain]])){
+            if(length(es$countVJ[[chain]])>0 & !is.null(baseline.model$countL.VJ[[chain]])){
               info["baseline.name"] <- paste(info["baseline.name"], "P(VJ)",sep=" | ")
-              bs <- weighted_countL(baseline$countL.VJ[[chain]], es$countVJ[[chain]])
+              bs <- weighted_countL(baseline.model$countL.VJ[[chain]], es$countVJ[[chain]])
               
             } else {
               if(length(es$countVJ[[chain]])==0){
                 print(paste("No P(VJ) information in input1 to compute baseline CDR3",chain.small[chain]," length distribution | P(VJ). renormVJ=0 will be used", sep=""))
               }
-              if(is.null(baseline$countL.VJ[[chain]])){
+              if(is.null(baseline.model$countL.VJ[[chain]])){
                 print(paste("No P(L|VJ) information in baseline/input2 to compute baseline CDR3",chain.small[chain]," length distribution | P(VJ). renormVJ=0 will be used", sep=""))
               }
-              bs <- baseline$countL[[chain]]
+              bs <- baseline.model$countL[[chain]]
             }
           } else{
-            bs <- baseline$countL[[chain]]
+            bs <- baseline.model$countL[[chain]]
           }
-          bs.sd <- baseline$sdL[[chain]] # This means that we do not change the sd values, irrespective of | P(VJ)
+          bs.sd <- baseline.model$sdL[[chain]] # This means that we do not change the sd values, irrespective of | P(VJ)
           
-          #baseline$sdL[[chain]] <- 0.2*baseline$countL[[chain]]/sum(baseline$countL[[chain]])
+          #baseline.model$sdL[[chain]] <- 0.2*baseline.model$countL[[chain]]/sum(baseline.model$countL[[chain]])
           #es$sdL[[chain]] <- 0.2*es$countL[[chain]]
           
           ld.plot <- plotLD(es$countL[[chain]], bs, info=info, sd.es=es$sdL[[chain]], sd.rep=bs.sd, plot.oneline=plot.oneline,
@@ -929,12 +928,12 @@ MixTCRviz <- function(input1, output.path=NULL,
         # Plot comparison of V/J usage
         #######
         
-        if(length(es$countV[[chain]])>0 & length(baseline$countV[[chain]])>0){
+        if(length(es$countV[[chain]])>0 & length(baseline.model$countV[[chain]])>0){
           
           infoV <- c(paste(chain,"V", sep=""), input1.name, baseline.name, model)
           names(infoV) <- c("gene", "input1.name", "baseline.name", "model")
           
-          countV.plot <- plotVJ(count.es=es$countV[[chain]], count.rep=baseline$countV[[chain]], sd.es=es$sdV[[chain]], sd.rep=baseline$sdV[[chain]],
+          countV.plot <- plotVJ(count.es=es$countV[[chain]], count.rep=baseline.model$countV[[chain]], sd.es=es$sdV[[chain]], sd.rep=baseline.model$sdV[[chain]],
                                 info=infoV, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species,
                                 ret.resList=plot.modelsCombined, label.neg = label.neg, label.diag=label.diag, label.min.fr=label.min.fr, print.size=print.size, plot.sd=plot.sd, verbose=verbose)
         } else {
@@ -942,13 +941,13 @@ MixTCRviz <- function(input1, output.path=NULL,
           countV.plot <- ggplot()
         }
         
-        if(length(es$countJ[[chain]])>0 & length(baseline$countJ[[chain]])>0){
+        if(length(es$countJ[[chain]])>0 & length(baseline.model$countJ[[chain]])>0){
           
           infoJ <- c(paste(chain,"J", sep=""), input1.name, baseline.name, model)
           names(infoJ) <- c("gene", "input1.name", "baseline.name", "model")
           
           
-          countJ.plot <- plotVJ(count.es=es$countJ[[chain]], count.rep=baseline$countJ[[chain]], sd.es=es$sdJ[[chain]], sd.rep=baseline$sdJ[[chain]],
+          countJ.plot <- plotVJ(count.es=es$countJ[[chain]], count.rep=baseline.model$countJ[[chain]], sd.es=es$sdJ[[chain]], sd.rep=baseline.model$sdJ[[chain]],
                                 info=infoJ, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species,
                                 ret.resList=plot.modelsCombined, label.neg = label.neg, label.diag=label.diag, label.min.fr=label.min.fr, print.size=print.size, plot.sd=plot.sd, verbose=verbose)
         } else {
@@ -1009,22 +1008,22 @@ MixTCRviz <- function(input1, output.path=NULL,
           
           #Here we include a correction based on VJ usage for each length.
           if(renormVJ==1){
-            if(max(sapply(es$countVJ.L[[chain]],length))>0 & !is.null(baseline$countCDR3.VJL[[chain]])){  #Make sure we have V-J pairs for at least one length
+            if(max(sapply(es$countVJ.L[[chain]],length))>0 & !is.null(baseline.model$countCDR3.VJL[[chain]])){  #Make sure we have V-J pairs for at least one length
               info["baseline.name"] <- paste(info["baseline.name"], "P(VJ)",sep=" | ")
-              bs <- weighted_countCDR3(baseline$countCDR3.VJL[[chain]], es$countVJ.L[[chain]])
+              bs <- weighted_countCDR3(baseline.model$countCDR3.VJL[[chain]], es$countVJ.L[[chain]])
             } else {
               if(max(sapply(es$countVJ.L[[chain]],length))==0){
                 print(paste("No P(VJ|L) information in input1 to compute baseline CDR3",chain.small[chain]," motif | P(VJ). renormVJ=0 will be used",sep=""))
               }
-              if(is.null(baseline$countCDR3.VJL[[chain]])){
+              if(is.null(baseline.model$countCDR3.VJL[[chain]])){
                 print(paste("No P(CDR3|VJL) information in baseline/input2 to compute baseline CDR3",chain.small[chain]," motif | P(VJ). renormVJ=0 will be used",sep=""))
               }
-              bs <- baseline$countCDR3.L[[chain]]
+              bs <- baseline.model$countCDR3.L[[chain]]
             }
           } else {
-            bs <- baseline$countCDR3.L[[chain]]
+            bs <- baseline.model$countCDR3.L[[chain]]
           }
-          CDR3 <- plotCDR3(countL.es=es$countL[[chain]], countL.rep=baseline$countL[[chain]], 
+          CDR3 <- plotCDR3(countL.es=es$countL[[chain]], countL.rep=baseline.model$countL[[chain]], 
                            countCDR3.es=es$countCDR3.L[[chain]], countCDR3.rep=bs,
                            info=info, comp.baseline=comp.baseline, plot.oneline=plot.oneline, plot.all.length=plot.all.length, 
                            plot.cdr3.subtract.baseline=plot.cdr3.norm, set.cdr3.length=set.cdr3.length[[chain]],
@@ -1120,12 +1119,12 @@ MixTCRviz <- function(input1, output.path=NULL,
               #Add the comparison of V/J usage
               infoV <- c(paste(chain,"V", sep=""), input1.name, baseline.name, model)
               names(infoV) <- c("gene", "input1.name", "baseline.name", "model")
-              plotV.L <- plotVJ(count.es=es$countV.L[[chain]][[t]], count.rep=baseline$countV.L[[chain]][[t]],
+              plotV.L <- plotVJ(count.es=es$countV.L[[chain]][[t]], count.rep=baseline.model$countV.L[[chain]][[t]],
                                 info=infoV, comp.baseline = comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg,  label.diag=label.diag,
                                 label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
               infoV <- c(paste(chain,"J", sep=""), input1.name, baseline.name, model)
               names(infoV) <- c("gene", "input1.name", "baseline.name", "model")
-              plotJ.L <- plotVJ(count.es=es$countJ.L[[chain]][[t]], count.rep=baseline$countJ.L[[chain]][[t]],
+              plotJ.L <- plotVJ(count.es=es$countJ.L[[chain]][[t]], count.rep=baseline.model$countJ.L[[chain]][[t]],
                                 info=infoJ, comp.baseline = comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg,  label.diag=label.diag,
                                 label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
               
