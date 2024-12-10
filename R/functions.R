@@ -448,6 +448,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info=NULL, comp
       stop("Didn't implement the use of combined.ResList when floor(pType) == 1")
     }
     
+    
     count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) +
       geom_abline(col="orange",linetype="dashed",linewidth=1)
     
@@ -488,8 +489,6 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info=NULL, comp
                        show.legend=F, na.rm=T) +
       scale_fill_manual(values=colorScale, guide="none") +
       xlab(xlab) + ylab(ylab) + theme(panel.grid.minor = element_blank())
-    
-    
     
   } else {
     # Show results as bar plots. Will only keep most significant genes, summing

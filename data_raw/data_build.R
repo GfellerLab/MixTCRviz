@@ -403,10 +403,10 @@ usethis::use_data(gene.allele.list, gene.list, allele.default, clone.format.col,
 # due to the size of these data). We could also put these in "inst/RData/"
 # folder for example and then in the code, use
 # "system.file("RData", package = "MixTCRviz")" to get path to this folder.
-if (TRUE){
+if (FALSE){
   # I did this only once and then deleted the RData folder, kept the code
   # in case we need to redo it later.
-  path.rep <- "../MixTCR_scripts/data/Repertoires"
+  path.rep <- "../MixTCR_internal/data/Repertoires"
   baseline_HomoSapiens <- readRDS(paste(path.rep,"/baseline_HomoSapiens_mean_bulk_and_paired.rds",sep=""))
   baseline_HomoSapiens_allele <- readRDS(paste(path.rep,"/baseline_HomoSapiens_mean_bulk_and_paired_allele.rds",sep=""))
   baseline_MusMusculus_Strain <- readRDS(paste(path.rep,"/baseline_MusMusculus_Strain.rds",sep=""))

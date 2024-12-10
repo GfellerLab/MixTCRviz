@@ -19,6 +19,7 @@ MixTCRviz(
   N.min = 1,
   output.stat = F,
   output.processed.data = F,
+  filename.output = NULL,
   set.cdr3a.length = NA,
   set.cdr3b.length = NA,
   plot.title = T,
@@ -152,6 +153,10 @@ one chain. This number is computed after cleaning the data.}
 Only supported if return.object != 2
 }}
 
+\item{filename.output}{(default=NULL). Provide a name for the output file.
+If NULL, the value(s) in the model column of input1 are used (i.e., input1$model).
+If no 'model' column is provided, the value in model.default is used.}
+
 \item{set.cdr3a.length}{(default=NA) Length for the CDR3a motif to be shown in the main plot.
 By default the value corresponding to the most frequent CDR3a length in input1 (and also present in input2 if input2 is given) is chosen.}
 
@@ -160,7 +165,8 @@ By default the value corresponding to the most frequent CDR3b length in input1 (
 
 \item{plot.title}{(default=TRUE): If TRUE, print the model name as title to the plots.}
 
-\item{set.title}{(default=NULL): Set the title of the plots. If empty, model names in input1 are used as title.}
+\item{set.title}{(default=NULL): Set the title of the plots.
+If NULL, input1$model are used as titles. If not model column is provided in input1, model.default is used.}
 
 \item{return.object}{(default=0):
 \itemize{

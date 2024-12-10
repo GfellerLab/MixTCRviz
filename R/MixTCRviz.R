@@ -18,6 +18,7 @@
 #'   Cases with non-amino acid characters, or length < 7 or > 22 will be not be considered (i.e., put to NA).
 #'   If a column is missing, empty values will be used.
 #'    * Other formats are supported (see README.md)
+#'
 #' @param output.path name of the output directory (if not already existing, it
 #'   will be created). If existing the files with the same name will be overwritten.
 #'   It can be left empty ONLY with the option return.object=2.
@@ -104,6 +105,10 @@
 #' @param model.default (default="Model_default") Option to provide the model for all the TCR in input, which is also used as the name of the output files.
 #'   This is useful if your input does not contain a "model" column.
 #'   In case the input contains the "model" column, model.default is not considered.
+#'
+#' @param filename.output (default=NULL). Provide a name for the output file. 
+#'  If NULL, the value(s) in the model column of input1 are used (i.e., input1$model).
+#'    If no 'model' column is provided, the value in model.default is used.
 #'   
 #' @param verbose (default=1)
 #'    * 0: Do not write any QC in the output
@@ -189,7 +194,8 @@
 #' 
 #' @param plot.title (default=TRUE): If TRUE, print the model name as title to the plots.
 #' 
-#' @param set.title (default=NULL): Set the title of the plots. If empty, model names in input1 are used as title.
+#' @param set.title (default=NULL): Set the title of the plots. 
+#'  If NULL, input1$model are used as titles. If not model column is provided in input1, model.default is used.
 #' 
 #' @param build.clones (default=F): If TRUE and if the data are provided in format with clone.id, reconstruct the actual clones in output
 #'  
@@ -208,7 +214,7 @@
 MixTCRviz <- function(input1, output.path=NULL,
                       input2=NULL, baseline=NULL,
                       use.allele=F, correct.gene.names=T, use.mouse.strain=F, check.cdr3.mode=1, start.lg=1, end.lg=2,
-                      renormVJ=NULL, N.min=1, output.stat=F, output.processed.data=F, 
+                      renormVJ=NULL, N.min=1, output.stat=F, output.processed.data=F, filename.output=NULL,
                       set.cdr3a.length=NA, set.cdr3b.length=NA, plot.title=T, set.title=NULL, return.object=0,
                       species.default="HomoSapiens", model.default="Model_default", verbose=1, build.clones=F,
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
@@ -417,6 +423,25 @@ MixTCRviz <- function(input1, output.path=NULL,
     print("Invalid value for input1.name. Default value of \"Input\" will be used")
     input1.name <- "Input"
   }
+  if(!is.null(input2.name)){
+    if(!is.character(input2.name)){
+      print("Invalid value for input2.name. Default value of \"Input2\" will be used")
+      input2.name <- "Input2"
+    }
+  }
+  if(!is.null(filename.output)){
+    if(!is.character(filename.output)){
+      print("Invalid value for filename.output. Default value of the models will be used")
+      filename.output <- NULL
+    } else {
+      if(grepl("\\\\|,|;| |\\*|/|\\?|#", filename.output)){
+        filename.output <- gsub("\\\\|,|;| |\\*|/|\\?|#", "_", filename.output)
+        print("Special characters, including /, \\, *, space,... are not supported in filename.output. Each of them will be changed into _")
+        print(paste("New filename.output:", filename.output))
+      }
+    }
+  }
+  
   
   if(! output.format %in% c("pdf", "png", "jpg")){
     print("Invalid value for output.format. Default value of \"pdf\" will be used")
@@ -672,6 +697,18 @@ MixTCRviz <- function(input1, output.path=NULL,
     
     use.allele.es <- use.allele
     
+    if(!is.null(filename.output)){
+      filename.final <- filename.output
+    } else {
+      filename.final <- model
+      if(grepl("\\\\|,|;| |\\*|/|\\?|#", filename.final)){
+        filename.final <- gsub("\\\\|,|;| |\\*|/|\\?|#", "_", filename.final)
+        print("Special characters, including /, \\, *, space,... are not supported in filenames derived from 'model'. Each of them will be changed into _")
+        print(paste("New filename :", filename.final))
+      }
+    }
+    
+    
     print(paste("Model:",model))
     
     pg.all <- list()
@@ -715,7 +752,7 @@ MixTCRviz <- function(input1, output.path=NULL,
       if(!dir.exists(dir)){
         dir.create(dir);
       }
-      saveRDS(es, file=paste(output.path,"/stats/",model,".rds", sep=""))
+      saveRDS(es, file=paste(output.path,"/stats/",filename.final,".rds", sep=""))
     }
     if(output.processed.data){
       if(!input1.list){
@@ -739,7 +776,7 @@ MixTCRviz <- function(input1, output.path=NULL,
         quote_if_comma <- function(x) {  ifelse(grepl(",", x), paste0('"', x, '"'), x) }
         tinput1.es <- as.data.frame(apply(tinput1.es, 2, function(col) { if (is.character(col)) quote_if_comma(col) else col }))
         
-        write.csv(tinput1.es, file=paste(output.path,"/processed_data/",model,".csv", sep=""), quote=F, row.names = F, na = "")
+        write.csv(tinput1.es, file=paste(output.path,"/processed_data/",filename.final,".csv", sep=""), quote=F, row.names = F, na = "")
       }
     }
     
@@ -1179,31 +1216,24 @@ MixTCRviz <- function(input1, output.path=NULL,
             
           }
         }
+        
+        if(!is.null(set.title)){
+          title.final <- set.title
+        } else {
+          title.final <- model
+        }
         if(plot.title){
           spacer.size=0.02
           spacer <- ggplot() + theme_void() + theme(plot.margin = unit(c(1, 0, 0, 0), "cm"))
           fig <- ggarrange(spacer, pg.both, ncol=1, nrow=2, heights=c(spacer.size,1))
-          if(!is.null(set.title)){
-            fig <- annotate_figure(fig, top = text_grob(label=set.title, face = "bold", size = 16))
-          } else {
-            if(comp.baseline){
-              fig <- annotate_figure(fig, top = text_grob(label=model, face = "bold", size = 16))
-            } else {
-              if(length(unique(input2$model))==0){
-                fig <- annotate_figure(fig, top = text_grob(label=model, face = "bold", size = 16))
-              } else {
-                if(unique(input2$model) == "Model_default"){
-                  fig <- annotate_figure(fig, top = text_grob(label=model, face = "bold", size = 16))
-                } else {
-                  fig <- annotate_figure(fig, top = text_grob(label=paste(model," / ",unique(input2$model),sep=""), face = "bold", size = 16))
-                }
-              }
-            }
-          }
+          
+          fig <- annotate_figure(fig, top = text_grob(label=title.final, face = "bold", size = 16))
+          
           fig <- ggarrange(spacer, fig,ncol=1, nrow=2, heights=c(spacer.size,1))
         } else {
           fig <- pg.both
         }
+        
         if(plot.cdr12.motif){
           width <- 20
           height <- 6
@@ -1246,7 +1276,7 @@ MixTCRviz <- function(input1, output.path=NULL,
           }
         }
         if(return.object != 2){
-          ggsave(fig, filename=paste(output.path,"/",model,".", output.format, sep=""), device=output.format, width = width/div, height = height)
+          ggsave(fig, filename=paste(output.path,"/",filename.final,".", output.format, sep=""), device=output.format, width = width/div, height = height)
         }
         if(return.object != 0){
           plot.lst[[model]] <- fig

@@ -43,7 +43,7 @@ There are different ways of "installing" MixTCRviz:
     compile it and install it:<br />
     ` r` <br />
     `devtools::build()` <br />
-    `install.packages("../MixTCRviz_0.0.2.tar.gz", repos=NULL)` <br />
+    `install.packages("../MixTCRviz_1.0.tar.gz", repos=NULL)` <br />
 
 
 You may be prompted to install several packages.
