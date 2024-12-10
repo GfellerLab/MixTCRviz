@@ -230,7 +230,7 @@ parameters (e.g., MixTCRviz(input1=input, output.path=output)).
      Even if input only consists of complete chains, incomplete chain can occur when one V/J gene cannot be corrected,
      or when there is some incompatibilities between V/J names and CDR3 sequences
 
- - chain.list.output (default="AB")
+ - chain (default="AB")
     * A: Only the alpha chain is plotted in output;
     * B: only the beta chain is plotted in output;
     * AB both chains are plotted in output

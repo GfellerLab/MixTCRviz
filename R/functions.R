@@ -4,10 +4,12 @@
 #####
 
 #' @export
-build_stat <- function(input, chain.list=c("TRA","TRB"), species="HomoSapiens", comp.VJL=0){
+build_stat <- function(input, chain="AB", species="HomoSapiens", comp.VJL=0){
   
   # comp.VJL>=1 means we are computing length distributions and motifs knowing P(VJ)
   # It takes some time, but still reasonable.
+  
+  chain.list <- paste("TR",strsplit(chain,"")[[1]], sep="")
   
   es <- list()
   es$species <- species
@@ -22,68 +24,68 @@ build_stat <- function(input, chain.list=c("TRA","TRB"), species="HomoSapiens", 
   
   input[input==""] <- NA # Useful if using build_stat outside of MixTCRviz
   
-  for(chain in chain.list){
+  for(ch in chain.list){
     
-    Vn <- paste(chain,"V", sep="")
-    Jn <- paste(chain,"J", sep="")
-    cdr3 <- paste("cdr3_",chain,sep="")
+    Vn <- paste(ch,"V", sep="")
+    Jn <- paste(ch,"J", sep="")
+    cdr3 <- paste("cdr3_",ch,sep="")
     
-    es$countV[[chain]] <- table(input[,Vn])
-    es$countJ[[chain]] <- table(input[,Jn])
+    es$countV[[ch]] <- table(input[,Vn])
+    es$countJ[[ch]] <- table(input[,Jn])
     
-    es$countL[[chain]] <- table(nchar(input[,cdr3]))
-    es$L[[chain]] <- as.numeric(names(es$countL[[chain]]))
-    if(length(es$countL[[chain]])>0){
-      names(es$countL[[chain]]) <- paste("L",names(es$countL[[chain]]),sep="_")
+    es$countL[[ch]] <- table(nchar(input[,cdr3]))
+    es$L[[ch]] <- as.numeric(names(es$countL[[ch]]))
+    if(length(es$countL[[ch]])>0){
+      names(es$countL[[ch]]) <- paste("L",names(es$countL[[ch]]),sep="_")
     }
-    es$countVJ[[chain]] <- table(input[,Vn], input[,Jn])
+    es$countVJ[[ch]] <- table(input[,Vn], input[,Jn])
     
-    es$countV.L[[chain]] <- list()
-    es$countJ.L[[chain]] <- list()
-    es$countVJ.L[[chain]] <- list()
-    for(lg in es$L[[chain]]){
+    es$countV.L[[ch]] <- list()
+    es$countJ.L[[ch]] <- list()
+    es$countVJ.L[[ch]] <- list()
+    for(lg in es$L[[ch]]){
       ind <- which(nchar(input[,cdr3])==lg)
       lg.c <- paste("L",lg,sep="_")
-      es$countV.L[[chain]][[lg.c]] <- table(input[ind,Vn])
-      es$countJ.L[[chain]][[lg.c]] <- table(input[ind,Jn])
-      es$countVJ.L[[chain]][[lg.c]] <- table(input[ind,Vn],input[ind,Jn])
+      es$countV.L[[ch]][[lg.c]] <- table(input[ind,Vn])
+      es$countJ.L[[ch]][[lg.c]] <- table(input[ind,Jn])
+      es$countVJ.L[[ch]][[lg.c]] <- table(input[ind,Vn],input[ind,Jn])
     }
     
     if(comp.VJL>=1){
       
-      for(V in names(es$countV[[chain]])){
+      for(V in names(es$countV[[ch]])){
         indv <- which(input[,Vn]==V)
-        es$countCDR3.VL[[chain]][[V]] <- count_aa(input[indv,cdr3], keep.gap=0)
+        es$countCDR3.VL[[ch]][[V]] <- count_aa(input[indv,cdr3], keep.gap=0)
       }
-      for(J in names(es$countJ[[chain]])){
+      for(J in names(es$countJ[[ch]])){
         indj <- which(input[,Jn]==J)
-        es$countCDR3.JL[[chain]][[J]] <- count_aa(input[indj,cdr3], keep.gap=0)
+        es$countCDR3.JL[[ch]][[J]] <- count_aa(input[indj,cdr3], keep.gap=0)
       }
-      for(V in names(es$countV[[chain]])){
+      for(V in names(es$countV[[ch]])){
         indv <- which(input[,Vn]==V)
         
-        for(J in names(es$countJ[[chain]])){
+        for(J in names(es$countJ[[ch]])){
           indj <- which(input[indv,Jn]==J)
           ind <- indv[indj]
           s <- paste(V,J, sep="_")
           if(length(ind)>0){
-            es$countL.VJ[[chain]][[s]] <- table(nchar(input[ind,cdr3]))
-            if(length(es$countL.VJ[[chain]][[s]])>0){
-              names(es$countL.VJ[[chain]][[s]]) <- paste("L", names(es$countL.VJ[[chain]][[s]]),sep="_")
+            es$countL.VJ[[ch]][[s]] <- table(nchar(input[ind,cdr3]))
+            if(length(es$countL.VJ[[ch]][[s]])>0){
+              names(es$countL.VJ[[ch]][[s]]) <- paste("L", names(es$countL.VJ[[ch]][[s]]),sep="_")
             }
-            es$countCDR3.VJL[[chain]][[s]] <- count_aa(input[ind,cdr3], keep.gap=0)
+            es$countCDR3.VJL[[ch]][[s]] <- count_aa(input[ind,cdr3], keep.gap=0)
           } else {
-            es$countL.VJ[[chain]][[s]] <- table(NA)
-            es$countCDR3.VJL[[chain]][[s]] <- table(NA)
+            es$countL.VJ[[ch]][[s]] <- table(NA)
+            es$countCDR3.VJL[[ch]][[s]] <- table(NA)
           }
         }
       }
     }
-    if(length(es$countV[[chain]])>0){
-      es$countCDR1[[chain]] <- count_aa(cdr123[[species]][[chain]][input[,Vn],"CDR1"], keep.gap=1)
-      es$countCDR2[[chain]] <- count_aa(cdr123[[species]][[chain]][input[,Vn],"CDR2"], keep.gap=1)
+    if(length(es$countV[[ch]])>0){
+      es$countCDR1[[ch]] <- count_aa(cdr123[[species]][[ch]][input[,Vn],"CDR1"], keep.gap=1)
+      es$countCDR2[[ch]] <- count_aa(cdr123[[species]][[ch]][input[,Vn],"CDR2"], keep.gap=1)
     }
-    es$countCDR3.L[[chain]] <- count_aa(input[,cdr3], keep.gap=0)
+    es$countCDR3.L[[ch]] <- count_aa(input[,cdr3], keep.gap=0)
     
     
   }
@@ -852,11 +854,15 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
 }
 
 
-check_input <- function(input, chain.list.output="AB", name="input1", species.default="HomoSapiens",
+check_input <- function(input, chain="AB", name="input1", species.default="HomoSapiens",
                         model.default="Model_default", input.list=F, build.clones=F){
   
   #Check if some columns are missing, and add them with default values
   map.back.colnames <- list()
+  
+  chain.list <- paste("TR",strsplit(chain,split="")[[1]], sep="")
+  
+  
   if(is.data.frame(input) & !input.list){
     
     format <- determine.format(input)
@@ -886,16 +892,15 @@ check_input <- function(input, chain.list.output="AB", name="input1", species.de
       }
     }
     
-    chain <- strsplit(chain.list.output,split="")[[1]]
-    col <- as.character(sapply(chain, function(x){c(paste("TR",x,"V",sep=""), paste("TR",x,"J",sep=""),paste("cdr3_TR",x,sep=""))}))
+    col <- as.character(sapply(chain.list, function(x){c(paste(x,"V",sep=""), paste(x,"J",sep=""),paste("cdr3_",x,sep=""))}))
     
     #Deal with cases where column name do not follow the default of MixTCRviz
     #Do different corrections for single chain (e.g., allow V or CDR3) and paired data (allow only Va or CDR3a).
     for(i in 1:length(colnames(input))){
       cl <- colnames(input)[i]
       #Check if the col.names is in the mapping
-      if(cl %in% names(mapping.colnames[[chain.list.output]])){
-        mp <- mapping.colnames[[chain.list.output]][cl]
+      if(cl %in% names(mapping.colnames[[chain]])){
+        mp <- mapping.colnames[[chain]][cl]
         #Make sure another entry does not already have the corrected name
         if( !mp %in% colnames(input)){
           map.back.colnames[[mp]] <- colnames(input)[i] 
@@ -929,14 +934,13 @@ check_input <- function(input, chain.list.output="AB", name="input1", species.de
     }
   } else if(input.list) {
     nm.list <- c("L","countL","countV","countJ", "countVJ.L", "countCDR3.L", "countVJ",  "countV.L", "countJ.L") # the last 4 are actually not very useful
-    chain.list <- paste("TR", unlist(strsplit(chain.list.output,split="")), sep="")
     for(nm in nm.list){
       if(is.null(input[[nm]])){
         stop(paste("Missing feature in input object:",nm,sep=" "))
       } else {
-        for(chain in chain.list){
-          if(is.null(input[[nm]][[chain]])){
-            stop(paste("Missing feature in input object:",nm,chain,sep=" "))
+        for(ch in chain.list){
+          if(is.null(input[[nm]][[ch]])){
+            stop(paste("Missing feature in input object:",nm,ch,sep=" "))
           } 
         }
       }
@@ -963,7 +967,7 @@ check_input <- function(input, chain.list.output="AB", name="input1", species.de
 
 #' @export
 clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.strain=F, 
-                        chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, 
+                        chain="AB", species.default="HomoSapiens", check.cdr3.mode=1, 
                         keep.incomplete.chain=T, start.lg=1, end.lg=2, verbose=1){
   
   ####
@@ -982,17 +986,17 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
     use.species.default <- T
   }
   
-  if(chain.list.output=="AB"){
+  if(chain=="AB"){
     col <- c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB")
     segment.list <- c("TRAV","TRAJ","TRBV","TRBJ")
     cdr3.list <- c("cdr3_TRA","cdr3_TRB")
   }
-  if(chain.list.output=="A"){
+  if(chain=="A"){
     col <- c("TRAV","TRAJ","cdr3_TRA")
     segment.list <- c("TRAV","TRAJ")
     cdr3.list <- c("cdr3_TRA")
   }
-  if(chain.list.output=="B"){
+  if(chain=="B"){
     col <- c("TRBV","TRBJ","cdr3_TRB")
     segment.list <- c("TRBV","TRBJ")
     cdr3.list <- c("cdr3_TRB")
@@ -1105,7 +1109,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
   
   if(check.cdr3.mode > 0){
     #print("Checking CDR3")
-    input <- check_cdr3(input=input, chain.list.output=chain.list.output, species.default=species.default, check.cdr3.mode=check.cdr3.mode, start.lg=start.lg, end.lg=end.lg, verbose=verbose)
+    input <- check_cdr3(input=input, chain=chain, species.default=species.default, check.cdr3.mode=check.cdr3.mode, start.lg=start.lg, end.lg=end.lg, verbose=verbose)
   }
   ################
   # Do an extra correction for mouse entries, where only gene level analyses are allowed
@@ -1130,15 +1134,15 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
       }
     }
     
-    if(!use.mouse.strain & chain.list.output != "B"){
+    if(!use.mouse.strain & chain != "B"){
       input[ind,] <- merge_mouse_TRAV(input[ind,])  #WARNING: This only works if alleles have been removed (so far always the case in mouse)
     }
   }
   
   if(!keep.incomplete.chain){
-    chain.list <- paste("TR",strsplit(chain.list.output,split="")[[1]],sep="")
-    for(chain in chain.list){
-      cl <- c(paste(chain,"V",sep=""),paste(chain,"J",sep=""),paste("cdr3_",chain,sep=""))
+    chain.list <- paste("TR",strsplit(chain,split="")[[1]], sep="")
+    for(ch in chain.list){
+      cl <- c(paste(ch,"V",sep=""),paste(ch,"J",sep=""),paste("cdr3_",ch,sep=""))
       ind <- apply(input[,cl],1,function(x){any(is.na(x))})
       input[ind,cl] <- NA
     }
@@ -1152,7 +1156,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
 }
 
 #' @export
-check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapiens", check.cdr3.mode=1, start.lg=1, end.lg=2, verbose=1){
+check_cdr3 <- function(input, chain="AB", species.default="HomoSapiens", check.cdr3.mode=1, start.lg=1, end.lg=2, verbose=1){
   
   # Clean the CDR3 based on the V and J usage.
   # This should be applied after correcting the gene names, and adding the species if needed
@@ -1167,16 +1171,14 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
     use.species.default <- T
   }
   
-  if(chain.list.output=="A"){chain.list=c("TRA")}
-  if(chain.list.output=="B"){chain.list=c("TRB")}
-  if(chain.list.output=="AB"){chain.list=c("TRA","TRB")}
+  chain.list <- paste("TR",strsplit(chain,split="")[[1]], sep="")
   
   
-  for(chain in chain.list){
+  for(ch in chain.list){
     
-    V <- paste(chain,"V",sep="")
-    J <- paste(chain,"J",sep="")
-    cdr3 <- paste("cdr3_",chain,sep="")
+    V <- paste(ch,"V",sep="")
+    J <- paste(ch,"J",sep="")
+    cdr3 <- paste("cdr3_",ch,sep="")
     
     for(species in species.list){
       
@@ -1196,7 +1198,7 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
       if(check.cdr3.mode==1){
         
         #Correct TRAJ38 in human (e.g., issue with some 10X data)
-        if(species=="HomoSapiens" & chain=="TRA"){
+        if(species=="HomoSapiens" & ch=="TRA"){
           
           ind.traj38 <- which((input[ind.species,J]=="TRAJ38" | input[ind.species,J]=="TRAJ38*01") & str_sub(input[ind.species,cdr3],start=-2)=="LI" & nchar(input[ind.species,cdr3]) < Lmax)
           input[ind.species[ind.traj38],cdr3] <- paste(input[ind.species[ind.traj38],cdr3], "W", sep="")
@@ -1212,7 +1214,7 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
         
         #Find cases incompatible with the reference (allowing matching to any allele)
         nm <- input[ind.species,V]
-        rf <- sapply(ref.cdr3.first[[species]][[chain]], function(x){unique(substr(x,1,start.lg))}) #This includes all non-redundant allelic variants
+        rf <- sapply(ref.cdr3.first[[species]][[ch]], function(x){unique(substr(x,1,start.lg))}) #This includes all non-redundant allelic variants
         
         diff.first <- sapply(1:length(first), function(i){
           diff <- F
@@ -1239,7 +1241,7 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
         
         #Find cases incompatible with the reference (allowing matching to any allele)
         nm <- input[ind.species,J]
-        rf <- sapply(ref.cdr3.last[[species]][[chain]], function(x){unique(str_sub(x,start=-end.lg))})
+        rf <- sapply(ref.cdr3.last[[species]][[ch]], function(x){unique(str_sub(x,start=-end.lg))})
         
         diff.last <- sapply(1:length(last), function(i){
           diff <- F
@@ -1267,7 +1269,7 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
       
       if(verbose>0){
         
-        if(length(ind.traj38)>0 & chain=="TRA"){
+        if(length(ind.traj38)>0 & ch=="TRA"){
           print("Adding W on CDR3a for TRAJ38 entries:")
           if(verbose<=2){
             n <- min(10,length(ind.traj38))
@@ -1287,7 +1289,7 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           nt <- length(which(!is.na(input[ind.species,V]) & !is.na(input[ind.species,cdr3])))
           
           entry <- ifelse(length(ind.first)==1,"entry","entries")
-          print(paste("*** Likely inconsistencies between ",chain,"V gene and CDR3",chain.small[chain]," in ",length(ind.first)," ",entry," (out of ",nt,") in ",species,"- will be put to NA ***",sep=""))
+          print(paste("*** Likely inconsistencies between ",ch,"V gene and CDR3",chain.small[ch]," in ",length(ind.first)," ",entry," (out of ",nt,") in ",species,"- will be put to NA ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.first))
             if(length(ind.first)>n){
@@ -1300,7 +1302,7 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           if(verbose>=1){
             ti <- ind.species[ind.first[1:n]]
             sg <- input[ti,V]
-            m.prob <- cbind(input[ti,c(V,cdr3)], sapply(sg,function(x){paste(ref.cdr3.first[[species]][[chain]][[x]], collapse=" / ")}))
+            m.prob <- cbind(input[ti,c(V,cdr3)], sapply(sg,function(x){paste(ref.cdr3.first[[species]][[ch]][[x]], collapse=" / ")}))
             colnames(m.prob) <- c(V,cdr3,"Ref_CDR3_start")
             print(m.prob)
           }
@@ -1311,7 +1313,7 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           nt <- length(which(!is.na(input[ind.species,J]) & !is.na(input[ind.species,cdr3])))
           
           entry <- ifelse(length(ind.first)==1,"entry","entries")
-          print(paste("*** Likely inconsistencies between ",chain,"J gene and CDR3",chain.small[chain]," in ",length(ind.last)," ",entry," (out of ",nt,") in ",species," - will be put to NA ***",sep=""))
+          print(paste("*** Likely inconsistencies between ",ch,"J gene and CDR3",chain.small[ch]," in ",length(ind.last)," ",entry," (out of ",nt,") in ",species," - will be put to NA ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.last))
             if(length(ind.last)>10){
@@ -1324,7 +1326,7 @@ check_cdr3 <- function(input, chain.list.output="AB", species.default="HomoSapie
           if(verbose>=1){
             ti <- ind.species[ind.last[1:n]]
             sg <- input[ti,J]
-            m.prob <- cbind(input[ti,c(J,cdr3)], sapply(sg,function(x){paste(ref.cdr3.last[[species]][[chain]][[x]], collapse=" / ")}))
+            m.prob <- cbind(input[ti,c(J,cdr3)], sapply(sg,function(x){paste(ref.cdr3.last[[species]][[ch]][[x]], collapse=" / ")}))
             colnames(m.prob) <- c(J,cdr3,"Ref_CDR3_end")
             print(m.prob)
           }
@@ -1668,15 +1670,15 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
 }
 
 
-verify.chain <- function(input, chain.list.output){
+verify.chain <- function(input, chain){
   
-  # Check cases where people leave the chain.list.output="AB",
+  # Check cases where people leave the chain="AB",
   # but actually provide single chain data, including with ambiguous colnames like V,J,CDR3_seq
   
   format <- determine.format(input, verbose=0)
   #Only check for the format not based on clone.id (cases with formats based on clone.id will always be treated as alpha+beta, evn if one chain is empty)
   if(!format %in% names(clone.format.col)){
-    if(chain.list.output=="AB"){
+    if(chain=="AB"){
       
       map.A <- names(mapping.colnames[["AB"]][which(mapping.colnames[["AB"]] %in% c("TRAV", "TRAJ", "cdr3_TRA"))])
       map.B <- names(mapping.colnames[["AB"]][which(mapping.colnames[["AB"]] %in% c("TRBV", "TRBJ", "cdr3_TRB"))])
@@ -1686,10 +1688,10 @@ verify.chain <- function(input, chain.list.output){
       if(length(inter.A)==0 | length(inter.B)==0){                                          
         if(length(inter.A)==0 & length(inter.B)>0){
           print("Missing columns for alpha chain, only beta chain will be considered") 
-          chain.list.output <- "B"
+          chain <- "B"
         } else if(length(inter.A)>0 & length(inter.B)==0){
           print("Missing columns for beta chain, only alpha chain will be considered") 
-          chain.list.output <- "A"
+          chain <- "A"
         } else if(length(inter.A)==0 & length(inter.B)==0){
           # Check if the a single chain can be inferred.
           # This is the case for instance when providing data in AIRR format without specifying the chain
@@ -1698,35 +1700,35 @@ verify.chain <- function(input, chain.list.output){
             p <- intersect(map.unk, colnames(input))[1]
             if("TRA" %in% unique(substr(input[,p],1,3)) & ! "TRB" %in% unique(substr(input[,p],1,3))){
               print("Missing data for beta chain, only alpha chain will be considered") 
-              chain.list.output <- "A"
+              chain <- "A"
             } else if("TRB" %in% unique(substr(input[,p],1,3)) & ! "TRA" %in% unique(substr(input[,p],1,3))){
               print("Missing data for alpha chain, only beta chain will be considered") 
-              chain.list.output <- "B"
+              chain <- "B"
             } else {
-              chain.list.output <- ""
+              chain <- ""
             }
           }
         } 
       }
-    } else if(chain.list.output=="A"){
+    } else if(chain=="A"){
       
       map.A <- names(mapping.colnames[["A"]][which(mapping.colnames[["A"]] %in% c("TRAV", "TRAJ", "cdr3_TRA"))])
       inter.A <- intersect(colnames(input), c("TRAV", "TRAJ", "cdr3_TRA", map.A))
       if(length(inter.A)==0){
-        chain.list.output <- ""
+        chain <- ""
       } 
       
-    } else if(chain.list.output=="B"){
+    } else if(chain=="B"){
       
       map.B <- names(mapping.colnames[["B"]][which(mapping.colnames[["B"]] %in% c("TRBV", "TRBJ", "cdr3_TRB"))])
       inter.B <- intersect(colnames(input), c("TRBV", "TRBJ", "cdr3_TRB", map.B))
       if(length(inter.B)==0){
-        chain.list.output <- ""
+        chain <- ""
       }
       
     }
   }
-  return(chain.list.output)
+  return(chain)
 }
 
 #Determine the format
@@ -1775,9 +1777,9 @@ stack_clones <- function(input, format){
           v <- c(NA,NA,NA,x[col],x[other.col])
         }
       } else if("chain" %in% names(x)){
-        if(x[chain]=="TRA"){
+        if(x["chain"]=="TRA"){
           v <- c(x[col],NA,NA,NA,x[other.col])
-        } else if(x[chain]=="TRB"){
+        } else if(x["chain"]=="TRB"){
           v <- c(NA,NA,NA,x[col],x[other.col])
         }
       } else {
