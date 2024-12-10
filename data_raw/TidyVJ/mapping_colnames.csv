@@ -8,8 +8,10 @@ CDR3A,cdr3_TRA,AB
 CDR3_alpha,cdr3_TRA,AB
 Vb,TRBV,AB
 V_beta,TRBV,AB
+TRBV_gene,TRBV,AB
 Jb,TRBJ,AB
 J_beta,TRBJ,AB
+TRBJ_gene,TRBJ,AB
 CDR3b,cdr3_TRB,AB
 CDR3B,cdr3_TRB,AB
 CDR3_beta,cdr3_TRB,AB
