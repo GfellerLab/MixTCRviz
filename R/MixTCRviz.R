@@ -5,23 +5,19 @@
 #' MixTCRviz compares V usage, J usage, CDR3 length distribution and CDR3 sequence motifs to those expected from baseline TCR repertoire.
 #'
 #' @param input1 Either a .csv or .txt or .tsv file with the input TCRs, or a data.frame with the input TCRs, or list in the MixTCRviz format. 
-#'    * Columns should ideally include "TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB" (a single chain is allowed if chain = "A" or "B", respectively)
+#'    * Columns should ideally include 'TRAV','TRAJ','cdr3_TRA','TRBV','TRBJ','cdr3_TRB' (single chain are also allowed)
 #'    * If TCRs from multiple experiments/epitopes/classses/... are provided in the same file, the 'model' column should indicate the models
-#'    ("Model_default" is used by default if no 'model' column is provided and *model.default*=NULL, see below). The use of multiple models is only possible in input1.
+#'    ("Model_default" is used by default if no 'model' column is provided and `model.default`=NULL, see below).
 #'    * If TCRs from multiple species are provided in the same file, the 'species' column should indicate the species of the TCRs
-#'    ("HomoSapiens" or "MusMusculus", with "HomoSapiens" being the default if no 'species' column and *species.default*=NULL)
-#'    * The "TRAV", "TRAJ", "TRBV", "TRBJ" should follow the IMGT
-#'   nomenclature, with or without allele (see below for potential name correction).
-#'   If a column is missing, empty values will be used.
-#'    * The "cdr3_TRA" and "cdr3_TRB" columns should provide CDR3A/CDR3B sequences, following the standard definition (e.g., CAVNSDGQKLLF).
-#'   Cases with non-amino acid characters, or length < 7 or > 22 will be not be considered (i.e., put to NA).
-#'   If a column is missing, empty values will be used.
-#'    * Other formats are supported (see README.md)
+#'    ("HomoSapiens" or "MusMusculus", with "HomoSapiens" being the default if no 'species' column and `species.default`=NULL).
+#'    * The 'TRAV', 'TRAJ', 'TRBV', 'TRBJ' should follow the IMGT nomenclature, with or without allele (see below for V/J name correction options).
+#'    * The 'cdr3_TRA' and 'cdr3_TRB' columns should provide CDR3A/CDR3B sequences, following the standard definition (e.g., CAVNSDGQKLLF).
+#'   Cases with non-amino acid characters, or length < 7 or > 22 will be not be considered. See below for CDR3 sequence QC.
+#'    * Other column names and/or input format are supported (see README.md).
 #'
 #' @param output.path Name of the output directory (default=NULL). If not already existing, it
-#'   will be created. If existing the files with the same name will be overwritten.
+#'   will be created. If existing, files with the same name will be overwritten.
 #'   If left empty, nothing will be written, and only R objects will be returned.
-#'   
 #'   
 #' @param input2 .csv, .tsv of tab delimited .txt filename, or data.frame containing a second set of
 #'   TCRs to be used in comparisons. Same format as input1, except that all TCRs are assumed to come from a single model so any data in the 'model' column is omitted.
@@ -39,37 +35,28 @@
 #' @param use.allele Decide whether alleles should be used
 #'    * FALSE (default): All V/J alleles are merged at the gene level (recommended).
 #'    * TRUE: Alleles are kept. If some entries do not include alleles, the most frequent one is added.
-#'   Currently, use.allele is fixed to FALSE for mouse TCRs.
+#'   Currently, `use.allele` is fixed to FALSE for mouse TCRs.
 #'   
 #' @param correct.gene.names Decide how to correct V/J names
 #'    * FALSE: Do not attempt to correct V/J gene names. Put to NA genes not in IMGT.
 #'    * TRUE (default): Attempt to correct V/J gene names not in IMGT based on our internal dictionary.
-#'     Put to NA genes that could not be corrected
+#'     V/J names which could not be corrected are put to NA.
 #'     
 #' @param use.mouse.strain Decide whether or not to merge TRAV genes corresponding to different strains (e.g., TRAV10, TRAV10D, TRAVN10)
 #'    * FALSE (default): Merge the different TRAV genes corresponding to different mouse strains (e.g., TRAV10D, TRAVN10 and TRAV10 become all TRAV10).
-#'   This is recommended since differences between input TCRs and baseline TCRs
-#'   may result from the use of different mouse strains, and not be related to
-#'   specificity in input TCRs. In addition different TCR reconstruction tools
-#'   use different approaches to call these genes, which can create artificial
-#'   enrichment in one of them versus the baseline.
-#'    * TRUE: The different TRAV segments (e.g., TRAV10D, TRAVN10 and TRAV10) are treated separately. This is not recommended.
+#'      This is recommended the recommended option.
+#'    * TRUE: The different TRAV segments (e.g., TRAV10D, TRAVN10 and TRAV10) are treated separately. 
+#'      In general, this is NOT recommended since the baseline is challenging to establish. Should be used only if you have a baseline coming from same mice used in input1. 
 #'    
 #' @param check.cdr3.mode Decide how to check CDR3 sequences for compatibility with V/J genes
 #'    * 0: Keep all CDR3 without any correction.
-#'    * 1 (default): Remove V and CDR3 when the first start.lg CDR3 amino acids are incompatible with the V segment;
-#'        Remove J and CDR3 when the last end.lg amino acids are not compatible with the J segments.
+#'    * 1 (default): Remove V and CDR3 when the first CDR3 amino acid is incompatible with the V segment;
+#'        Remove J and CDR3 when the last 2 amino acids are not compatible with the J segments.
 #'        Allow compatibility check with any allele.
-#'        
-#' @param start.lg Number of amino acids to be checked for compatibility between V segment and beginning of CDR3
-#'      Needs to be an integer between 0 and 3 (default=1).
-#' 
-#' @param end.lg Number of amino acids to be checked for compatibility between J segment and end of CDR3
-#'      Needs to be an integer between 0 and 5 (default=2).
 #'       
 #' @param renormVJ Decide whether or not to build baseline length distribution and CDR3 motif for P(VJ) in input1.
-#'    * NULL: If left empty, 1 is used if comparison is performed with a baseline (input2==NULL) 
-#'      and 0 is used if comparison is performed with input2 (i.e., input2 != NULL)
+#'    * NULL: If left empty, 1 is used if comparison is performed with a baseline (`input2`==NULL) 
+#'      and 0 is used if comparison is performed with input2 (i.e., `input2` != NULL)
 #'    * 0: Compare CDR3 length distribution and motif with those from the baseline repertoire or input2
 #'    * 1 (default): Compare CDR3 length distribution and motif with those from the baseline repertoire with the V-J
 #'   usage observed in the input TCRs. In the plots the mark " | P(VJ)" is used to
@@ -81,60 +68,61 @@
 #'   
 #' @param output.stat Print the stats in a file.
 #'    * FALSE (default): Do not print the stats
-#'    * TRUE: create a output.path/stat/ folder with .rds files summarizing the raw statistics for each model. Repuires output.path to be defined
+#'    * TRUE: create a output.path/stat/ folder with .rds files summarizing the raw statistics for each model. Requires `output.path` to be initialized.
 #'   
 #' @param output.processed.data Print the processed data (after the different cleaning steps).
 #'    * FALSE (default): Do not print the processed/clean data to a file
 #'    * TRUE: create a output.path/processed_data/ folder with the data for each model after the different processing steps
-#'   (e.g., removing alleles, correcting V/J names, removing inconsistent CDR3, etc. depending on the cleaning option selected). Requires output.path to be defined
+#'   (e.g., removing alleles, correcting V/J names, removing inconsistent CDR3, etc. depending on the cleaning option selected). Requires `output.path` to be initialized.
 #'   
 #' @param set.cdr3a.length,set.cdr3a.length Length for the CDR3 motif to be shown in the main plot (default=NA).
-#'   If left empty, the value corresponding to the most frequent CDR3 length in input1 (and also present in input2 if input2 is given) is chosen.
+#'   If left empty, the value corresponding to the most frequent CDR3 length in input1 (and also present in input2 if input2 is provided) is chosen.
 #'   
 #' @param species.default Option to provide the species for all the TCR in input1 (default="HomoSapiens").
 #'   This is useful if your input does not contain a 'species' column.
-#'   In case the input contains the 'species' column, *species.default* is not considered.
+#'   In case the input contains the 'species' column, `species.default` is not considered.
 #'   Should be either "HomoSapiens" or "MusMusculus"
 #'   
 #' @param model.default  Option to provide the model for all the TCR in input1 (default="Model_default"), which is also used as the name of the output files.
 #'   This is useful if your input does not contain a 'model' column.
-#'   In case the input contains the 'model' column, *model.default* is not considered.
+#'   In case the input contains the 'model' column, `model.default` is not considered.
 #'
 #' @param filename.output Provide a name for the output file (default=NULL). 
+#'  This option should not be used if input1 contains data from multiple models.
 #'  If NULL, the value(s) in the 'model' column of input1 are used (i.e., input1$model).
-#'    If no 'model' column is provided, the value in *model.default* is used.
+#'    If no 'model' column is provided, the value in `model.default` is used.
 #'   
-#' @param verbose Decide how many WARNING and other information is given in the R Console.
+#' @param verbose Decide how much information is given in the R Console.
 #'    * 0: Do not write any QC in the output
-#'    * 1 (default): Write max 10 examples of putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
-#'    * 2: Write all the putative issues with the data (V/J names, CDR3 sequences, etc.) in the terminal
-#'    * 3: Write all putative issues + cases that were corrected
+#'    * 1 (default): Write max 10 examples of putative issues with the data (V/J names, CDR3 sequences, etc.) in the Console
+#'    * 2: Write all the putative issues with the data (V/J names, CDR3 sequences, etc.) in the Console
+#'    * 3: Write all putative issues + cases that were corrected (can be long depending on your data).
 #'       
 #' @param plot Decide whether or not to plot the motifs.
-#'    * FALSE: Do not build the motifs. This overrides `plot.all.length`=T and interactive.plots=T
-#'    * FALSE (default): Build the motifs
+#'    * FALSE: Do not build the motifs. This overrides `plot.all.length`=T and `interactive.plots`=T
+#'    * TRUE (default): Build the motifs
 #'    
 #' @param plot.cdr12.motif Decide whether or not to show the motifs for CDR1 and CDR2. 
-#'    * FALSE (default): Only show motifs for CDR3 of the most frequent length.
-#'    * T: Include sequence motifs for CDR1 and CDR2. With this choice, plot.oneline is set to 0.
+#'    * FALSE (default): Only show motifs for CDR3.
+#'    * TRUE: Include sequence motifs for CDR1 and CDR2. With this choice, `plot.oneline` is set to 0. This information is redundant with V usage.
 #'    
 #' @param plot.oneline Decide how to plot the motifs.
 #'    * 0 (default): Show the data on two lines (better for clarity).
 #'    * 1: Show all plots in a single line (can be useful to compare different models).
-#'    * 2: Show only V/J usage and length (i.e., do not show CDR3 motifs for the most frequent CDR3 length)
+#'    * 2: Show only V/J usage and length (i.e., do not show CDR3 motifs).
 #'    
 #' @param plot.all.length Decide whether to plot the motifs for each CDR3 length.
 #'    * FALSE (default): Show only the CDR3 motifs for the most frequent CDR3 length.
-#'    * T: Write in output.path/CDR3_length separate plot the V usage, J usage and CDR3 motifs
-#'     for all CDR3 length. Only applicable if plot=T.
+#'    * TRUE: Write in `output.path`/CDR3_length distinct plots for the V usage, J usage and CDR3 motifs
+#'     for all CDR3 lengths. Only applicable if `plot`=T.
 #'    
 #' @param plot.cdr3.norm Decide how to build the motifs for the baseline.
 #'    * 0 (default): Show the CDR3 motifs of the input and of the baseline repertoire or input2, possibly | P(VJ).
-#'    * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire (not recommended).
-#'    * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change, not recommended)
+#'    * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire (not recommended due to poor readability).
+#'    * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire (motif of normalised fold-change, not recommended due to poor readability)
 #'    
 #' @param plot.sd Decide whether to include standard deviation in P(V), P(J) and P(L) plots.
-#'    * FALSE (default): Show standard deviation for P(V), P(J) and P(L), if such data are provided for baseline and/or input1 
+#'    * TRUE (default): Show standard deviation for P(V), P(J) and P(L), if such data are provided for baseline and/or input1.
 #'    * FALSE: Do not show standard deviation
 #'    
 #' @param plot.VJ.switch Change the color and/or format of the motifs.
@@ -148,7 +136,7 @@
 #' @param plot.modelsCombined Decide whether to combine the different models.
 #'    * FALSE (default) or empty string: Show the data for each model separately.
 #'    * TRUE or a string: Show the data for all models combined in a single
-#'        figure (based on the format plot.VJ.switch=2). When given as a
+#'        figure (based on the format `plot.VJ.switch`=2). When given as a
 #'        logical, the default name "modCombined" is used. Otherwise, the string
 #'        is used for the resulting figure filename.
 #'        
@@ -156,52 +144,49 @@
 #' If TRUE, show also the labels of the genes most depleted in input1.
 #' 
 #' @param label.diag  Decide to keep some label in the upper right corner, based on label.diag value (default=0.3). 
-#'        This can be useful when comparing two epitope-specific TCR repertoires.
+#'        This can be especially useful when comparing two epitope-specific TCR repertoires.
 #'
 #' @param label.min.fr.x,label.min.fr.y Region (i.e., X - Y rectangle) of the left corner of V/J plots with no gene label (default=0.05). 
-#' If only one number is provided, it will be used on both the X and Y axes.
 #' 
 #' @param keep.incomplete.chain Decide whether to keep incomplete alpha or beta chains.
-#'  * IF TRUE (default), incomplete chains are kept.
-#'  * If FALSE, incomplete chains are discarded. 
-#'    ∂Even if input only consists of complete chains, incomplete chain can occur when one V/J gene cannot be corrected, 
+#'  * TRUE (default): Incomplete chains are kept.
+#'  * FALSE: Incomplete chains are discarded. Even if input1 only consists of complete chains, incomplete chains can occur when one V/J gene cannot be corrected, 
 #'      or when there is some incompatibilities between V/J names and CDR3 sequences
 #' 
 #' @param chain Decide which chain to show in the motifs.
-#'    * A: Only the alpha chain is plotted in output;
-#'    * B: only the beta chain is plotted in output;
-#'    * AB (default): both chains are plotted in output
+#'    * "AB" (default): both chains are plotted in output.
+#'    * "A": Only the alpha chain is plotted in output.
+#'    * "B": Only the beta chain is plotted in output.
 #'    
-#' @param input1.name,input2.name Provide a generic name for the TCRs in input1 or input2 (default="Input" and NULL). Avoid names with more
+#' @param input1.name,input2.name Provide a generic name for the TCRs in input1 or input2 (default="Input" and "Baseline"/"Input2"). Avoid names with more
 #'   than 20 characters.
 #'   
 #' @param output.format Choose the format for the output, can be "pdf" (default), "png" or "jpg".
 #'      
 #' @param interactive.plots Decide whether to plot interactive html plots.
 #'    * FALSE (default): Do not create an html file with interactive plots. 
-#'    * TRUE: Create an html file with interactive plots. Only applicable if output.path is defined and plot=T. Takes slightly longer
+#'    * TRUE: Create an html file with interactive plots. Only applicable if `output.path` is set and `plot`=T. Takes slightly longer
 #'      
 #' @param print.size If TRUE (default), print the number of TCRs in input1 in the plots.
 #' 
 #' @param plot.title If TRUE (default), print the model name as title to the plots.
 #' 
 #' @param set.title Set the title of the plots (default=NULL). 
-#'  If NULL, input1$model are used as titles. If no 'model' column is provided in input1, *model.default* is used.
+#'  If NULL, input1$model are used as titles. If no 'model' column is provided in input1, `model.default` is used.
 #' 
 #' @param build.clones Decide whether to reconstruct the clones if the data are provided in format with clone.id (default=FALSE).
-#'  If TRUE and if the data are provided in format with clone.id, reconstruct the actual clones in output
+#'  If TRUE and if the data are provided in format with clone.id/complex.id/..., reconstruct the actual clones in output
 #'  
 #' @param keep.colnames.origin Decide whether to keep the original names of the columns (default=FALSE).
 #'  If TRUE, keep the name of the columns dedicated the TCRs in the input. The option is not supported for format with clone.id
 #'    
 #'
-#' @returns R list containing the plots (if plot=TRUE), the processed data (if input1 is a file or data.frame) and an R list with the stats for each model in input1.
+#' @returns R list containing the plots (if `plot`=TRUE), the processed data (if input1 is a file or data.frame) and an R list with the stats for each model in input1.
 #' 
 #' @usage MixTCRviz(input1="test/test.csv", output.path = YOUR_PATH, ...)
 #' 
 #' @export
-MixTCRviz <- function(input1, output.path=NULL,
-                      input2=NULL, baseline=NULL, chain="AB",
+MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chain="AB", interactive.plots = F, 
                       use.allele=F, correct.gene.names=T, use.mouse.strain=F, check.cdr3.mode=1, start.lg=1, end.lg=2,
                       renormVJ=NULL, N.min=1, output.stat=F, output.processed.data=F, filename.output=NULL,
                       set.cdr3a.length=NA, set.cdr3b.length=NA, plot.title=T, set.title=NULL,
@@ -210,7 +195,7 @@ MixTCRviz <- function(input1, output.path=NULL,
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
                       label.min.fr.x=0.05, label.min.fr.y=0.05, keep.incomplete.chain=T,
                       input1.name="Input", input2.name=NULL, output.format="pdf", keep.colnames.origin=F,
-                      interactive.plots = F, print.size=T){
+                      print.size=T){
   
   
   #######
@@ -641,6 +626,9 @@ MixTCRviz <- function(input1, output.path=NULL,
   }
   if(length(model.list)==0){
     stop("No model has enough data to use MixTCRviz. Check your input, or the N.min parameter if you set it manually.")
+  }
+  if(length(model.list)>1 & !is.null(filename.output) & !is.null(output.path)){
+    stop("filename.output should not be used in the presence of multiple models in input1, since files will overwrite each other. Leave it to NULL")
   }
   
   

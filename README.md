@@ -87,7 +87,7 @@ MixTCRviz should be primarily run in R, by loading the MixTCRviz library and cal
 
 ## Optional parameters:
 
-Below are some of the most comonly used parameters. Full documentation about pther parameters is available in the R package.
+Below are some of the most comonly used parameters. Full documentation about other parameters is available in the R package.
 
  - output.path: name of the output directory (if not already existing, it
    will be created). If existing the files with the same name will be overwritten.
