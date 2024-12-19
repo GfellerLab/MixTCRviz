@@ -75,7 +75,7 @@
 #'    * TRUE: create a output.path/processed_data/ folder with the data for each model after the different processing steps
 #'   (e.g., removing alleles, correcting V/J names, removing inconsistent CDR3, etc. depending on the cleaning option selected). Requires `output.path` to be initialized.
 #'   
-#' @param set.cdr3a.length,set.cdr3a.length Length for the CDR3 motif to be shown in the main plot (default=NA).
+#' @param set.cdr3a.length,set.cdr3b.length Length for the CDR3 motif to be shown in the main plot (default=NA).
 #'   If left empty, the value corresponding to the most frequent CDR3 length in input1 (and also present in input2 if input2 is provided) is chosen.
 #'   
 #' @param species.default Option to provide the species for all the TCR in input1 (default="HomoSapiens").
