@@ -313,17 +313,7 @@ for(species in species.list){
     names(ref.cdr3.last[[species]][[chain]]) <- J.list
   }
 }
-#Do some manual corrections to consider only one allele in some cases
-# (we could do some additional ones in mouse when one allele is ORF, e.g., TRAJ47)
-ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3"]] <- "CASS"
-ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*01"]] <- "CASS"
-ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*04"]] <- "CASS"
-ref.cdr3.first$HomoSapiens$TRB[["TRBV7-3*05"]] <- "CASS"
 
-# This is because TRBJ2-7*02 (SYEQYV) is an ORF. 
-# We see it very rarely (and these could be sequencing issues) but I'm not 100% sure it's really a good idea to exclude it.
-ref.cdr3.last$HomoSapiens$TRB[["TRBJ2-7"]] <- "SYEQYF"
-ref.cdr3.last$HomoSapiens$TRB[["TRBJ2-7*01"]] <- "SYEQYF"
 
 # Print the cases with multiple references
 print.ref <- F
