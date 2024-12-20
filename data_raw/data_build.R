@@ -393,7 +393,7 @@ usethis::use_data(gene.allele.list, gene.list, allele.default, clone.format.col,
 # due to the size of these data). We could also put these in "inst/RData/"
 # folder for example and then in the code, use
 # "system.file("RData", package = "MixTCRviz")" to get path to this folder.
-if (FALSE){
+if (TRUE){
   # I did this only once and then deleted the RData folder, kept the code
   # in case we need to redo it later.
   path.rep <- "../MixTCR_internal/data/Repertoires"

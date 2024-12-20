@@ -1274,7 +1274,7 @@ check_cdr3 <- function(input, chain="AB", species.default="HomoSapiens", check.c
           if(verbose<=2){
             n <- min(10,length(ind.traj38))
             if(n<length(ind.traj38)){
-              print("Examples  (use verbose>=2 to see them all):")
+              print("Examples  (use verbose > 2 to see them all):")
             }
           }
           if(verbose > 2){
