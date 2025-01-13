@@ -112,7 +112,7 @@ This option should not be used if input1 contains data from multiple models.
 If NULL, the value(s) in the 'model' column of input1 are used (i.e., input1$model).
 If no 'model' column is provided, the value in \code{model.default} is used.}
 
-\item{set.cdr3a.length, set.cdr3a.length}{Length for the CDR3 motif to be shown in the main plot (default=NA).
+\item{set.cdr3a.length, set.cdr3b.length}{Length for the CDR3 motif to be shown in the main plot (default=NA).
 If left empty, the value corresponding to the most frequent CDR3 length in input1 (and also present in input2 if input2 is provided) is chosen.}
 
 \item{plot.title}{If TRUE (default), print the model name as title to the plots.}

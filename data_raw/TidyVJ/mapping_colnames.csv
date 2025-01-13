@@ -19,6 +19,7 @@ v_call,TRAV,A
 vGeneName,TRAV,A
 v_resolved,TRAV,A
 allVHitsWithScore,TRAV,A
+allVGenes,TRAV,A
 V-region,TRAV,A
 v_gene,TRAV,A
 V,TRAV,A
@@ -26,6 +27,7 @@ j_call,TRAJ,A
 jGeneName,TRAJ,A
 j_resolved,TRAJ,A
 allJHitsWithScore,TRAJ,A
+allJGenes,TRAJ,A
 J-region,TRAJ,A
 j_gene,TRAJ,A
 J,TRAJ,A
@@ -41,6 +43,7 @@ v_call,TRBV,B
 vGeneName,TRBV,B
 v_resolved,TRBV,B
 allVHitsWithScore,TRBV,B
+allVGenes,TRBV,B
 V-region,TRBV,B
 v_gene,TRBV,B
 V,TRBV,B
@@ -48,6 +51,7 @@ j_call,TRBJ,B
 jGeneName,TRBJ,B
 j_resolved,TRBJ,B
 allJHitsWithScore,TRBJ,B
+allJGenes,TRBJ,B
 J-region,TRBJ,B
 j_gene,TRBJ,B
 J,TRBJ,B

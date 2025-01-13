@@ -144,6 +144,7 @@ Other supported formats treating each chain in a different row include:
  - Adaptive Biotech v4 with the columns: c("v_resolved", "j_resolved", "amino_acid")
  - AIRR with the columns: c("v_call", "j_call", "junction_aa")
  - MiXCR with the columns: c("allVHitsWithScore", "allJHitsWithScore", "aaSeqCDR3")
+  or c("allVGenes", "allJGenes", "aaSeqCDR3")
 
 By default, both chains are treated independently, without reconstructing clones.
 To reconstruct alpha-beta clones, you can use the build.clones=T.
