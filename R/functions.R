@@ -980,6 +980,12 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
 
   #print("Start")
 
+  if(is.data.frame(input)){
+    input <- as.data.frame(input)
+    # Some code used here don't handle tibbles that are a type of data.frame
+    # (as.data.frame drops these tibble class).
+  }
+
   if("species" %in% colnames(input)){
     species.list <- unique(input[,"species"])
     use.species.default <- F
