@@ -1063,8 +1063,8 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
     #print("Removing alleles")
     for(s in segment.list){
       ind <- which(grepl("*",input[,s], fixed=T))
-      input[ind,s] <- gsub("\\*0[1-9]/0[1-9]", "", input[ind,s]) #This are entries with ambiguous allele assignment
-      input[ind,s] <- gsub("\\*0[1-9]", "", input[ind,s])
+      input[ind,s] <- gsub("\\*0[0-9]/0[0-9]", "", input[ind,s]) #This are entries with ambiguous allele assignment
+      input[ind,s] <- gsub("\\*0[0-9]", "", input[ind,s])
     }
   } else{
     #print("Adding alleles")
