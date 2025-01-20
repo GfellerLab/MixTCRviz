@@ -357,7 +357,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   
   if(!is.numeric(label.diag) | label.diag<0){
     print("Invalid value for label.diag. Should be a number larger than 0. Default value of 0.3 will be used")
-    label.neg <- 0.3
+    label.diag <- 0.3
   }
   
   label.min.fr <- c(label.min.fr.x, label.min.fr.y)
