@@ -327,12 +327,12 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info=NULL, comp
     if(is.null(sd.es) | !plot.sd){
       lim.y <- max(count.df[,"Y"] )*1.4
     } else {
-      lim.y <- max(max(count.df[,"Y"] )*1.4, count.df[,"Y"]+count.df[,"SD_es"])
+      lim.y <- max(max(count.df[,"Y"] )*1.4, count.df[,"Y"] + count.df[,"SD_es"])
     }
     if(is.null(sd.rep) | !plot.sd){
       lim.x <- max(count.df[,"X"] )*1.3
     } else {
-      lim.x <- max(max(count.df[,"X"] )*1.3, count.df[,"X"]+count.df[,"SD_rep"])
+      lim.x <- max(max(count.df[,"X"] )*1.3, count.df[,"X"] + count.df[,"SD_rep"])
     }
     label <- nm; names(label) <- nm
     label.all <- label
