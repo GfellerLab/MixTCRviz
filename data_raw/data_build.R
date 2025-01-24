@@ -401,7 +401,7 @@ if (TRUE){
   baseline_HomoSapiens_allele <- readRDS(paste(path.rep,"/baseline_HomoSapiens_mean_bulk_and_paired_allele.rds",sep=""))
   baseline_MusMusculus_Strain <- readRDS(paste(path.rep,"/baseline_MusMusculus_Strain.rds",sep=""))
   baseline_MusMusculus <- readRDS(paste(path.rep,"/baseline_MusMusculus.rds",sep=""))
-  baseline_HomoSapiens_SEQTR <- readRDS(paste(path.rep,"/baseline_HomoSapiens_SEQTR.rds",sep=""))
+  baseline_HomoSapiens_SEQTR_local <- readRDS(paste(path.rep,"/baseline_HomoSapiens_SEQTR_local.rds",sep=""))
   
   
   #Remove some information about the source studies for the baseline in MixTCRviz
@@ -410,12 +410,12 @@ if (TRUE){
     baseline_HomoSapiens_allele[[s]] <- NULL
     baseline_MusMusculus[[s]] <- NULL
     baseline_MusMusculus_Strain[[s]] <- NULL
-    baseline_HomoSapiens_SEQTR[[s]] <- NULL
+    baseline_HomoSapiens_SEQTR_local[[s]] <- NULL
   }
   
   usethis::use_data(baseline_HomoSapiens, baseline_HomoSapiens_allele,
                     baseline_MusMusculus_Strain, baseline_MusMusculus, 
-                    baseline_HomoSapiens_SEQTR,
+                    baseline_HomoSapiens_SEQTR_local,
                     overwrite=T, internal=F)
 }
 

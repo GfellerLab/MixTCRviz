@@ -766,13 +766,14 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
             use.allele=F
             
             if(species=="HomoSapiens"){
-              baseline.model <- MixTCRviz::baseline_HomoSapiens_SEQTR
+              baseline.model <- MixTCRviz::baseline_HomoSapiens_SEQTR_local
             } else if(species=="MusMusculus"){
-              if(use.mouse.strain){
-                baseline.model <- MixTCRviz::baseline_MusMusculus_Strain_SEQTR
-              } else{
-                baseline.model <- MixTCRviz::baseline_MusMusculus_SEQTR
-              }
+              stop("SEQTR baseline not available in mouse")
+              #if(use.mouse.strain){
+              #  baseline.model <- MixTCRviz::baseline_MusMusculus_Strain_SEQTR_local
+              #} else{
+              #  baseline.model <- MixTCRviz::baseline_MusMusculus_SEQTR_local
+              #}
             }
           } else if(baseline=="Default"){
             if(species=="HomoSapiens"){
