@@ -10,14 +10,12 @@ segment.list <- c("TRAV", "TRBV", "TRAJ", "TRBJ")
 species.list <- c("HomoSapiens", "MusMusculus")
 
 # Take the list of alleles
-# This is only done for human
-# We need to do it for mouse
-# Alternatively, we could take the fasta files.
 
-gene.allele.list <- list()
-gene.list <- list()
-gene.type <- list()
-allele.default <- list()
+
+gene.allele.list <- list();
+gene.list <- list(); 
+gene.type <- list();
+allele.default <- list(); 
 for(tsp in species.list){
   gene.allele.list[[tsp]] <- c()
   gene.list[[tsp]] <- c()
@@ -42,6 +40,8 @@ for(tsp in species.list){
     allele.default[[tsp]] <- c(allele.default[[tsp]], default) #This is no longer used.
   }
 }
+
+
 
 #For mouse TRAV, take the merging between different strains
 m <- read.csv(paste("data_raw/CDR123/MusMusculus/TRAV_merge.csv", sep=""))
