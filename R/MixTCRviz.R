@@ -1121,12 +1121,12 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
               #Add the comparison of V/J usage
               infoV <- c(paste(ch,"V", sep=""), input1.name, baseline.name, model)
               names(infoV) <- c("gene", "input1.name", "baseline.name", "model")
-              plotV.L <- plotVJ(count.es=es$countV.L[[ch]][[t]], count.rep=baseline.model$countV.L[[ch]][[t]],
+              plotV.L <- plotVJ(count.es=es$countV.L[[ch]][[t]], count.rep=baseline.model$countV.L[[ch]][[t]], sd.es=es$sdV.L[[ch]][[t]], sd.rep=baseline.model$sdV.L[[ch]][[t]],
                                 info=infoV, comp.baseline = comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg,  label.diag=label.diag,
                                 label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
               infoV <- c(paste(ch,"J", sep=""), input1.name, baseline.name, model)
               names(infoV) <- c("gene", "input1.name", "baseline.name", "model")
-              plotJ.L <- plotVJ(count.es=es$countJ.L[[ch]][[t]], count.rep=baseline.model$countJ.L[[ch]][[t]],
+              plotJ.L <- plotVJ(count.es=es$countJ.L[[ch]][[t]], count.rep=baseline.model$countJ.L[[ch]][[t]], sd.es=es$sdJ.L[[ch]][[t]], sd.rep=baseline.model$sdJ.L[[ch]][[t]],
                                 info=infoJ, comp.baseline = comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg,  label.diag=label.diag,
                                 label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
               
