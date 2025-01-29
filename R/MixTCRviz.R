@@ -180,6 +180,7 @@
 #' @param keep.colnames.origin Decide whether to keep the original names of the columns (default=FALSE).
 #'  If TRUE, keep the name of the columns dedicated the TCRs in the input. The option is not supported for format with clone.id
 #'    
+#' @param logo.type Decide which type of logo to use. Should be either 'bits' (default), or 'probability'.  
 #'
 #' @returns R list containing the plots (if `plot`=TRUE), the processed data (if input1 is a file or data.frame) and an R list with the stats for each model in input1.
 #' 
@@ -189,7 +190,7 @@
 MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chain="AB", interactive.plots = F, 
                       use.allele=F, correct.gene.names=T, use.mouse.strain=F, check.cdr3.mode=1, start.lg=1, end.lg=2,
                       renormVJ=NULL, N.min=1, output.stat=F, output.processed.data=F, filename.output=NULL,
-                      set.cdr3a.length=NA, set.cdr3b.length=NA, plot.title=T, set.title=NULL,
+                      set.cdr3a.length=NA, set.cdr3b.length=NA, plot.title=T, set.title=NULL,logo.type="bits",
                       species.default="HomoSapiens", model.default="Model_default", verbose=1, build.clones=F,
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
@@ -241,7 +242,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
       interactive.plots=F
     }
   } else if(!is.character(output.path) | length(output.path)>1){
-      stop("Invalid value for output.path. Should be a single string of character indicating path where to save the plots.")
+    stop("Invalid value for output.path. Should be a single string of character indicating path where to save the plots.")
   } 
   
   if(!is.logical(use.allele)){
@@ -371,6 +372,11 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     chain <- "AB"
   }
   
+  if(! logo.type %in% c("bits", "probability")){
+    print("Invalid value for logo.type. Default value of \"bits\" will be used")
+    logo.type <- "bits"
+  }
+  
   if(!is.character(input1.name)){
     print("Invalid value for input1.name. Default value of \"Input\" will be used")
     input1.name <- "Input"
@@ -481,20 +487,24 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   
   input1.list=F
   if(is.character(input1)==T){
-    if(file.exists(input1)){
-      ext <- tail(unlist(strsplit(input1,split=".", fixed=T)), n=1)
-      if(ext=="csv"){
-        input1 <- read.csv(input1)
-      } else if(ext=="txt" | ext=="tsv"){
-        input1 <- read.delim(input1, sep="\t", header=T)
-      } else if (ext=="rds"){
-        input1 <- readRDS(input1)
-        input1.list <- T
+    if(length(input1)==1){
+      if(file.exists(input1)){
+        ext <- tail(unlist(strsplit(input1,split=".", fixed=T)), n=1)
+        if(ext=="csv"){
+          input1 <- read.csv(input1)
+        } else if(ext=="txt" | ext=="tsv"){
+          input1 <- read.delim(input1, sep="\t", header=T)
+        } else if (ext=="rds"){
+          input1 <- readRDS(input1)
+          input1.list <- T
+        } else {
+          stop("Invalid file format for input2")
+        }
       } else {
-        stop("Invalid file format for input2")
+        stop("Missing file for input1")
       }
     } else {
-      stop("Missing file for input1")
+      stop("Invalid input1. If using a filename, it should be a single file. If using data, make sure it is a dataframe with the required fields")
     }
   } else if(is.data.frame(input1)==T){
     input1 <- as.data.frame(input1)
@@ -642,9 +652,10 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   if(!input1.list){
     input1.lst <- list()
   } else {
-    print("Will not be able to return processed data for input1 since it does not contain raw data.")
+    if(verbose>0){
+      print("Will not be able to return processed data for input1 since it does not contain raw data.")
+    }
   }
-  
   
   # Will be used when plot.modelsCombined=TRUE to store values from each model.
   for(model in model.list){
@@ -684,12 +695,12 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
         print("Alleles currently not supported in mouse. The data will be treated at the gene level")
         use.allele.es <- F
       }
-     
+      
       es <- build_stat(input1.es, chain=chain, species=species, comp.VJL=0)
       es$model <- model
       
       input1.lst[[model]] <- input1.es
-
+      
       
     } else {
       es <- input1
@@ -725,7 +736,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           }
           colnames(tinput1.es) <- cn
         }
-
+        
         quote_if_comma <- function(x) {  ifelse(grepl(",", x), paste0('"', x, '"'), x) }
         tinput1.es <- as.data.frame(lapply(tinput1.es, function(col) { if (is.character(col)) quote_if_comma(col) else col }))
         
@@ -1015,7 +1026,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
             bs <- baseline.model$countCDR3.L[[ch]]
           }
           CDR3 <- plotCDR3(countL.es=es$countL[[ch]], countL.rep=baseline.model$countL[[ch]], 
-                           countCDR3.es=es$countCDR3.L[[ch]], countCDR3.rep=bs,
+                           countCDR3.es=es$countCDR3.L[[ch]], countCDR3.rep=bs, logo.type=logo.type,
                            info=info, comp.baseline=comp.baseline, plot.oneline=plot.oneline, plot.all.length=plot.all.length, 
                            plot.cdr3.subtract.baseline=plot.cdr3.norm, set.cdr3.length=set.cdr3.length[[ch]],
                            print.size=print.size)
@@ -1346,7 +1357,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
         
         if(plot.oneline==0){
           pg.all[[ch]] <- ggarrange(VJ.plot, ld_CDR3logo_plot, nrow=2,
-                                       heights=c(1.3, 1))
+                                    heights=c(1.3, 1))
           # Make that bar plots are slightly bigger than CDR3 ld and motif.
         } else if(plot.oneline==1){
           pg.all[[ch]] <- ggarrange(VJ.plot, ld_CDR3logo_plot, nrow=1)
