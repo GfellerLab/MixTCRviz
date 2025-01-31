@@ -120,6 +120,8 @@ If left empty, the value corresponding to the most frequent CDR3 length in input
 \item{set.title}{Set the title of the plots (default=NULL).
 If NULL, input1$model are used as titles. If no 'model' column is provided in input1, \code{model.default} is used.}
 
+\item{logo.type}{Decide which type of logo to use. Should be either 'bits' (default), or 'probability'.}
+
 \item{species.default}{Option to provide the species for all the TCR in input1 (default="HomoSapiens").
 This is useful if your input does not contain a 'species' column.
 In case the input contains the 'species' column, \code{species.default} is not considered.
