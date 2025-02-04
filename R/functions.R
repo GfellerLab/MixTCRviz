@@ -858,12 +858,10 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
 check_input <- function(input, chain="AB", name="input1", species.default="HomoSapiens",
                         model.default="Model_default", input.list=F, build.clones=F, verbose=1){
 
-
   #Check if some columns are missing, and add them with default values
   map.back.colnames <- list()
 
   chain.list <- paste("TR",strsplit(chain,split="")[[1]], sep="")
-
 
   if(is.data.frame(input) & !input.list){
 
