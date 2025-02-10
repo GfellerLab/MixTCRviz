@@ -94,7 +94,7 @@ palette <- "Set 3"
 # Different color for each gene per segment
 for (tsp in species.list){
   for (s in segment.list){
-    cGenes <- grep(s, unique(c(gene.list$Default[[tsp]], gene.list$SEQTR[[tsp]])), value=TRUE)
+    cGenes <- grep(s, gene.list$Default[[tsp]], value=TRUE)
     cols <- hcl.colors(n=length(cGenes), palette=palette)
     cGenes <- c(cGenes, "Other")
     cols <- c(cols, "gray90")
@@ -107,7 +107,7 @@ for (tsp in species.list){
 # Combining color with shape and outer shape color
 for (tsp in species.list){
   for (s in segment.list){
-    cGenes <- grep(s, unique(c(gene.list$Default[[tsp]], gene.list$SEQTR[[tsp]])), value=TRUE)
+    cGenes <- grep(s, gene.list$Default[[tsp]], value=TRUE)
     genesCode <- sort(unique(gsub("TR(A|B)(V|J)", "", cGenes)))
    
     if(s == "TRBJ" ){
@@ -174,7 +174,7 @@ for (tsp in species.list){
     TCRgene2aes[[tsp]][[s]]$outerColor1 <- setNames(cols_out[g2], cGenes)
   }
 }
-for(t in c("color1", "shape1", "outerColor1")){
+for(t in c("color1", "shape1", "outerColor1", "color2")){
   TCRgene2aes$HomoSapiens$TRBV[[t]]["TRBV12-3/12-4"] <- TCRgene2aes$HomoSapiens$TRBV[[t]]["TRBV12-3"]
 }
 

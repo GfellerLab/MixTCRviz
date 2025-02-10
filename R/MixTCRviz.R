@@ -162,6 +162,9 @@
 #'   than 20 characters.
 #'   
 #' @param output.format Choose the format for the output, can be "pdf" (default), "png" or "jpg".
+#'
+#' @param seq.protocol Indicate the sequencing protocol ("Default" or "SEQTR"). 
+#' When using SEQTR, TRBV12-3 and TRBV12-4 are merged into TRBV12-3/12-4, since they cannot be distinguished with this protocol.
 #'      
 #' @param interactive.plots Decide whether to plot interactive html plots.
 #'    * FALSE (default): Do not create an html file with interactive plots. 
@@ -194,7 +197,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
                       species.default="HomoSapiens", model.default="Model_default", verbose=1, build.clones=F,
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
-                      label.min.fr.x=0.05, label.min.fr.y=0.05, keep.incomplete.chain=T,
+                      label.min.fr.x=0.05, label.min.fr.y=0.05, keep.incomplete.chain=T, seq.protocol="Default",
                       input1.name="Input", input2.name=NULL, output.format="pdf", keep.colnames.origin=F,
                       print.size=T){
   
@@ -202,6 +205,16 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   #######
   # Check input parameters
   #######
+  
+  if(!seq.protocol %in% c("Default", "SEQTR")){
+    print("Invalid value for seq.protocol. Default value of \"Default\" will be used")
+    seq.protocol <- "Default"
+  }
+  if(!is.null(baseline)){
+    if(baseline=="SEQTR"){
+      seq.protocol="SEQTR"
+    }
+  }
   
   if(!is.logical(output.stat)){
     print("Invalid value for output.stat. Default value of FALSE will be used")
@@ -553,8 +566,10 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   if(!input1.list){
     input1 <- clean_input(input=input1, use.allele=use.allele, correct.gene.names = correct.gene.names, 
                           use.mouse.strain = use.mouse.strain, chain = chain, keep.incomplete.chain = keep.incomplete.chain,
-                          species.default = species.default, check.cdr3.mode = check.cdr3.mode, start.lg=start.lg, end.lg=end.lg, verbose=verbose)
+                          species.default = species.default, check.cdr3.mode = check.cdr3.mode, start.lg=start.lg, end.lg=end.lg, 
+                          seq.protocol=seq.protocol, verbose=verbose)
   }
+  
   #############
   # Load input2
   #############
@@ -601,7 +616,8 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     if(!input2.list){
       input2 <- clean_input(input=input2, use.allele = use.allele, correct.gene.names = correct.gene.names,
                             use.mouse.strain = use.mouse.strain, chain = chain, keep.incomplete.chain = keep.incomplete.chain,
-                            species.default = species.default, check.cdr3.mode = check.cdr3.mode, start.lg=start.lg, end.lg=end.lg, verbose=verbose)
+                            species.default = species.default, check.cdr3.mode = check.cdr3.mode, start.lg=start.lg, end.lg=end.lg,
+                            seq.protocol=seq.protocol, verbose=verbose)
     }
   }
   
