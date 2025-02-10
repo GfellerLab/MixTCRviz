@@ -1105,7 +1105,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
       }
       if(length(ind)>0){
         if(verbose>0){
-          print("Mapping all TRBV12-3 or TRBV12-4 into TRBV12-3/12-4, since they cannot be distinguished at the sequencing level")
+          print("Mapping all TRBV12-3 or TRBV12-4 into TRBV12-3/12-4, since they cannot be distinguished with SEQTR protocol")
         }
         if(use.allele){
           input[ind,"TRBV"] <- "TRBV12-3/12-4*01"
@@ -1117,7 +1117,8 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
       ind <- which(grepl("TRBV12-3/12-4",input[,"TRBV"]))
       if(length(ind)>0){
         if(verbose>0){
-          cat("\tWARNING: TCRs contain \"TRBV12-3/12-4\" entries.\n If you are using data generated with SEQTR protocol, please indicate it in seq.protocol=\"SEQTR\" parameter\n")
+          print("***WARNING: TCRs contain \"TRBV12-3/12-4\" entries.")
+          print("    If you are using data generated with SEQTR protocol, make sure to specify it with seq.protocol=\"SEQTR\"")
         }
       }
     }

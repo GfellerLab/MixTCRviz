@@ -12,6 +12,7 @@ clean.name.allele(
   gene = gene,
   allele = allele,
   species = "HomoSapiens",
+  seq.protocol = "Default",
   use.allele = F
 )
 }

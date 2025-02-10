@@ -215,6 +215,9 @@ This can be especially useful when comparing two epitope-specific TCR repertoire
 or when there is some incompatibilities between V/J names and CDR3 sequences
 }}
 
+\item{seq.protocol}{Indicate the sequencing protocol ("Default" or "SEQTR").
+When using SEQTR, TRBV12-3 and TRBV12-4 are merged into TRBV12-3/12-4, since they cannot be distinguished with this protocol.}
+
 \item{input1.name, input2.name}{Provide a generic name for the TCRs in input1 or input2 (default="Input" and "Baseline"/"Input2"). Avoid names with more
 than 20 characters.}
 
