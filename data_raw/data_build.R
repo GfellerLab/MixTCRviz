@@ -12,33 +12,33 @@ species.list <- c("HomoSapiens", "MusMusculus")
 # Take the list of alleles
 
 
-gene.allele.list <- list(); gene.allele.list[["Default"]] <- list()
-gene.list <- list(); gene.list[["Default"]] <- list()
-gene.type <- list(); gene.type[["Default"]] <- list()
-allele.default <- list(); allele.default[["Default"]] <- list()
+gene.allele.list <- list(); gene.allele.list[["IMGT"]] <- list()
+gene.list <- list(); gene.list[["IMGT"]] <- list()
+gene.type <- list(); gene.type[["IMGT"]] <- list()
+allele.default <- list(); allele.default[["IMGT"]] <- list()
 
 for(tsp in species.list){
-  gene.allele.list$Default[[tsp]] <- c()
-  gene.list$Default[[tsp]] <- c()
-  gene.type$Default[[tsp]] <- c()
+  gene.allele.list$IMGT[[tsp]] <- c()
+  gene.list$IMGT[[tsp]] <- c()
+  gene.type$IMGT[[tsp]] <- c()
   for(s in segment.list){
     df <- read.csv(file=paste("data_raw/CDR123/",tsp,"/",s,"_allele.csv", sep=""), row.names = 1)
-    gene.allele.list$Default[[tsp]] <- c(gene.allele.list$Default[[tsp]], rownames(df))
+    gene.allele.list$IMGT[[tsp]] <- c(gene.allele.list$IMGT[[tsp]], rownames(df))
     gt <- df[,"gene_type"]
     names(gt) <- rownames(df)
-    gene.type$Default[[tsp]] <- c(gene.type$Default[[tsp]], gt)
+    gene.type$IMGT[[tsp]] <- c(gene.type$IMGT[[tsp]], gt)
     
     df <- read.csv(file=paste("data_raw/CDR123/",tsp,"/",s,".csv", sep=""), row.names = 1)
-    gene.list$Default[[tsp]] <- c(gene.list$Default[[tsp]], rownames(df))
+    gene.list$IMGT[[tsp]] <- c(gene.list$IMGT[[tsp]], rownames(df))
     
     gt <- df[,"gene_type"]
     names(gt) <- rownames(df)
-    gene.type$Default[[tsp]] <- c(gene.type$Default[[tsp]], gt)
+    gene.type$IMGT[[tsp]] <- c(gene.type$IMGT[[tsp]], gt)
     
     default <- df[,"default_allele"]
     default <- gsub('\\*','',default)
     names(default) <- rownames(df)
-    allele.default$Default[[tsp]] <- c(allele.default$Default[[tsp]], default) #This is no longer used.
+    allele.default$IMGT[[tsp]] <- c(allele.default$IMGT[[tsp]], default) #This is no longer used.
   }
 }
 
@@ -68,10 +68,27 @@ names(map[["MusMusculus"]]) <- mp[pos.m,1]
 
 #For SEQTR, we merge TRBV12-3 and TRBV12-4 into TRBV12-3/12-4
 
-gene.allele.list[["SEQTR"]] <- gene.allele.list[["Default"]]
-gene.list[["SEQTR"]] <-  gene.list[["Default"]]
-gene.type[["SEQTR"]] <-  gene.type[["Default"]]
-allele.default[["SEQTR"]] <-  allele.default[["Default"]]
+gene.allele.list[["Default"]] <- gene.allele.list$IMGT
+gene.list[["Default"]] <-  gene.list$IMGT
+gene.type[["Default"]] <-  gene.type$IMGT
+allele.default[["Default"]] <-  allele.default$IMGT
+
+gene.Default.exclude <- c("TRBV6-2*01", "TRBV6-3*01", "TRBV6-2", "TRBV6-3")
+
+ind <- which(! gene.allele.list$Default$HomoSapiens %in% gene.Default.exclude)
+gene.allele.list$Default$HomoSapiens <- sort(c(gene.allele.list$Default$HomoSapiens[ind], "TRBV6-2/6-3*01"))
+ind <- which(! gene.list$Default$HomoSapiens %in% gene.Default.exclude)
+gene.list$Default$HomoSapiens <- sort(c(gene.list$Default$HomoSapiens[ind], "TRBV6-2/6-3"))
+ind <- which(! names(gene.type$Default$HomoSapiens) %in% gene.Default.exclude)
+gene.type$Default$HomoSapiens <- setNames(c(gene.type$Default$HomoSapiens[ind], "F"),c(names(gene.type$Default$HomoSapiens[ind]), "TRBV6-2/6-3"))
+ind <- which(! names(allele.default$Default$HomoSapiens) %in% gene.Default.exclude)
+allele.default$Default$HomoSapiens <- setNames(c(allele.default$Default$HomoSapiens[ind], "01"),c(names(allele.default$Default$HomoSapiens[ind]), "TRBV6-2/6-3"))
+
+
+gene.allele.list[["SEQTR"]] <- gene.allele.list$Default
+gene.list[["SEQTR"]] <-  gene.list$Default
+gene.type[["SEQTR"]] <-  gene.type$Default
+allele.default[["SEQTR"]] <-  allele.default$Default
 
 gene.SEQTR.exclude <- c("TRBV12-3*01", "TRBV12-4*01", "TRBV12-4*02", "TRBV12-3", "TRBV12-4")
 
@@ -94,7 +111,7 @@ palette <- "Set 3"
 # Different color for each gene per segment
 for (tsp in species.list){
   for (s in segment.list){
-    cGenes <- grep(s, gene.list$Default[[tsp]], value=TRUE)
+    cGenes <- grep(s, gene.list$IMGT[[tsp]], value=TRUE)
     cols <- hcl.colors(n=length(cGenes), palette=palette)
     cGenes <- c(cGenes, "Other")
     cols <- c(cols, "gray90")
@@ -107,7 +124,7 @@ for (tsp in species.list){
 # Combining color with shape and outer shape color
 for (tsp in species.list){
   for (s in segment.list){
-    cGenes <- grep(s, gene.list$Default[[tsp]], value=TRUE)
+    cGenes <- grep(s, gene.list$IMGT[[tsp]], value=TRUE)
     genesCode <- sort(unique(gsub("TR(A|B)(V|J)", "", cGenes)))
    
     if(s == "TRBJ" ){
@@ -167,7 +184,7 @@ for (tsp in species.list){
     TCRgene2aes[[tsp]][[s]]$color1 <- setNames(cols[g1], cGenes)
     
     #Set pseudogenes or ORF,... to light grey
-    ind <- which(gene.type$Default[[tsp]][names(TCRgene2aes[[tsp]][[s]]$color1)] %in% c("P", "ORF", "(ORF)"))
+    ind <- which(gene.type$IMGT[[tsp]][names(TCRgene2aes[[tsp]][[s]]$color1)] %in% c("P", "ORF", "(ORF)"))
     TCRgene2aes[[tsp]][[s]]$color1[ind] <- "grey95"
     
     TCRgene2aes[[tsp]][[s]]$shape1 <- setNames(shapes[g2], cGenes)
@@ -176,6 +193,7 @@ for (tsp in species.list){
 }
 for(t in c("color1", "shape1", "outerColor1", "color2")){
   TCRgene2aes$HomoSapiens$TRBV[[t]]["TRBV12-3/12-4"] <- TCRgene2aes$HomoSapiens$TRBV[[t]]["TRBV12-3"]
+  TCRgene2aes$HomoSapiens$TRBV[[t]]["TRBV6-2/6-3"] <- TCRgene2aes$HomoSapiens$TRBV[[t]]["TRBV6-2"]
 }
 
 # If we want to make figures showing the color/shape from each gene.
@@ -288,12 +306,14 @@ for(species in species.list){
 
 }
 
-#Add CDR3 for TRBV12-3/12-4
+#Add CDR3 for TRBV6-2/6-3 and TRBV12-3/12-4
 rn <- rownames(cdr123$HomoSapiens$TRB)
-v <- c("","",cdr123$HomoSapiens$TRB["TRBV12-3",c("CDR3", "default_allele","gene_type")],"")
-names(v) <- colnames(cdr123$HomoSapiens$TRB)
-cdr123$HomoSapiens$TRB <- rbind(cdr123$HomoSapiens$TRB,v,v)
-rownames(cdr123$HomoSapiens$TRB) <- c(rn,"TRBV12-3/12-4", "TRBV12-3/12-4*01")
+v6 <- cdr123$HomoSapiens$TRB["TRBV6-2",]
+names(v6) <- colnames(cdr123$HomoSapiens$TRB)
+v12 <- c("","",cdr123$HomoSapiens$TRB["TRBV12-3",c("CDR3", "default_allele","gene_type")],"")
+names(v12) <- colnames(cdr123$HomoSapiens$TRB)
+cdr123$HomoSapiens$TRB <- rbind(cdr123$HomoSapiens$TRB,v6,v6,v12,v12)
+rownames(cdr123$HomoSapiens$TRB) <- c(rn,"TRBV6-2/6-3", "TRBV6-2/6-3*01","TRBV12-3/12-4", "TRBV12-3/12-4*01")
 
 
 #Build reference sequences for the beginning and end of CDR3, allowing mapping to multiple alleles in most cases

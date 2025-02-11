@@ -1028,13 +1028,13 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
   
   #Remove anything that comes after parenthesis (this is the case for MiXCR data for instance)
   for(s in segment.list){
-    ind <- which(grepl("\\(",input[,s]))
+    ind <- grep("\\(",input[,s])
     input[ind,s] <- sapply(ind,function(i){strsplit(input[i,s], split="\\(")[[1]][1]})
   }
   
   #If multiple V or J genes (separated by "," or "\" or ";" or " or "), keep only the first one
   for(s in segment.list){
-    ind <- which(grepl("\\\\|,|;| or ",input[,s]))
+    ind <- grep("\\\\|,|;| or ",input[,s])
     if(length(ind)>0){
       cor <- sapply(ind,function(i){strsplit(input[i,s], split="\\\\|,|;| or ")[[1]][1]})
       if(verbose>=1) {
@@ -1062,7 +1062,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
   if(!use.allele){
     #print("Removing alleles")
     for(s in segment.list){
-      ind <- which(grepl("*",input[,s], fixed=T))
+      ind <- grep("*",input[,s], fixed=T)
       input[ind,s] <- gsub("\\*0[0-9]/0[0-9]", "", input[ind,s]) #This are entries with ambiguous allele assignment
       input[ind,s] <- gsub("\\*0[0-9]", "", input[ind,s])
     }
@@ -1080,17 +1080,20 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
     }
   }
   
-  #Do a manual correction for TRBV6-3 (P) -> TRBV6-2
+  #Do a manual correction for TRBV6-2 and TRBV6-3 -> TRBV6-2/6-3
   if(chain=="B" | chain=="AB"){
-    ind <- which(grepl("TRBV6-3",input[,"TRBV"], fixed=T))
-    if(length(ind)>0){
-      if(verbose>0){
-        print("Mapping all TRBV6-3 to TRBV6-2, since they cannot be distinguished at the sequencing level")
-      }
-      if(use.allele){
-        input[ind,"TRBV"] <- "TRBV6-2*01"
-      } else {
-        input[ind,"TRBV"] <- "TRBV6-2"
+    if(seq.protocol=="Default" | seq.protocol=="SEQTR"){
+      ind <- which((grepl("TRBV6-2",input[,"TRBV"], fixed=T) | grepl("TRBV6-02",input[,"TRBV"], fixed=T) | grepl("TRBV6-3",input[,"TRBV"], fixed=T) | grepl("TRBV6-03",input[,"TRBV"], fixed=T)) 
+                   & input[,"TRBV"] != "TRBV6-2/6-3" & input[,"TRBV"] != "TRBV6-2/6-3*01")
+      if(length(ind)>0){
+        if(verbose>0){
+          print("Mapping all TRBV6-2 and TRBV6-3 to TRBV6-2/6-3, since they cannot be distinguished at the sequencing level")
+        }
+        if(use.allele){
+          input[ind,"TRBV"] <- "TRBV6-2/6-3*01"
+        } else {
+          input[ind,"TRBV"] <- "TRBV6-2/6-3"
+        }
       }
     }
   }
@@ -1098,14 +1101,12 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
   #Do a manual correction for TRBV12-3 or TRBV12-4 -> TRBV12-3/12-4
   if(chain=="B" | chain=="AB"){
     if(seq.protocol=="SEQTR"){
-      if(use.allele){
-        ind <- which(input[,"TRBV"]=="TRBV12-3*01" | input[,"TRBV"]=="TRBV12-4*01"| input[,"TRBV"]=="TRBV12-4*02")
-      } else {
-        ind <- which(input[,"TRBV"]=="TRBV12-3" | input[,"TRBV"]=="TRBV12-4")
-      }
+      ind <- which((grepl("TRBV12-3",input[,"TRBV"], fixed=T) | grepl("TRBV12-03",input[,"TRBV"], fixed=T) | grepl("TRBV12-4",input[,"TRBV"], fixed=T) | grepl("TRBV12-04",input[,"TRBV"], fixed=T)) &
+                     input[,"TRBV"] != "TRBV12-3/12-4" & input[,"TRBV"] != "TRBV12-3/12-4*01")
+      
       if(length(ind)>0){
         if(verbose>0){
-          print("Mapping all TRBV12-3 or TRBV12-4 into TRBV12-3/12-4, since they cannot be distinguished with SEQTR protocol")
+          print("Mapping all TRBV12-3 or TRBV12-4 to TRBV12-3/12-4, since they cannot be distinguished with SEQTR protocol")
         }
         if(use.allele){
           input[ind,"TRBV"] <- "TRBV12-3/12-4*01"
@@ -1114,10 +1115,10 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
         }
       }
     } else {
-      ind <- which(grepl("TRBV12-3/12-4",input[,"TRBV"]))
+      ind <- grep("TRBV12-3/12-4",input[,"TRBV"])
       if(length(ind)>0){
         if(verbose>0){
-          print("***WARNING: TCRs contain \"TRBV12-3/12-4\" entries.")
+          print("*** WARNING: TCRs contain TRBV12-3/12-4 entries.")
           print("    If you are using data generated with SEQTR protocol, make sure to specify it with seq.protocol=\"SEQTR\"")
         }
       }
@@ -1405,7 +1406,6 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
   }
   
   
-  
   for(species in species.list){
     for(s in segment.list){
       if(use.allele){
@@ -1418,7 +1418,6 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
       } else {
         ind <- which(!(input[,s] %in% name.list) & !is.na(input[,s]))
       }
-      
       
       if(length(ind)>0){
         

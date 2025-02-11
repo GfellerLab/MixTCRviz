@@ -210,6 +210,11 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     print("Invalid value for seq.protocol. Default value of \"Default\" will be used")
     seq.protocol <- "Default"
   }
+  if(seq.protocol=="SEQTR"){
+    if(is.null(baseline)){
+      baseline="SEQTR"
+    }
+  }
   if(!is.null(baseline)){
     if(baseline=="SEQTR"){
       seq.protocol="SEQTR"
