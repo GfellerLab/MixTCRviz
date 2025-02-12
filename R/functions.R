@@ -1461,7 +1461,8 @@ check_cdr3 <- function(input, chain="AB", species.default="HomoSapiens", check.c
 }
 
 
-correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), species.default="HomoSapiens", use.allele=F, seq.protocol="Default", verbose=1){
+correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), species.default="HomoSapiens",
+                            use.allele=F, seq.protocol="Default", verbose=1){
   
   if("species" %in% colnames(input)){
     species.list <- unique(input[,"species"])
@@ -1609,7 +1610,7 @@ clean.name.allele <- function(gene=gene, allele=allele, species="HomoSapiens", s
         gene <- unlist(strsplit(gene,"-"))[1]
       }
       
-      if(gene %in% gene.list[[seq.protocol]][[seq.protocol]][[species]] == F ){
+      if(gene %in% gene.list[[seq.protocol]][[species]] == F ){
         #The gene is still not ok, try using our manual dictionary
         if(!is.na(map[[species]][gene])){
           gene <- map[[species]][gene] #The gene was wrong, but can be corrected
