@@ -258,8 +258,9 @@ find_mhc <- function(m){
 #' @param label.diag (default=0.3): Print label on the diagonal above a certain value for both x and y axis
 #' @param label.min.fr (default=c(0.05, 0.05)): Region (rectangle) of the left corner of V/J plots with no gene label
 
-plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info=NULL, comp.baseline=T, pType=1,
-                   species="HomoSapiens", ret.resList=F, combined.resList=NULL, label.neg=F,
+plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, distr.rep=NULL, info=NULL, comp.baseline=T, pType=1,
+                   species="HomoSapiens", ret.resList=F, combined.resList=NULL, label.neg=F, 
+                   ZscoreVJ.thresh=0, FoldChangeVJ.thresh=1.25,
                    label.diag=0.3, label.min.fr=c(0.05, 0.05), print.size=T, plot.sd=T, verbose=1){
   
   if (is.null(combined.resList)){
@@ -334,13 +335,67 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info=NULL, comp
     } else {
       lim.x <- max(max(count.df[,"X"] )*1.3, count.df[,"X"] + count.df[,"SD_rep"])
     }
+    
+    
+    ratio <- (count.df[,"Y"]+0.0001)/(count.df[,"X"]+0.0001)
+    logFC <- log2(ratio);
+    names(logFC) <- nm
+    
+    
+    if(!is.null(sd.rep)){
+      Zscore <- sapply(nm, function(n){
+        if(count.df[n,"SD_rep"]>0){
+          Z <- (count.df[n,"Y"] - count.df[n,"X"])/count.df[n,"SD_rep"]
+        } else {
+          #If there is no sd in baseline
+          if(abs(count.df[n,"Y"] - count.df[n,"X"])>0.0001){
+            Z <- 5 #This a max value fixed by default
+          } else {
+            #This is when there is no sd, but es and rep have the same value (typically 0 everywhere)
+            Z <- 0
+          }
+        }
+        return(Z)
+      })
+    }
+    
+    #Compute an experimental P-value (i.e., %rank by comparing with repertoire)
+    #This is currently not used, since it would require many more samples to estimated baseline variability
+    if(!is.null(distr.rep)){
+      Pval <- sapply(nm, function(n){
+        if(n %in% rownames(distr.rep)){
+          Ppos <- length(which(distr.rep[n,] >= count.df[n,"Y"]))/length(distr.rep[n,])
+          Pneg <- length(which(distr.rep[n,] <= count.df[n,"Y"]))/length(distr.rep[n,])
+          P <- max(1/dim(distr.rep)[2], min(Ppos, Pneg))
+        } else {
+          if(count.df[n,"Y"]>0){
+            P <- 1/dim(distr.rep)[2]   # Min value, corresponding to cases where the gene was never seen in baseline
+          } else {
+            P <- 1
+          }
+        }
+        return(P)
+      })
+    }
+    
+    print.example <- F
+    if(print.example){
+      gn <- "TRBJ2-7"
+      if(gn %in% nm){
+        print(count.df[gn,])
+        if(!is.null(sd.rep)){
+          print(Zscore[gn])
+        }
+        if(!is.null(distr.rep)){
+          print(Pval[gn])
+        }
+      }
+      
+    }
+    #Now decide which label to show.
+    
     label <- nm; names(label) <- nm
     label.all <- label
-    ratio <- (count.df[,"Y"]+0.0001)/(count.df[,"X"]+0.0001)
-    logFC <- log2(ratio); names(logFC) <- nm
-    if(label.neg){
-      logFC <- abs(logFC)
-    }
     
     #If label.neg==F, put labels of all genes with negative logFC to NA
     if(!label.neg){
@@ -350,20 +405,29 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info=NULL, comp
     #Hide labels for points in the lower left corner, based on label.min.fr criteria
     label[ count.df[,"Y"] < label.min.fr[1] & count.df[,"X"] < label.min.fr[2] ] <- NA
     
+    #If Z-scores can be computed, hide labels for cases with Z-scores smaller than ZscoreVJ.thresh (default=0, nothing hidden)
+    if(!is.null(sd.rep)>0){
+      label[abs(Zscore) < ZscoreVJ.thresh] <- NA
+    }
+    
+    n_lab_max <- ifelse(pType==2, 12, 8)
+    
     #Hide labels for points with low fold change and not very high frequencies
     #Do this iteratively
-    min.logFC <- log2(c(1.25,1.5,2,3))
+    min.logFC <- log2(c(FoldChangeVJ.thresh,1.5,2,3))
     min.fr <- c(label.diag, 0.2, 0.1, 0.1) #This means that genes with higher frequency than min.fr in input1 will always be labelled, irrespective of their logFC
     
     #Test different stringency on the logFC thresholds (bar plot can
     #accomodate more labels before it gets too confusing visually).
-    n_lab_max <- ifelse(pType==2, 12, 8)
-    label[which( (logFC < min.logFC[1]) & count.df[,"X"] < min.fr[1] & count.df[,"Y"] < min.fr[1])] <- NA
+    
+    label[which( (abs(logFC) < min.logFC[1]) & count.df[,"X"] < min.fr[1] & count.df[,"Y"] < min.fr[1])] <- NA
     t <- 2
     while(length(which(!is.na(label))) > n_lab_max & t <= length(min.fr)){
-      label[which( (logFC < min.logFC[t]) & count.df[,"X"] < min.fr[t] & count.df[,"Y"] < min.fr[t])] <- NA
+      label[which( (abs(logFC) < min.logFC[t]) & count.df[,"X"] < min.fr[t] & count.df[,"Y"] < min.fr[t])] <- NA
       t <- t+1
     }
+    
+    
     #If we still have too many labels, take those with the top logFC
     
     
@@ -372,7 +436,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info=NULL, comp
         print(paste("Too many labels for ",gene,", selection will be based primarily on logFC:",sep=""))
         print("  Consider augmenting values in label.min.fr if visualisation is not good")
       }
-      logFC.sort <- sort(logFC)
+      logFC.sort <- sort(abs(logFC))
       t <- 1
       
       while(length(which(!is.na(label))) > n_lab_max){
@@ -382,7 +446,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, info=NULL, comp
       }
     }
     if(label.diag){
-      #Force to show points along the diagonal
+      #Force to show points along the diagonal (this can be useful when comparing two similar repertoires, with some enriched V or J)
       ind <- which(count.df[,"Y"] > label.diag & count.df[,"X"] > label.diag & abs(logFC) < 1.5)
       if(length(ind)<10){
         label[ind] <- label.all[ind]
@@ -754,7 +818,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
       if(print.size){ title <- paste(title, " (",countL.es[[lc]],")", sep="")  }
       title <- paste(title,", CDR3", info["chain"],"_",l, sep="")
       
-      logo.CDR3.L.es[[lc]] <- ggseqlogoMOD(data=pwm.es[[lc]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8, methods = logo.type) +
+      logo.CDR3.L.es[[lc]] <- ggseqlogoMOD::ggseqlogoMOD(data=pwm.es[[lc]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8, methods = logo.type) +
         labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
       
       title.baseline <- info["baseline.name"]
@@ -769,20 +833,20 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
       }
       
       if(plot.cdr3.subtract.baseline==0){
-        logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD(data=pwm.rep[[lc]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8, methods = logo.type) +
+        logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD::ggseqlogoMOD(data=pwm.rep[[lc]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8, methods = logo.type) +
           labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
       } else if(plot.cdr3.subtract.baseline==1){
         y.min <- min(apply(x.norm, 2, function(x){ sum(x[x<0]) }))
         y.max <- max(apply(x.norm, 2, function(x){ sum(x[x>0]) }))
         y.min <- max(-log(N.aa)/log(2), y.inc*y.min)
         y.max <- log(N.aa)/log(2) # min(log(N.aa)/log(2), y.inc*y.max)
-        logo.CDR3.L.rep[[lc]] <- ggseqlogo(data=x.norm, method='custom') +
+        logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD::ggseqlogo(data=x.norm, method='custom') +
           labs(title=title.baseline) + ylim(y.min,y.max) + ylab(ylab) +
           theme(plot.title=element_text(size=title.size, hjust=0.5)) + theme(legend.position = 'none')
       } else if(plot.cdr3.subtract.baseline==2){
         IC.max <- max(unlist(apply(x.norm, 2, function(x){ ind <- which(x!=0); IC <- log(N.aa)/log(2)+sum(x[ind]*log(x[ind])/log(2)); return(IC) })))
         y.max <- min(IC.max*y.inc, log(N.aa)/log(2))
-        logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD(data=x.norm, additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8, ylim=c(0, y.max), methods = logo.type) +
+        logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD::ggseqlogoMOD(data=x.norm, additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8, ylim=c(0, y.max), methods = logo.type) +
           labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
       }
       #For the special case where l==lmax, build the logo with different graphical parameters, depending on the plot.oneline
@@ -819,24 +883,24 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
           }
         }
         
-        logo.CDR3.L.es.max <- ggseqlogoMOD(data=pwm.es[[lc]], additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8, methods = logo.type) +
+        logo.CDR3.L.es.max <- ggseqlogoMOD::ggseqlogoMOD(data=pwm.es[[lc]], additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8, methods = logo.type) +
           labs(title=title) + ylab(ylab) + theme(plot.title=element_text(size=title.size, hjust=0.5))
         
         if(plot.cdr3.subtract.baseline==0){
-          logo.CDR3.L.rep.max <- ggseqlogoMOD(data=pwm.rep[[lc]], additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8, methods = logo.type) +
+          logo.CDR3.L.rep.max <- ggseqlogoMOD::ggseqlogoMOD(data=pwm.rep[[lc]], additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8, methods = logo.type) +
             labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=title.size, hjust=0.5))
         } else if(plot.cdr3.subtract.baseline==1){
           y.min <- min(apply(x.norm, 2, function(x){ sum(x[x<0]) }))
           y.max <- max(apply(x.norm, 2, function(x){ sum(x[x>0]) }))
           y.min <- max(-log(N.aa)/log(2), 2*y.min)
           y.max <- log(N.aa)/log(2) # min(log(N.aa)/log(2), 2*y.max)
-          logo.CDR3.L.rep.max <- ggseqlogo(data=x.norm, method='custom') +
+          logo.CDR3.L.rep.max <- ggseqlogoMOD::ggseqlogo(data=x.norm, method='custom') +
             ggtitle(title.baseline) + ylim(y.min,y.max) + ylab(ylab) +
             theme(plot.title=element_text(size=title.size, hjust=0.5)) + theme(legend.position = 'none')
         } else if (plot.cdr3.subtract.baseline==2){
           IC.max <- max(unlist(apply(x.norm, 2, function(x){ ind <- which(x!=0); IC <- log(N.aa)/log(2)+sum(x[ind]*log(x[ind])/log(2)); return(IC) })))
           y.max <- min(IC.max*y.inc, log(N.aa)/log(2))
-          logo.CDR3.L.rep.max <- ggseqlogoMOD(data=x.norm, additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8, ylim=c(0, y.max), methods = logo.type) +
+          logo.CDR3.L.rep.max <- ggseqlogoMOD::ggseqlogoMOD(data=x.norm, additionaAA=additionalAA,  axisTextSizeX = axis.size.max, axisTextSizeY = 8, ylim=c(0, y.max), methods = logo.type) +
             labs(title=title.baseline) + ylab(ylab) + theme(plot.title=element_text(size=title.size, hjust=0.5))
         }
       }

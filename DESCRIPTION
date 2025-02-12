@@ -19,7 +19,7 @@ Imports:
     readr,
     ggpubr,
     ggrepel,
-    ggseqlogo (>= 0.1),
+    ggseqlogoMOD (>= 0.1),
     mgcv,
     seqinr,
     stringr,

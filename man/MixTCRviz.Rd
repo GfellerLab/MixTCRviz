@@ -206,7 +206,7 @@ This can be especially useful when comparing two epitope-specific TCR repertoire
 \item FALSE: Do not show standard deviation
 }}
 
-\item{label.min.fr.x, label.min.fr.y}{Region (i.e., X - Y rectangle) of the left corner of V/J plots with no gene label (default=0.05).}
+\item{label.min.fr.input1, label.min.fr.input2}{Region (i.e., Y - X rectangle) of the left corner of V/J plots with no gene label (default=0.05).}
 
 \item{keep.incomplete.chain}{Decide whether to keep incomplete alpha or beta chains.
 \itemize{
@@ -227,6 +227,15 @@ than 20 characters.}
 If TRUE, keep the name of the columns dedicated the TCRs in the input. The option is not supported for format with clone.id}
 
 \item{print.size}{If TRUE (default), print the number of TCRs in input1 in the plots.}
+
+\item{ZscoreVJ.thresh}{Filtering threshold based on Z-score for not showing the labels in P(V) and P(J) plots (default=0, i.e. no filtering)
+The Z-score filtering comes on top of the filtering with min.label.fr.input1 and min.label.fr.input2}
+
+\item{FoldChangeVJ.thresh}{Filtering threshold based on fold change for not showing the labels in P(V) and P(J) plots (default=1.25, must be larger than 1).
+This parameter is overruled by label.diag, so V/J genes with frequencies in input1 or in input2/baseline larger than label.diag will still be displayed.
+This can be prevented by using label.diag=1.
+The Fold Change filtering comes on top of the filtering with min.label.fr.input1 and min.label.fr.input2
+If too many labels remain in the plots, other FoldChangeVJ.thresh values may be used.}
 }
 \value{
 R list containing the plots (if \code{plot}=TRUE), the processed data (if input1 is a file or data.frame) and an R list with the stats for each model in input1.

@@ -146,7 +146,7 @@
 #' @param label.diag  Decide to keep some label in the upper right corner, based on label.diag value (default=0.3). 
 #'        This can be especially useful when comparing two epitope-specific TCR repertoires.
 #'
-#' @param label.min.fr.x,label.min.fr.y Region (i.e., X - Y rectangle) of the left corner of V/J plots with no gene label (default=0.05). 
+#' @param label.min.fr.input1,label.min.fr.input2 Region (i.e., Y - X rectangle) of the left corner of V/J plots with no gene label (default=0.05). 
 #' 
 #' @param keep.incomplete.chain Decide whether to keep incomplete alpha or beta chains.
 #'  * TRUE (default): Incomplete chains are kept.
@@ -182,7 +182,16 @@
 #'  
 #' @param keep.colnames.origin Decide whether to keep the original names of the columns (default=FALSE).
 #'  If TRUE, keep the name of the columns dedicated the TCRs in the input. The option is not supported for format with clone.id
-#'    
+#' 
+#' @param ZscoreVJ.thresh Filtering threshold based on Z-score for not showing the labels in P(V) and P(J) plots (default=0, i.e. no filtering)
+#' The Z-score filtering comes on top of the filtering with min.label.fr.input1 and min.label.fr.input2
+#' 
+#' @param FoldChangeVJ.thresh Filtering threshold based on fold change for not showing the labels in P(V) and P(J) plots (default=1.25, must be larger than 1).
+#' This parameter is overruled by label.diag, so V/J genes with frequencies in input1 or in input2/baseline larger than label.diag will still be displayed.
+#' This can be prevented by using label.diag=1.
+#' The Fold Change filtering comes on top of the filtering with min.label.fr.input1 and min.label.fr.input2
+#' If too many labels remain in the plots, other FoldChangeVJ.thresh values may be used.
+#' 
 #' @param logo.type Decide which type of logo to use. Should be either 'bits' (default), or 'probability'.  
 #'
 #' @returns R list containing the plots (if `plot`=TRUE), the processed data (if input1 is a file or data.frame) and an R list with the stats for each model in input1.
@@ -197,15 +206,16 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
                       species.default="HomoSapiens", model.default="Model_default", verbose=1, build.clones=F,
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
-                      label.min.fr.x=0.05, label.min.fr.y=0.05, keep.incomplete.chain=T, seq.protocol="Default",
+                      label.min.fr.input1=0.05, label.min.fr.input2=0.05, keep.incomplete.chain=T, seq.protocol="Default",
                       input1.name="Input", input2.name=NULL, output.format="pdf", keep.colnames.origin=F,
-                      print.size=T){
+                      print.size=T, ZscoreVJ.thresh=0, FoldChangeVJ.thresh=1.25){
   
   
   #######
   # Check input parameters
   #######
   
+
   if(!seq.protocol %in% c("Default", "SEQTR")){
     print("Invalid value for seq.protocol. Default value of \"Default\" will be used")
     seq.protocol <- "Default"
@@ -215,17 +225,40 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
       baseline="SEQTR"
     }
   }
-  if(!is.null(baseline)){
-    if(baseline=="SEQTR"){
-      seq.protocol="SEQTR"
+
+ 
+  if(!is.numeric(ZscoreVJ.thresh) | length(ZscoreVJ.thresh)>1){
+      print("Invalid value for ZscoreVJ.thresh. Default value of 0 will be applied")
+      ZscoreVJ.thresh <- 0
+  } else {
+    if(ZscoreVJ.thresh < 0){
+      print("ZscoreVJ.thresh needs to be larger or equal to 0. Default value of 0 will be applied")
+      ZscoreVJ.thresh <- 0
+    }
+  }
+  if(!is.numeric(FoldChangeVJ.thresh) | length(FoldChangeVJ.thresh)>1){
+    print("Invalid value for FoldChangeVJ.thresh. Default value of 1.25 will be used")
+    FoldChangeVJ.thresh <- 1.25
+  } else {
+    if(FoldChangeVJ.thresh < 1){
+      print("FoldChangeVJ.thresh needs to be larger or equal to 1. Default value of 1.25 will be applied")
+      FoldChangeVJ.thresh <- 1.25
     }
   }
   
+  if(!is.null(baseline)){
+    if(is.character(baseline) & length(baseline)==1){
+      if(baseline=="SEQTR"){
+        seq.protocol="SEQTR"
+      }
+    }
+  }
+
   if(!is.logical(output.stat)){
     print("Invalid value for output.stat. Default value of FALSE will be used")
     output.stat <- F
   }
-  
+
   if(!is.logical(output.processed.data)){
     print("Invalid value for output.processed.data. Default value of FALSE will be used")
     output.processed.data <- F
@@ -248,7 +281,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   if(!plot){
     print("No motif will be generated with plot=FALSE")
   }
-  
+
   if (is.null(output.path)){
     print("No output.path, results will only be returned in an R list")
     if(plot.all.length){
@@ -262,7 +295,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   } else if(!is.character(output.path) | length(output.path)>1){
     stop("Invalid value for output.path. Should be a single string of character indicating path where to save the plots.")
   } 
-  
+
   if(!is.logical(use.allele)){
     print("Invalid value for use.allele. Default value of FALSE will be used")
     use.allele <- F
@@ -280,7 +313,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     print("Invalid value for use.mouse.strain. Default value of FALSE will be used")
     use.mouse.strain <- F
   }
-  
+
   if(!check.cdr3.mode %in% c(0,1,2)){
     print("Invalid value for check.cdr3.mode. Default value of 1 will be used")
     check.cdr3.mode <- 1
@@ -300,7 +333,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     build.clones <- F
   }
   
-  
+
   if(is.null(renormVJ)){
     renormVJ <- ifelse(is.null(input2),T,F)
   } else {
@@ -316,8 +349,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     print(paste("N.min=",N.min," not supported, using default N.min=1", sep=""))
     N.min <- 1
   }
-  
-  
+
   
   if(!is.na(set.cdr3a.length)){
     if(is.numeric(set.cdr3a.length)==F | set.cdr3a.length < Lmin | set.cdr3a.length > Lmax | set.cdr3a.length%%1 != 0){
@@ -379,7 +411,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     label.diag <- 0.3
   }
   
-  label.min.fr <- c(label.min.fr.x, label.min.fr.y)
+  label.min.fr <- c(label.min.fr.input1, label.min.fr.input2)
   if(!is.numeric(label.min.fr) | length(label.min.fr) != 2 | max(label.min.fr)>1 | min(label.min.fr)<0){
     print("Invalid value for label.min.fr. Default value of 0.05 will be used")
     label.min.fr <- c(0.05,0.05)
@@ -461,8 +493,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   ###########
   #Set some specific values for different parameters
   ###########
-  
-  
+
   
   keep.gap.pwm <- 0 # 1: means that 'g' (gaps in CDR1/2) are treated as an additional aa in the logos. 0: means that 'g' are treated as unspecific (i.e., 0.05) in the logos
   if(keep.gap.pwm==1){taa.list <- c(aa.list,"g"); additionalAA <- "g"} else {taa.list <- aa.list; additionalAA <- ""}
@@ -502,7 +533,6 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   ############################
   # Load all the input data
   ############################
-  
   input1.list=F
   if(is.character(input1)==T){
     if(length(input1)==1){
@@ -535,8 +565,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   } else {
     stop("Invalid value for input1. Should be a .csv or tab delimited .txt filename or a data.frame or a list generated by MixTCRviz")
   }
-  
-  
+
   if(!input1.list){
     
     # Check the compatibility between chain and the actual data. 
@@ -956,8 +985,11 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           infoV <- c(paste(ch,"V", sep=""), input1.name, baseline.name, model)
           names(infoV) <- c("gene", "input1.name", "baseline.name", "model")
           
-          countV.plot <- plotVJ(count.es=es$countV[[ch]], count.rep=baseline.model$countV[[ch]], sd.es=es$sdV[[ch]], sd.rep=baseline.model$sdV[[ch]],
+          countV.plot <- plotVJ(count.es=es$countV[[ch]], count.rep=baseline.model$countV[[ch]], 
+                                sd.es=es$sdV[[ch]], sd.rep=baseline.model$sdV[[ch]],
+                                distr.es=es$distrV[[ch]], distr.rep=baseline.model$distrV[[ch]],
                                 info=infoV, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species,
+                                ZscoreVJ.thresh=ZscoreVJ.thresh, FoldChangeVJ.thresh=FoldChangeVJ.thresh,
                                 ret.resList=plot.modelsCombined, label.neg = label.neg, label.diag=label.diag, label.min.fr=label.min.fr, print.size=print.size, plot.sd=plot.sd, verbose=verbose)
         } else {
           #This happens if the baseline is empty for one chain
@@ -970,8 +1002,11 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           names(infoJ) <- c("gene", "input1.name", "baseline.name", "model")
           
           
-          countJ.plot <- plotVJ(count.es=es$countJ[[ch]], count.rep=baseline.model$countJ[[ch]], sd.es=es$sdJ[[ch]], sd.rep=baseline.model$sdJ[[ch]],
-                                info=infoJ, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species,
+          countJ.plot <- plotVJ(count.es=es$countJ[[ch]], count.rep=baseline.model$countJ[[ch]], 
+                                sd.es=es$sdJ[[ch]], sd.rep=baseline.model$sdJ[[ch]],
+                                distr.es=es$distrJ[[ch]], distr.rep=baseline.model$distrJ[[ch]],
+                                info=infoJ, comp.baseline=comp.baseline, pType=plot.VJ.switch, species=species, 
+                                ZscoreVJ.thresh=ZscoreVJ.thresh, FoldChangeVJ.thresh=FoldChangeVJ.thresh,
                                 ret.resList=plot.modelsCombined, label.neg = label.neg, label.diag=label.diag, label.min.fr=label.min.fr, print.size=print.size, plot.sd=plot.sd, verbose=verbose)
         } else {
           countJ.plot <- ggplot()
@@ -1002,10 +1037,10 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
                 ylab <- ""; ylab.baseline <- ""
               }
               pwm <- build_cdr12_motif(ct, keep.gap=keep.gap.pwm)  #Useful if we keep the gaps
-              logo1 <- ggseqlogoMOD(data=pwm, additionaAA=additionalAA, axisTextSizeX = 10, axisTextSizeY = 10) +
+              logo1 <- ggseqlogoMOD::ggseqlogoMOD(data=pwm, additionaAA=additionalAA, axisTextSizeX = 10, axisTextSizeY = 10) +
                 ggtitle(paste(cdr,chain.small[ch]," ",input1.name," (", sum(es$countV[[ch]]),")",sep="")) + ylab(ylab) + th + theme(plot.title=element_text(size=12))
               #pwm2 <- build_cdr12_motif(ct2, keep.gap=keep.gap.pwm)
-              #logo2 <- ggseqlogoMOD(data=pwm2, additionaAA=additionalAA,  axisTextSizeX = 10, axisTextSizeY = 10) +
+              #logo2 <- ggseqlogoMOD::ggseqlogoMOD(data=pwm2, additionaAA=additionalAA,  axisTextSizeX = 10, axisTextSizeY = 10) +
               #ggtitle(paste(cdr,chain.small[ch]," ",baseline.name," ", sep="")) + ylab(ylab.baseline) + th + theme(plot.title=element_text(size=12))
               #logo[[cdr]] <- ggarrange(logo1, logo2, nrow=2)
               logo[[cdr]] <- ggarrange(logo1, nrow=1)
@@ -1142,12 +1177,18 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
               #Add the comparison of V/J usage
               infoV <- c(paste(ch,"V", sep=""), input1.name, baseline.name, model)
               names(infoV) <- c("gene", "input1.name", "baseline.name", "model")
-              plotV.L <- plotVJ(count.es=es$countV.L[[ch]][[t]], count.rep=baseline.model$countV.L[[ch]][[t]], sd.es=es$sdV.L[[ch]][[t]], sd.rep=baseline.model$sdV.L[[ch]][[t]],
+              plotV.L <- plotVJ(count.es=es$countV.L[[ch]][[t]], count.rep=baseline.model$countV.L[[ch]][[t]], 
+                                sd.es=es$sdV.L[[ch]][[t]], sd.rep=baseline.model$sdV.L[[ch]][[t]],
+                                distr.es=es$distrV.L[[ch]], distr.rep=baseline.model$distrV.L[[ch]],
+                                ZscoreVJ.thresh=ZscoreVJ.thresh, FoldChangeVJ.thresh=FoldChangeVJ.thresh,
                                 info=infoV, comp.baseline = comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg,  label.diag=label.diag,
                                 label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
               infoV <- c(paste(ch,"J", sep=""), input1.name, baseline.name, model)
               names(infoV) <- c("gene", "input1.name", "baseline.name", "model")
-              plotJ.L <- plotVJ(count.es=es$countJ.L[[ch]][[t]], count.rep=baseline.model$countJ.L[[ch]][[t]], sd.es=es$sdJ.L[[ch]][[t]], sd.rep=baseline.model$sdJ.L[[ch]][[t]],
+              plotJ.L <- plotVJ(count.es=es$countJ.L[[ch]][[t]], count.rep=baseline.model$countJ.L[[ch]][[t]], 
+                                sd.es=es$sdJ.L[[ch]][[t]], sd.rep=baseline.model$sdJ.L[[ch]][[t]],
+                                distr.es=es$distrJ.L[[ch]], distr.rep=baseline.model$distrJ.L[[ch]],
+                                ZscoreVJ.thresh=ZscoreVJ.thresh, FoldChangeVJ.thresh=FoldChangeVJ.thresh,
                                 info=infoJ, comp.baseline = comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg,  label.diag=label.diag,
                                 label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
               
