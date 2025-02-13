@@ -273,7 +273,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
       }
     }
     #count.es is on the Y axis, count.rep on the X
-    gene <- info["gene"]  # e.g., TRAV
+    segment <- info["gene"]  # e.g., TRAV
     n.es <- sum(count.es)
     
     n.rep <- sum(count.rep)
@@ -340,6 +340,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
     ratio <- (count.df[,"Y"]+0.0001)/(count.df[,"X"]+0.0001)
     logFC <- log2(ratio);
     names(logFC) <- nm
+    count.df$logFC <- as.character(signif(logFC,2))
     
     
     if(!is.null(sd.rep)){
@@ -357,7 +358,12 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
         }
         return(Z)
       })
+    } else {
+      Zscore <- setNames(rep(NA, length(nm)), nm)
     }
+    count.df$Zscore <- as.character(signif(Zscore,2))
+
+    #print(count.df)
     
     #Compute an experimental P-value (i.e., %rank by comparing with repertoire)
     #This is currently not used, since it would require many more samples to estimated baseline variability
@@ -433,7 +439,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
     
     if(length(which(!is.na(label))) > n_lab_max){
       if(verbose>=1){
-        print(paste("Too many labels for ",gene,", selection will be based primarily on logFC:",sep=""))
+        print(paste("Too many labels for ",segment,", selection will be based primarily on logFC:",sep=""))
         print("  Consider augmenting values in label.min.fr if visualisation is not good")
       }
       logFC.sort <- sort(abs(logFC))
@@ -503,9 +509,9 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
   }
   
   if (pType == 1){
-    colorScale <- TCRgene2aes[[species]][[gene]]$color1
+    colorScale <- TCRgene2aes[[species]][[segment]]$color1
   } else {
-    colorScale <- TCRgene2aes[[species]][[gene]]$color2
+    colorScale <- TCRgene2aes[[species]][[segment]]$color2
   }
   
   #Plot the comparison between input and repertoires
@@ -515,7 +521,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
     }
     
     
-    count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label)) +
+    count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label, label2=name, label3=logFC, label4=Zscore)) +
       geom_abline(col="orange",linetype="dashed",linewidth=1)
     
     if(!is.null(sd.es) & plot.sd){
@@ -536,8 +542,8 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
         outerColorScale <- "gray20"
       } else if (pType == 1){
         shape_color <- count.df$gene
-        shapeScale <- TCRgene2aes[[species]][[gene]]$shape1
-        outerColorScale <- TCRgene2aes[[species]][[gene]]$outerColor1
+        shapeScale <- TCRgene2aes[[species]][[segment]]$shape1
+        outerColorScale <- TCRgene2aes[[species]][[segment]]$outerColor1
       }
       outerWidth <- 0.5
       
@@ -547,7 +553,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
         scale_shape_manual(values=shapeScale, guide="none")
     }
     count.plot <- count.plot +
-      ggtitle(gene) +
+      ggtitle(segment) +
       xlim(0, lim.x) + ylim(0,lim.y) + theme_bw() +
       theme(plot.title = element_text(size = 14, hjust=0.5),
             axis.text=element_text(size=10), axis.title=element_text(size=14)) +
@@ -582,13 +588,13 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
       count.plot <- ggplot(count.df, aes(x=Y, y=label, fill=gene)) +
         geom_col(color="gray10", linewidth=1)
       
-      figTitle <- paste0(gene, " (", n.es, ")")
+      figTitle <- paste0(segment, " (", n.es, ")")
     } else {
       count.plot <- ggplot(count.df, aes(x=Y, y=label, fill=gene, color=model)) +
         geom_col(position="dodge", linewidth=1, width=0.8) +
         scale_color_manual(values=set_model_colPals(rev(levels(count.df$model))),
                            guide=guide_legend(ncol=1, order=1, reverse=T))
-      figTitle <- gene
+      figTitle <- segment
     }
     
     count.plot <- count.plot +
@@ -1696,7 +1702,7 @@ set_model_colPals <- function(models){
 
 create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.oneline){
   # Turn off legends in the first two plots
-  p1 <- plotly::ggplotly(countV.plot, tooltip = "gene")
+  p1 <- plotly::ggplotly(countV.plot, tooltip = c("name", "logFC", "Zscore"))
   
   p1$x$data <- lapply(p1$x$data, function(trace) {
     # Set marker size and mode for points
@@ -1718,7 +1724,7 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
   p1 <- plotly::layout(p1, showlegend = FALSE)
   
   
-  p2 <- plotly::ggplotly(countJ.plot, tooltip = "gene")
+  p2 <- plotly::ggplotly(countJ.plot, tooltip = c("name", "logFC" ,"Zscore"))
   
   p2$x$data <- lapply(p2$x$data, function(trace) {
     # Set marker size and mode for points
