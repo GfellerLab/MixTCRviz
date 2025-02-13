@@ -1702,7 +1702,9 @@ set_model_colPals <- function(models){
 
 create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.oneline){
   # Turn off legends in the first two plots
-  p1 <- plotly::ggplotly(countV.plot, tooltip = c("name", "logFC", "Zscore"))
+  countV.plot_not_title <- countV.plot + labs(title = NULL)
+  
+  p1 <- plotly::ggplotly(countV.plot_not_title, tooltip = c("name", "logFC", "Zscore"))
   
   p1$x$data <- lapply(p1$x$data, function(trace) {
     # Set marker size and mode for points
@@ -1716,20 +1718,44 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
     return(trace)
   })
 
-    p1 <- p1 %>%
+  # p1 <- p1 %>%
+  #   plotly::layout(
+  #     title = list(
+  #       text    = countV.plot$labels$title,
+  #       x       = 0.5,         # Center the title horizontally
+  #       y       = 1.02,         # Position the title at the top edge of the plotting area
+  #       xanchor = "center",
+  #       yanchor = "bottom",    # With yanchor = "bottom", the bottom of the title text aligns with y = 1.0
+  #       pad     = list(b = 0)  # Remove extra bottom padding for the title
+  #     ),
+  #     margin = list(t = 60),   # Reduce top margin so the gap between title and plot is smaller
+  #     showlegend = FALSE
+  #   )
+  # 
+  p1 <- p1 %>%
     plotly::layout(
-      title = list(
-        text = countV.plot$labels$title
-        #x = 0.05    # Move title a bit from the left, adjust as desired
+      title = NULL,           # no default title
+      margin = list(t = 80),  # minimal top margin
+      annotations = list(
+        list(
+          text      = unname(countV.plot$labels$title),
+          x         = 0.5,     # center horizontally
+          y         = 1.04,    # still in "paper" coords, so 1.05 is just above the plot
+          xref      = "paper",
+          yref      = "paper",
+          xanchor   = "center",
+          yanchor   = "bottom",
+          font = list(size = 20),
+          showarrow = FALSE
+        )
       ),
-      margin = list(t = 80) ,# Increase top margin to prevent overlap
       showlegend = FALSE
     )
-  
 
   
+  countJ.plot_not_title <- countV.plot + labs(title = NULL)
   
-  p2 <- plotly::ggplotly(countJ.plot, tooltip = c("name", "logFC" ,"Zscore"))
+  p2 <- plotly::ggplotly(countJ.plot_not_title, tooltip = c("name", "logFC" ,"Zscore"))
   
   p2$x$data <- lapply(p2$x$data, function(trace) {
     # Set marker size and mode for points
@@ -1744,13 +1770,34 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
   })
   
   
+  # p2 <- p2 %>%
+  #   plotly::layout(
+  #     title = list(
+  #       text = countJ.plot$labels$title
+  #       #y = 0.9    # Move title a bit from the left, adjust as desired
+  #     ),
+  #     margin = list(t = 80) , # Increase top margin to prevent overlap
+  #     showlegend = FALSE
+  #   )
+  
+  
   p2 <- p2 %>%
     plotly::layout(
-      title = list(
-        text = countJ.plot$labels$title
-        #x = 0.05    # Move title a bit from the left, adjust as desired
+      title = NULL,           # no default title
+      margin = list(t = 80),  # minimal top margin
+      annotations = list(
+        list(
+          text      = unname(countJ.plot$labels$title),
+          x         = 0.5,     # center horizontally
+          y         = 1.04,    # still in "paper" coords, so 1.05 is just above the plot
+          xref      = "paper",
+          yref      = "paper",
+          xanchor   = "center",
+          yanchor   = "bottom",
+          font = list(size = 20),
+          showarrow = FALSE
+        )
       ),
-      margin = list(t = 80) , # Increase top margin to prevent overlap
       showlegend = FALSE
     )
   
@@ -1761,7 +1808,7 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
         orientation = "h",
         x = 0.5,
         xanchor = "center",
-        y = 1.15,
+        y = 1.125,
         yanchor = "bottom",
         title = list(text = NULL)  # Remove legend title
       ),
