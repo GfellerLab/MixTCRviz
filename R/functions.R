@@ -1715,13 +1715,18 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
     
     return(trace)
   })
+
+    p1 <- p1 %>%
+    plotly::layout(
+      title = list(
+        text = countV.plot$labels$title
+        #x = 0.05    # Move title a bit from the left, adjust as desired
+      ),
+      margin = list(t = 80) ,# Increase top margin to prevent overlap
+      showlegend = FALSE
+    )
   
-  
-  
-  
-  
-  # Modify layout to hide legend if needed
-  p1 <- plotly::layout(p1, showlegend = FALSE)
+
   
   
   p2 <- plotly::ggplotly(countJ.plot, tooltip = c("name", "logFC" ,"Zscore"))
@@ -1738,7 +1743,16 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
     return(trace)
   })
   
-  p2 <- plotly::layout(p2, showlegend = FALSE)
+  
+  p2 <- p2 %>%
+    plotly::layout(
+      title = list(
+        text = countJ.plot$labels$title
+        #x = 0.05    # Move title a bit from the left, adjust as desired
+      ),
+      margin = list(t = 80) , # Increase top margin to prevent overlap
+      showlegend = FALSE
+    )
   
   # Adjust legend in the third plot and remove legend title
   p3 <- plotly::ggplotly(ld.plot, tooltip = "none") %>%
@@ -1751,8 +1765,10 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
         yanchor = "bottom",
         title = list(text = NULL)  # Remove legend title
       ),
-      margin = list(t = 100)
+      margin = list(t = 50)
     )
+  
+  
   
   # Prepare the last two plots
   if(plot.oneline!=2){
