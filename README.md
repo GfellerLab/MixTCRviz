@@ -157,7 +157,11 @@ However, you need to have *exactly* one colum indicating the clone_id labelled a
 
 * If working with epitope-specific TCRs, we encourage users to define model names which capture both the epitope sequence and the MHC restriction. Using only epitope sequences as "model" is possible, but can lead to issues when the same epitope is restricted to different MHC.
 
-* V/J genes are key to the TCR binding motifs in MixTCRviz and only V/J names compatible with the IMGT nomenclature can be considered. Even if correct.gene.names==1 allows to correct several wrong V/J names, we strongly encourage the users to use only V/J gene names compatible with IMGT
+* V/J genes are key to the TCR binding motifs in MixTCRviz and only V/J names compatible with the IMGT nomenclature can be considered. Even if correct.gene.names==1 allows to correct several wrong V/J names, we strongly encourage the users to use only V/J gene names compatible with IMGT.
+
+* Some V/J genes in IMGT give rise to truncated V segments (e.g., TRAV8-5). All of them are pseudogenes. These are not supported in MixTCRviz and will be put to NA. Other pseudogenes / ORF are shown in grey in the plots.
+
+* TRBV6-2 and TRBV6-3 have exactly the same nucleotide sequence, and therefore cannot be distinguished at the sequecing level. In MixTCRviz, these entries are mapped into a single 'TRBV6-2/6-3' gene.
 
 * In the default setting, error bars on the baseline distributions of V/J segments represent the variability observed across multiple studies, encompassing different sequencing protocols, different centers and different donors.
 
