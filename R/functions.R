@@ -1222,8 +1222,12 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
         }
         ind <- which(input[ind.species,s] %in% name.list == F & !is.na(input[ind.species,s]) )
         if(length(ind)>=1 & verbose != 0){
-          nm <- ifelse(s==1,"name","names")
-          print(c(paste("WARNING: ",s," ",nm," in Input TCRs absent from IMGT: ",sep=""), sort(unique(input[ind.species[ind],s])) ))
+          missing <- sort(unique(input[ind.species[ind],s]))
+          nm <- ifelse(length(missing)==1,"name","names")
+          cat("\n")
+          print(paste("*** ",length(missing)," ",s," ",nm," in ",length(ind)," entries absent from IMGT in ",species," ***",sep=""))
+          print(missing)
+          cat("\n")
         }
         input[ind.species[ind],s] <- NA
       }
@@ -1529,7 +1533,7 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
           if(length(i)>0){
             v <- unique(input[ind[i],s])
             v <- v[!is.na(v)]
-            print(paste("*** ",length(v), " ", s, " gene names in ",length(i)," entries could not be corrected in ",species," ***", sep=""))
+            print(paste("*** ",length(v), " ", s, " names in ",length(i)," entries could not be corrected in ",species," ***", sep=""))
             if(verbose==1){
               n <- min(10,length(v))
               if(length(v)>n){

@@ -85,7 +85,7 @@ MixTCRviz should be primarily run in R, by loading the MixTCRviz library and cal
    * Other formats are supported (see below)
 
 
-## Optional parameters:
+## Some optional parameters:
 
 Below are some of the most comonly used parameters. Full documentation about other parameters is available in the R package.
 
