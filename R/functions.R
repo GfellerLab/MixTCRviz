@@ -1753,7 +1753,7 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
     )
 
   
-  countJ.plot_not_title <- countV.plot + labs(title = NULL)
+  countJ.plot_not_title <- countJ.plot + labs(title = NULL)
   
   p2 <- plotly::ggplotly(countJ.plot_not_title, tooltip = c("name", "logFC" ,"Zscore"))
   
