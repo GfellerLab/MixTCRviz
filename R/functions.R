@@ -1412,7 +1412,7 @@ check_cdr3 <- function(input, chain="AB", species.default="HomoSapiens", check.c
           nt <- length(which(!is.na(input[ind.species,V]) & !is.na(input[ind.species,cdr3])))
           
           entry <- ifelse(length(ind.first)==1,"entry","entries")
-          print(paste("*** Likely inconsistencies between ",ch,"V gene and CDR3",chain.small[ch]," in ",length(ind.first)," ",entry," (out of ",nt,") in ",species,"- will be put to NA ***",sep=""))
+          print(paste("*** Likely inconsistencies between ",ch,"V gene and CDR3",chain.small[ch]," in ",length(ind.first)," ",entry," (out of ",nt,") in ",species," ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.first))
             if(length(ind.first)>n){
@@ -1436,7 +1436,7 @@ check_cdr3 <- function(input, chain="AB", species.default="HomoSapiens", check.c
           nt <- length(which(!is.na(input[ind.species,J]) & !is.na(input[ind.species,cdr3])))
           
           entry <- ifelse(length(ind.first)==1,"entry","entries")
-          print(paste("*** Likely inconsistencies between ",ch,"J gene and CDR3",chain.small[ch]," in ",length(ind.last)," ",entry," (out of ",nt,") in ",species," - will be put to NA ***",sep=""))
+          print(paste("*** Likely inconsistencies between ",ch,"J gene and CDR3",chain.small[ch]," in ",length(ind.last)," ",entry," (out of ",nt,") in ",species," ***",sep=""))
           if(verbose==1){
             n <- min(10,length(ind.last))
             if(length(ind.last)>10){
@@ -1529,7 +1529,7 @@ correct.VJnames <- function(input, segment.list=c("TRAV","TRAJ","TRBV","TRBJ"), 
           if(length(i)>0){
             v <- unique(input[ind[i],s])
             v <- v[!is.na(v)]
-            print(paste("*** ",length(v), " ", s, " gene names in ",length(i)," entries could not be corrected in ",species," - will be put to NA ***", sep=""))
+            print(paste("*** ",length(v), " ", s, " gene names in ",length(i)," entries could not be corrected in ",species," ***", sep=""))
             if(verbose==1){
               n <- min(10,length(v))
               if(length(v)>n){
