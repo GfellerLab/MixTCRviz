@@ -11,7 +11,6 @@
 #' @import ggplot2
 #' @import readr
 #' @import ggpubr
-#' @import ggseqlogo
 #' @import seqinr
 #' @import stringr
 #' @import ggrepel
