@@ -823,17 +823,18 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           if(baseline=="SEQTR"){
             if(use.allele==T){
               print("SEQTR is used as baseline, alleles will be discarded")
+              use.allele <- F
             }
-            use.allele=F
+           
             
             if(species=="HomoSapiens"){
-              baseline.model <- MixTCRviz::baseline_HomoSapiens_SEQTR_local
+              baseline.model <- MixTCRviz::baseline_HomoSapiens_SEQTR
             } else if(species=="MusMusculus"){
               stop("SEQTR baseline not available in mouse")
               #if(use.mouse.strain){
-              #  baseline.model <- MixTCRviz::baseline_MusMusculus_Strain_SEQTR_local
+              #  baseline.model <- MixTCRviz::baseline_MusMusculus_Strain_SEQTR
               #} else{
-              #  baseline.model <- MixTCRviz::baseline_MusMusculus_SEQTR_local
+              #  baseline.model <- MixTCRviz::baseline_MusMusculus_SEQTR
               #}
             }
           } else if(baseline=="Default"){
@@ -845,9 +846,9 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
               }
             } else if(species=="MusMusculus"){
               if(use.mouse.strain){
-                baseline.model <- MixTCRviz::baseline_MusMusculus_Strain_SEQTR
+                baseline.model <- MixTCRviz::baseline_MusMusculus_Strain
               } else {
-                baseline.model <- MixTCRviz::baseline_MusMusculus_SEQTR
+                baseline.model <- MixTCRviz::baseline_MusMusculus
               }
             }
           } else if(file.exists(baseline)){
