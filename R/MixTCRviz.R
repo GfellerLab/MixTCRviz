@@ -1350,7 +1350,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
             "
           )
           
-          html_file <-paste(output.path,"/",model,".html", sep="")
+          html_file <-paste(output.path,"/",filename.final,".html", sep="")
           
           scrollable_combined_figure <- htmlwidgets::onRender(
             combined_both,
