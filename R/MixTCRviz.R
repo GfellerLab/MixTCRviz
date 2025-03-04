@@ -1442,10 +1442,10 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
         # as it'll need more bars and more CDR3 motifs.
       } else if(plot.oneline==1){
         width <- 20
-        height <- 3 + 0.5 * nModels_sp
+        height <- 1.5 + 1 * nModels_sp
       } else if(plot.oneline==2){
         width <- 15
-        height <- 3 + 0.5 * nModels_sp
+        height <- 1.5 + 1 * nModels_sp
       }
       if(!is.null(output.path)){
         filename <- paste0(output.path,"/", modelsCombinded_name)
