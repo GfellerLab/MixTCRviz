@@ -590,7 +590,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
 
 
   # Check the input
-  cat("####\nChecking input1:\n")
+  cat("\n####\nChecking input1:\n")
   check <- check_input(input=input1, chain = chain, name="input1",
                        species.default = species.default, model.default = model.default,
                        input.list=input1.list, build.clones=build.clones)
