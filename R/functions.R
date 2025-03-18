@@ -293,7 +293,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
     # gsub is used to possible remove the allele information from the 'name'.
     
     #Now create the sd to show as error bars
-    if(!is.null(sd.es) & plot.sd){
+    if(!is.null(sd.es)){
       
       if(n.es>1.1){  #This means that sd.rep should have the same normalisation as count.rep
         sd.es <- sd.es/n.es
@@ -309,7 +309,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
       
     }
     #Now create the sd to show as error bars
-    if(!is.null(sd.rep) & plot.sd){
+    if(!is.null(sd.rep)){
       
       if(n.rep>1.1){  #This means that sd.rep should have the same normalisation as count.rep
         sd.rep <- sd.rep/n.rep
