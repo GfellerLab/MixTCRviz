@@ -4,15 +4,13 @@
 #Do this if you do not want to install the package
 devtools::load_all(".")
 
-#Do this if you want to install the package
-#devtools::build()
-#install.packages("../MixTCRviz_1.0.tar.gz", repos=NULL)
+#Do this if you have installed the package
 #library(MixTCRviz)
 
 #Compare input TCRs (specific for A0201_LLWNGPMAV) with baseline repertoire
 MixTCRviz(input1="test/test.csv", output.path="test/out/", output.stat = T, interactive.plots = T)
 
-new.data <- F
+new.data <- T
 
 if(new.data){
   
