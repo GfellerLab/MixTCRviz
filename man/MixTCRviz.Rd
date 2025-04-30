@@ -226,6 +226,8 @@ than 20 characters.}
 \item{keep.colnames.origin}{Decide whether to keep the original names of the columns (default=FALSE).
 If TRUE, keep the name of the columns dedicated the TCRs in the input. The option is not supported for format with clone.id}
 
+\item{infer.VJ}{If TRUE, the V and J genes are inferred from full TCRa and TCRb sequences (default if FALSE). This option requires 'TCRa' and 'TCRb' columns to be included (as well as cdr3_TRA and cdr3_TRB to show CDR3 motifs) and will overwrite any TRAV,TRAJ,TRBV,TRBJ information}
+
 \item{print.size}{If TRUE (default), print the number of TCRs in input1 in the plots.}
 
 \item{ZscoreVJ.thresh}{Filtering threshold based on Z-score for not showing the labels in P(V) and P(J) plots (default=0, i.e. no filtering)

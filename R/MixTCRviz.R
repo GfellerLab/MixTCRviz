@@ -193,6 +193,8 @@
 #' If too many labels remain in the plots, other FoldChangeVJ.thresh values may be used.
 #'
 #' @param logo.type Decide which type of logo to use. Should be either 'bits' (default), or 'probability'.
+#' 
+#' @param infer.VJ If TRUE, the V and J genes are inferred from full TCRa and TCRb sequences (default if FALSE). This option requires 'TCRa' and 'TCRb' columns to be included (as well as cdr3_TRA and cdr3_TRB to show CDR3 motifs) and will overwrite any TRAV,TRAJ,TRBV,TRBJ information
 #'
 #' @returns R list containing the plots (if `plot`=TRUE), the processed data (if input1 is a file or data.frame) and an R list with the stats for each model in input1.
 #'
@@ -207,7 +209,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
                       label.min.fr.input1=0.05, label.min.fr.input2=0.05, keep.incomplete.chain=T, seq.protocol="Default",
-                      input1.name="Input", input2.name=NULL, output.format="pdf", keep.colnames.origin=F,
+                      input1.name="Input", input2.name=NULL, output.format="pdf", keep.colnames.origin=F, infer.VJ=F,
                       print.size=T, ZscoreVJ.thresh=0, FoldChangeVJ.thresh=1.25){
 
 
@@ -278,6 +280,20 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     print("Invalid value for plot. Default value of TRUE will be used")
     plot <- T
   }
+  if(!is.logical(infer.VJ)){
+    print("Invalid value for infer.VJ. Default value of FALSE will be used")
+    infer.VJ <- F
+  }
+  if(infer.VJ & use.allele){
+    print("infer.VJ=T will not consider allele information on V/J names. use.allele will be set to FALSE")
+    use.allele <- F
+  }
+  if(infer.VJ & use.mouse.strain){
+    print("infer.VJ=T will not consider strain information on mouse TRAV names. use.mouse.strain will be set to FALSE")
+    use.allele <- F
+  }
+    
+    
   if(!plot){
     print("No motif will be generated with plot=FALSE")
   }
@@ -591,13 +607,18 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
 
   # Check the input
   cat("\n####\nChecking input1:\n")
-  check <- check_input(input=input1, chain = chain, name="input1",
+  check <- check_input(input=input1, chain = chain, name="input1", infer.VJ=infer.VJ,
                        species.default = species.default, model.default = model.default,
                        input.list=input1.list, build.clones=build.clones)
   input1 <- check$data
   map.back.colnames <- check$col.map
 
   if(!input1.list){
+    
+    if(infer.VJ){
+      input1 <- inferVJ(input1, chain=chain, species.default = species.default, verbose=verbose)
+    }
+    
     input1 <- clean_input(input=input1, use.allele=use.allele, correct.gene.names = correct.gene.names,
                           use.mouse.strain = use.mouse.strain, chain = chain, keep.incomplete.chain = keep.incomplete.chain,
                           species.default = species.default, check.cdr3.mode = check.cdr3.mode, start.lg=start.lg, end.lg=end.lg,
@@ -645,9 +666,13 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
         stop("Incompatible chains between input1 and input2")
       }
     }
-    input2 <- check_input(input=input2, chain=chain, name="input2",
+    input2 <- check_input(input=input2, chain=chain, name="input2", infer.VJ=infer.VJ,
                           species.default = species.default, model.default = model.default, input.list=input2.list, build.clones=build.clones())$data
     if(!input2.list){
+      
+      if(infer.VJ){
+        input2 <- inferVJ(input2, chain=chain, species.default = species.default, verbose=verbose)
+      }
       input2 <- clean_input(input=input2, use.allele = use.allele, correct.gene.names = correct.gene.names,
                             use.mouse.strain = use.mouse.strain, chain = chain, keep.incomplete.chain = keep.incomplete.chain,
                             species.default = species.default, check.cdr3.mode = check.cdr3.mode, start.lg=start.lg, end.lg=end.lg,

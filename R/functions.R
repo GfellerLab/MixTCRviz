@@ -925,7 +925,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
 
 
 #' @export
-check_input <- function(input, chain="AB", name="input1", species.default="HomoSapiens",
+check_input <- function(input, chain="AB", name="input1", species.default="HomoSapiens", infer.VJ=F,
                         model.default="Model_default", input.list=F, build.clones=F, verbose=1){
   
   #Check if some columns are missing, and add them with default values
@@ -962,6 +962,7 @@ check_input <- function(input, chain="AB", name="input1", species.default="HomoS
       }
     }
     
+    
     col <- as.character(sapply(chain.list, function(x){c(paste(x,"V",sep=""), paste(x,"J",sep=""),paste("cdr3_",x,sep=""))}))
     
     #Deal with cases where column name do not follow the default of MixTCRviz
@@ -985,7 +986,18 @@ check_input <- function(input, chain="AB", name="input1", species.default="HomoS
         cn <- colnames(input)
         input <- cbind(input,"")
         colnames(input) <- c(cn, cl)
-        print(paste("Missing",cl,"information in",name))
+        if(!infer.VJ | cl %in% c("cdr3_TRA", "cdr3_TRB")){
+          print(paste("Missing",cl,"information in",name))
+        }
+      }
+    }
+    if(infer.VJ){
+      #This is the special case where the V and J are inferred from TCRa and TCRb columns
+      col <- as.character(sapply(chain.list, function(x){paste0("TCR",tolower(substr(x,3,3)))}))
+      for(cl in col){
+        if(! cl %in% colnames(input)){
+          stop(paste("Missing",cl,"information - this is incompatible with infer.VJ=TRUE"))
+        }
       }
     }
     #If the "species" column is not provided, we add a column with species.default
@@ -1682,6 +1694,69 @@ add_alleles <- function(TCR, segment.list=c("TRAV", "TRAJ", "TRBV", "TRBJ"), spe
     }
   }
   return(TCR)
+}
+
+
+#' @export
+inferVJ <- function(input, species.default="HomoSapiens", chain="AB", verbose=1){
+  
+  chain.list <- paste0("TR",strsplit(chain,split="")[[1]])
+  chain.small <- tolower(strsplit(chain,split="")[[1]])
+  names(chain.small) <- chain.list
+  
+  if("species" %in% colnames(input)){
+    #This is always the case in MixTCRviz, but not if the function is used independently
+    species.list <- unique(input$species)
+  } else {
+    species.list <- species.default
+  }
+  
+  #Add the required columns
+  for(ch in chain.list){
+    if(paste0(ch,"V") %in% colnames(input) & verbose>0){
+      if(any( input[,paste0(ch,"V")]!="" ) ){
+        print(paste0("WARNING: using infer.VJ=T will erase all data in ",ch,"V column"))
+      }
+    }
+    input[[paste0(ch,"V")]] <- NA
+    if(paste0(ch,"J") %in% colnames(input) & verbose>0){
+      if(any(input[,paste0(ch,"J")]!="" )){
+        print(paste0("WARNING: using infer.VJ=T will erase all data in ",ch,"J column"))
+      }
+    }
+    input[[paste0(ch,"J")]] <- NA
+  }
+  
+  
+  for(sp in species.list){
+    
+    if("species" %in% colnames(input)){
+      ind.sp <- which(input$species==sp)
+    } else {
+      ind.sp <- 1:dim(input)[1]
+    }
+    
+    #This part may be slow for large datasets... Things could be done MUCH faster with more efficient string matching algorithm.
+    for(ch in chain.list){
+      
+      nm <- names(inferV[[sp]][[ch]])
+      #Get the position in inferV of the sequence that match the TCR sequences
+      pos.V <- lapply(input[ind.sp,paste0("TCR",chain.small[ch])], function(x){
+        which(sapply(nm, function(n){grepl(n,x)}))})
+      V <- sapply(pos.V, function(x){v <- unique(inferV[[sp]][[ch]][x]);if(length(v)!=1){return(NA)} else{ return(v)}})
+      
+      nm <- names(inferJ[[sp]][[ch]])
+      pos.J <- lapply(input[ind.sp,paste0("TCR",chain.small[ch])], function(x){
+        which(sapply(nm, function(n){grepl(n,x)}))})
+      J <- sapply(pos.J, function(x){j <- unique(inferJ[[sp]][[ch]][x]);if(length(j)!=1){return(NA)} else{ return(j)}})
+      
+      input[ind.sp,paste0(ch,"V")] <- V
+      input[ind.sp,paste0(ch,"J")] <- J
+      
+    }
+  }
+  return(input)
+  
 }
 
 

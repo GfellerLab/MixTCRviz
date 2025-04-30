@@ -101,7 +101,7 @@ gene.type$SEQTR$HomoSapiens <- setNames(c(gene.type$SEQTR$HomoSapiens[ind], "F")
 ind <- which(! names(allele.default$SEQTR$HomoSapiens) %in% gene.SEQTR.exclude)
 allele.default$SEQTR$HomoSapiens <- setNames(c(allele.default$SEQTR$HomoSapiens[ind], "01"),c(names(allele.default$SEQTR$HomoSapiens[ind]), "TRBV12-3/12-4"))
 
-                                        
+
 
 
 # Defining color/shape maps for TCR genes ----------------------------------
@@ -126,7 +126,7 @@ for (tsp in species.list){
   for (s in segment.list){
     cGenes <- grep(s, gene.list$IMGT[[tsp]], value=TRUE)
     genesCode <- sort(unique(gsub("TR(A|B)(V|J)", "", cGenes)))
-   
+    
     if(s == "TRBJ" ){
       #The number of TRBJ genes is much lower, so we use only two shapes
       shapes <- c(21,25) # Shapes with outer colors can only take values 21:25
@@ -151,7 +151,7 @@ for (tsp in species.list){
     g1u <- sort(unique(g1))
     g2u <- setdiff(sort(unique(g2)), "none")
     # The cases with "none" will be considered with same shape/color as first case.
-
+    
     if (length(unique(g2)) == 1 ){
       # When there weren't any gene names with "-" in them, we'll instead
       # combine the color, shape and outer color for all the genes (I'll
@@ -164,14 +164,14 @@ for (tsp in species.list){
         n_grays <- 2
       }
       g1 <- paste0("l", (rep(1:ceiling(length(g1) / (n_grays*n_diffShapes)),
-        each=n_grays*n_diffShapes)[1:length(g1)]))
+                             each=n_grays*n_diffShapes)[1:length(g1)]))
       g2 <- paste0("l", (rep(1 : (n_grays*n_diffShapes), length.out=length(g2))))
       # Use paste to make sure these are characters to avoid issue as we'll use
       # these as names below.
       g1u <- unique(g1)
       g2u <- unique(g2)
     }
-
+    
     cols <- hcl.colors(n=length(g1u), palette=palette)
     names(cols) <- g1u
     shapes <- rep(shapes, length.out=length(g2u))
@@ -180,7 +180,7 @@ for (tsp in species.list){
     shapes <- c(shapes[1], shapes)
     cols_out <- c(cols_out[1], cols_out)
     names(shapes) <- names(cols_out) <- c("none", g2u)
-
+    
     TCRgene2aes[[tsp]][[s]]$color1 <- setNames(cols[g1], cGenes)
     
     #Set pseudogenes or ORF,... to light grey
@@ -208,8 +208,8 @@ if (TRUE){
         # correspond to a gene.
         nGenes <- length(cGenes)
         cTab <- data.frame(gene = cGenes,
-          x = rep(1:3, each=ceiling(nGenes/3))[1:nGenes],
-          y = -rep(1:ceiling(nGenes/3), length.out=nGenes))
+                           x = rep(1:3, each=ceiling(nGenes/3))[1:nGenes],
+                           y = -rep(1:ceiling(nGenes/3), length.out=nGenes))
         colorScale <- TCRgene2aes[[tsp]][[s]][[paste0("color", cScheme)]]
         if (paste0("shape", cScheme) %in% names(TCRgene2aes[[tsp]][[s]])){
           shapeScale <- TCRgene2aes[[tsp]][[s]][[paste0("shape", cScheme)]]
@@ -223,7 +223,7 @@ if (TRUE){
         }
         gg[[s]] <- ggplot(cTab, aes(x, y)) +
           geom_point(aes(shape = gene, fill=gene, color=gene), stroke=1.5,
-            size=ifelse(nGenes <= 60, 6, 5)) +
+                     size=ifelse(nGenes <= 60, 6, 5)) +
           geom_text(aes(label = gene), hjust = 0, nudge_x = 0.15) +
           scale_fill_manual(values=colorScale) +
           scale_shape_manual(values=shapeScale) +
@@ -233,19 +233,19 @@ if (TRUE){
           theme(legend.position = "none") +
           ggtitle(s) +
           theme(plot.title = element_text(size = 16, hjust=0.5, face="bold"),
-            plot.background=element_rect(color="gray30"))
+                plot.background=element_rect(color="gray30"))
       }
       fig <- ggpubr::ggarrange(plotlist=gg, nrow=2, ncol=2)
       fig <- ggpubr::annotate_figure(fig,
-        top = ggpubr::text_grob(paste0(tsp, " - colorScheme ", cScheme),
-          color = "black", face = "bold", size = 16))
+                                     top = ggpubr::text_grob(paste0(tsp, " - colorScheme ", cScheme),
+                                                             color = "black", face = "bold", size = 16))
       dir <- paste("figures/", sep="")
       if (!dir.exists(dir)){
         dir.create(dir)
       }
       filename=paste0(dir, "TCR_genes_tables_scheme", cScheme, "_", tsp, ".pdf")
       ggsave(fig, filename=filename, device="pdf",
-        width = 15, height = 20)
+             width = 15, height = 20)
     }
   }
 }
@@ -265,7 +265,7 @@ N.aa <- length(aa.list)
 
 gap <- c("-", "X", ".", "*","_")  # "x" is kept for 'real' gaps in CDR1/2, while all the other symbols are for missing data.
 th <- theme(plot.title = element_text(size = 8, hjust=0.5),
-  axis.title=element_text(size=8))
+            axis.title=element_text(size=8))
 yl <- ylim(0,2)
 
 chain.list <- c("TRA", "TRB")
@@ -280,30 +280,30 @@ cdr123 <- list()
 Jseq <- list()
 
 for(species in species.list){
-
+  
   tcdr123 <- list()
   tJseq <- list()
   
   for(chain in chain.list){
     tcdr123[[chain]] <- read.csv(file=paste("data_raw/CDR123/",species,"/",chain,"V_allele.csv", sep=""), row.names = 1)
     tJseq[[chain]] <- read.csv(file=paste("data_raw/CDR123/",species,"/",chain,"J_allele.csv", sep=""), row.names = 1)
-
+    
     #Take the data without allele information
     tcdr123[[chain]] <- rbind(tcdr123[[chain]],read.csv(file=paste("data_raw/CDR123/",species,"/",chain,"V.csv", sep=""), row.names = 1))
     tJseq[[chain]] <- rbind(tJseq[[chain]],read.csv(file=paste("data_raw/CDR123/",species,"/",chain,"J.csv", sep=""), row.names = 1))
-
+    
     #Change the gap ("-") int "x"
     tcdr123[[chain]][] <- data.frame(lapply(tcdr123[[chain]], function(x){gsub(pattern="-", replacement = "g", x)}))
     tJseq[[chain]][] <- data.frame(lapply(tJseq[[chain]], function(x){gsub(pattern="-", replacement = "g", x)}))
-
+    
     
   }
-
+  
   cdr123[[species]] <- list(tcdr123[["TRA"]],tcdr123[["TRB"]])
   names(cdr123[[species]]) <- c("TRA","TRB")
   Jseq[[species]] <- list(tJseq[["TRA"]],tJseq[["TRB"]])
   names(Jseq[[species]]) <- c("TRA","TRB")
-
+  
 }
 
 #Add CDR3 for TRBV6-2/6-3 and TRBV12-3/12-4
@@ -408,19 +408,120 @@ clone.format.col[["VDJdb"]] <- c("V", "J", "CDR3")
 
 clone.id <- c("clone_id", "cell_id", "cloneId", "barcode", "complex.id")
 
+#Build the maps to infer V/J usage from TCRa and TCRb sequences
+
+#For the V segments, take the first 80 amino acids
+inferV <- list()
+for(species in species.list){
+  
+  inferV[[species]] <- list()
+  
+  for(chain in chain.list){
+    nm <- rownames(cdr123[[species]][[chain]])
+    ind <- which(grepl("*", nm,fixed=T) & substr(cdr123[[species]][[chain]][,"full"],1,3) != "ggg") 
+    m <- cdr123[[species]][[chain]][ind,]
+    m[,"full"] <- gsub("g","",m[,"full"])
+    inferV.df <- unique(cbind(unname(sapply(nm[ind], function(x){strsplit(x,split="*", fixed=T)[[1]][1]})),
+                              str_sub(m[,"full"],1,80)))
+    inferV.df <- inferV.df[sapply(inferV.df[,2], nchar)==80,]
+    
+    if(species=="HomoSapiens" & chain=="TRB"){
+      #Remove the entry corresponding to TRBV24/OR9-2 (ORF + same sequence as TRBV24-1)
+      inferV.df <- inferV.df[inferV.df[,1] != "TRBV24/OR9-2",]
+      
+      #Remove entries corresponding to TRBV6-2/6-1 and TRBV6-3
+      #This will put all entries to TRBV6-2, which will then be transformed into TRBV6-2/6-3 in MixTCRviz
+      inferV.df <- inferV.df[inferV.df[,1] != "TRBV6-2/6-3" & inferV.df[,1] != "TRBV6-3",]
+    }
+    if(species=="HomoSapiens" & chain=="TRA"){
+      st <- "QQVKQSPQSLIVQKGGISIINCAYENTAFDYFPWYQQFPGKGPALLIAIRPDVSEKKEGRFTISFNKSAKQFSLHIMDSQ"
+      inferV.df <- inferV.df[inferV.df[,2] != st,]
+    }
+    if(chain=="TRA" & species=="MusMusculus"){
+      #Map all genes to the version without D or N
+      inferV.df[,1] <- as.character(lapply(inferV.df[,1], function(y){
+        if (y %in% names(merge.mouse.TRAV)){
+          y <- merge.mouse.TRAV[y]
+        }
+        return(y)}))
+      inferV.df <- unique(inferV.df)
+      
+      #Remove some ambiguous entries which correspond to (F)
+      st <- "AQSVTQPDARVTVSEGASLQLRCKYSYSATPYLFWYVQYPRQGLQLLLKYYSGDPVVQGVNSFEAEFSKSNSSFHLQKAS"
+      inferV.df <- inferV.df[inferV.df[,1] != "TRAV9-3" & inferV.df[,2] != st,]
+      
+      #Add something to disambiguate ambiguous entries
+      st <- "AQSVTQPDARVTVSEGASLQLRCKYSYSGTPYLFWYVQYPRQGLQLLLKYYSGDPVVQGVNGFEAEFSKSNSSFHLRKAS"
+      p <- which(inferV.df[,1]=="TRAV9-2" & inferV.df[,2]==st)
+      inferV.df[p,2] <- paste0(inferV.df[p,2], "VHWSDSAVYFCV")
+      p <- which(inferV.df[,1]=="TRAV9-4" & inferV.df[,2]==st)
+      inferV.df[p,2] <- paste0(inferV.df[p,2], "VHWSDSAVYFCA")
+      
+    }
+    
+    #Make sure the list is unique (issues are if the same sequence matches to multiple gene names)
+    
+    tb <- table(inferV.df[,2])
+    amb <- names(tb[tb>1])
+    for(n in amb){
+      print(c(species, chain, n,inferV.df[inferV.df[,2]==n,1]))
+    }
+    inferV[[species]][[chain]] <- setNames(inferV.df[,1], inferV.df[,2])
+  }
+}
+
+#For the J segments, take the last 10 amino acids
+
+inferJ <- list()
+
+for(species in species.list){
+  
+  inferJ[[species]] <- list()
+  
+  for(chain in chain.list){
+    nm <- rownames(Jseq[[species]][[chain]])
+    ind <- which(grepl("*", nm,fixed=T)) 
+    m <- Jseq[[species]][[chain]][ind,]
+    
+    inferJ.df <- unique(cbind(unname(sapply(nm[ind], function(x){strsplit(x,split="*", fixed=T)[[1]][1]})),str_sub(m[,"full"],-10)))
+    #For the special case of TRBJ2-1 and TRBJ2-3, add one amino acid from the CDR3
+    #This can lead to some issues if this amino acid is modified in V/J recombination (rare)
+    if(chain=="TRB" & species=="HomoSapiens"){
+      p <- which(inferJ.df[,1]=="TRBJ2-1")
+      inferJ.df[p, 2] <- paste0("F", inferJ.df[p,2])
+      p <- which(inferJ.df[,1]=="TRBJ2-3")
+      inferJ.df[p, 2] <- paste0("Y", inferJ.df[p,2])
+    }
+    if(chain=="TRB" & species=="MusMusculus"){
+      p <- which(inferJ.df[,1]=="TRBJ2-1")
+      inferJ.df[p, 2] <- paste0("F", inferJ.df[p,2])
+      p <- which(inferJ.df[,1]=="TRBJ2-7")
+      inferJ.df[p, 2] <- paste0("Y", inferJ.df[p,2])
+    }
+    
+    #Make sure the list is unique (issues are if the same sequence matches to multiple gene names)
+    tb <- table(inferJ.df[,2])
+    amb <- names(tb[tb>1])
+    for(n in amb){
+      print(c(species,chain,n,inferJ.df[inferJ.df[,2]==n,1]))
+    }
+    inferJ[[species]][[chain]] <- setNames(inferJ.df[,1], inferJ.df[,2])
+    
+  }
+}
 
 # Saving all these variable for internal use within the package ------------------
 # functions
 
 usethis::use_data(gene.allele.list, gene.list, allele.default,
-  merge.mouse.TRAV, map, cdr123, Jseq, ref.cdr3.first, ref.cdr3.last,
-  th, yl, aa, aa.list, N.aa, mapping.colnames, clone.format.col, clone.id,
-  chain.small, gap, Lmin, Lmax, species.list, TCRgene2aes,
-  overwrite=T, internal=T)
+                  merge.mouse.TRAV, map, cdr123, Jseq, ref.cdr3.first, ref.cdr3.last,
+                  th, yl, aa, aa.list, N.aa, mapping.colnames, clone.format.col, clone.id,
+                  chain.small, gap, Lmin, Lmax, species.list, TCRgene2aes, inferV, inferJ,
+                  overwrite=T, internal=T)
 
 usethis::use_data(gene.allele.list, gene.list, allele.default, clone.format.col, clone.id,
-  merge.mouse.TRAV, map, cdr123, Jseq, ref.cdr3.first, ref.cdr3.last, mapping.colnames,
-  overwrite=T, internal=F)
+                  merge.mouse.TRAV, map, cdr123, Jseq, ref.cdr3.first, ref.cdr3.last, mapping.colnames, Lmin, Lmax, inferV, inferJ,
+                  overwrite=T, internal=F)
 
 # usethis::use_data(gene.allele.list, gene.list, allele.default,
 #   merge.mouse.TRAV, map, cdr123, Jseq, th, yl, aa, aa.list, N.aa,
@@ -461,13 +562,13 @@ if (TRUE){
     baseline_MusMusculus[[s]] <- NULL
     baseline_MusMusculus_Strain[[s]] <- NULL
     baseline_HomoSapiens_SEQTR[[s]] <- NULL
-   }
+  }
   
   usethis::use_data(baseline_HomoSapiens, baseline_HomoSapiens_allele,
                     baseline_MusMusculus_Strain, baseline_MusMusculus, 
                     baseline_HomoSapiens_SEQTR, overwrite=T, internal=F)
 }
 
-  # EOF ---------------------------------------------------------------------
+# EOF ---------------------------------------------------------------------
 
 
