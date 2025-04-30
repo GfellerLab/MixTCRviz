@@ -73,7 +73,7 @@ MixTCRviz should be primarily run in R, by loading the MixTCRviz library and cal
    3) A list in the MixTCRviz format.
 
    If using a filename or a data.frame:
-    * Columns should ideally consist of "TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB"
+    * Columns should ideally consist of "TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB". Alternatively, the option infer.VJ can be used to retrieve V and J genes from full TCR sequences (provided in "TCRa" and "TCRb" columns).
     * If TCRs from multiple experiments/epitopes/classses/... are provided in the same file, the "model" column should indicate the models.
     ("Model_default" is used by default if no "model" column is provided and model.default=NULL, see below). The use of multiple model is only possible in input1.
     * If TCRs from multiple species are provided in the same file, the "species" should indicate the species of the TCRs
