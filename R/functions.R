@@ -925,12 +925,11 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
 
 
 #' @export
-check_input <- function(input, chain="AB", name="input1", species.default="HomoSapiens", infer.VJ=F,
+check_input <- function(input, chain="AB", name="input1", species.default="HomoSapiens", infer.VJ=F,infer.CDR3=F,
                         model.default="Model_default", input.list=F, build.clones=F, verbose=1){
   
   #Check if some columns are missing, and add them with default values
-  map.back.colnames <- list()
-  
+
   chain.list <- paste("TR",strsplit(chain,split="")[[1]], sep="")
   
   if(is.data.frame(input) & !input.list){
@@ -940,8 +939,7 @@ check_input <- function(input, chain="AB", name="input1", species.default="HomoS
     #Do some corrections specific for VDJdb
     if(format=="VDJdb"){
       if("Species" %in% colnames(input)){
-        colnames(input)[colnames(input)=="Species"] <- "species"
-        map.back.colnames$species <- "Species"
+        input$species <- input$Species
       }
       #If not model, use the MHC_Epitope, or only the Epitope
       if(length(intersect(colnames(input),"model"))==0){
@@ -972,10 +970,9 @@ check_input <- function(input, chain="AB", name="input1", species.default="HomoS
       #Check if the col.names is in the mapping
       if(cl %in% names(mapping.colnames[[chain]])){
         mp <- mapping.colnames[[chain]][cl]
-        #Make sure another entry does not already have the corrected name
+        #Make sure another entry does not already have the corrected name and add the column
         if( !mp %in% colnames(input)){
-          map.back.colnames[[mp]] <- colnames(input)[i]
-          colnames(input)[i] <- mp
+          input[[mp]] <- input[[cl]]
         }
       }
     }
@@ -986,17 +983,21 @@ check_input <- function(input, chain="AB", name="input1", species.default="HomoS
         cn <- colnames(input)
         input <- cbind(input,"")
         colnames(input) <- c(cn, cl)
-        if(!infer.VJ | cl %in% c("cdr3_TRA", "cdr3_TRB")){
+        if(cl %in% c("cdr3_TRA", "cdr3_TRB") & !infer.CDR3){
           print(paste("Missing",cl,"information in",name))
         }
+        if(cl %in% c("TRAV", "TRAJ" ,"TRBV", "TRBJ") & !infer.VJ){
+          print(paste("Missing",cl,"information in",name))
+        }
+        
       }
     }
-    if(infer.VJ){
-      #This is the special case where the V and J are inferred from TCRa and TCRb columns
+    if(infer.VJ | infer.CDR3){
+      #This is the special case where the V and J and/or CDR3 are inferred from TCRa and TCRb columns
       col <- as.character(sapply(chain.list, function(x){paste0("TCR",tolower(substr(x,3,3)))}))
       for(cl in col){
         if(! cl %in% colnames(input)){
-          stop(paste("Missing",cl,"information - this is incompatible with infer.VJ=TRUE"))
+          stop(paste("Missing",cl,"information - this is incompatible with infer.VJ=TRUE or infer.CDR3=TRUE"))
         }
       }
     }
@@ -1044,7 +1045,6 @@ check_input <- function(input, chain="AB", name="input1", species.default="HomoS
   }
   lst <- list()
   lst[["data"]] <- input
-  lst[["col.map"]] <- map.back.colnames
   return(lst)
   
 }
@@ -1700,6 +1700,14 @@ add_alleles <- function(TCR, segment.list=c("TRAV", "TRAJ", "TRBV", "TRBJ"), spe
 #' @export
 inferVJ <- function(input, species.default="HomoSapiens", chain="AB", verbose=1){
   
+  # This function uses all residues N-terminal (i.e., before C) of CDR3 for each V as unique barcodes
+  # This function uses all residues C-terminal (i.e., including the last F/W) of CDR3 for each J as unique barcodes
+  
+  # For a few J segments, the seond-to-last amino acid in J segment is also used for disambiguation
+  # For a few J segments, two additional amino acids in the CDR3 are used  for disambiguation
+  
+  #We could also provide a summary of the unsuccessful cases
+  
   chain.list <- paste0("TR",strsplit(chain,split="")[[1]])
   chain.small <- tolower(strsplit(chain,split="")[[1]])
   names(chain.small) <- chain.list
@@ -1736,21 +1744,23 @@ inferVJ <- function(input, species.default="HomoSapiens", chain="AB", verbose=1)
       ind.sp <- 1:dim(input)[1]
     }
     
-    #This part may be slow for large datasets... Things could be done MUCH faster with more efficient string matching algorithm.
+    #This part may be slow for large datasets... Things could be done MUCH faster with more efficient string matching algorithms.
     for(ch in chain.list){
       
+      tc <- paste0("TCR",chain.small[ch])
+      
+      #Get the V gene
       nm <- names(inferV[[sp]][[ch]])
-      #Get the position in inferV of the sequence that match the TCR sequences
-      pos.V <- lapply(input[ind.sp,paste0("TCR",chain.small[ch])], function(x){
+      pos.V <- lapply(input[ind.sp,tc], function(x){
         which(sapply(nm, function(n){grepl(n,x)}))})
       V <- sapply(pos.V, function(x){v <- unique(inferV[[sp]][[ch]][x]);if(length(v)!=1){return(NA)} else{ return(v)}})
+      input[ind.sp,paste0(ch,"V")] <- V
       
+      #Get the J gene
       nm <- names(inferJ[[sp]][[ch]])
-      pos.J <- lapply(input[ind.sp,paste0("TCR",chain.small[ch])], function(x){
+      pos.J <- lapply(input[ind.sp,tc], function(x){
         which(sapply(nm, function(n){grepl(n,x)}))})
       J <- sapply(pos.J, function(x){j <- unique(inferJ[[sp]][[ch]][x]);if(length(j)!=1){return(NA)} else{ return(j)}})
-      
-      input[ind.sp,paste0(ch,"V")] <- V
       input[ind.sp,paste0(ch,"J")] <- J
       
     }
@@ -1759,6 +1769,81 @@ inferVJ <- function(input, species.default="HomoSapiens", chain="AB", verbose=1)
   
 }
 
+
+#' @export
+inferCDR3 <- function(input, species.default="HomoSapiens", chain="AB", verbose=1){
+  
+  #The starting and end position of the CDR3 are inferred based on the 10 residues before the CDR3 and all the residues after the CDR3
+  #This function does not require V/J knowledge
+  #This means the inferred CDR3 may not be compatible with V/J data given in input.
+  
+  chain.list <- paste0("TR",strsplit(chain,split="")[[1]])
+  chain.small <- tolower(strsplit(chain,split="")[[1]])
+  names(chain.small) <- chain.list
+  
+  if("species" %in% colnames(input)){
+    #This is always the case in MixTCRviz, but not if the function is used independently
+    species.list <- unique(input$species)
+  } else {
+    species.list <- species.default
+  }
+  
+  #Add the required columns
+  for(ch in chain.list){
+    if(paste0("cdr3_",ch) %in% colnames(input) & verbose>0){
+      if(any(input[,paste0("cdr3_",ch)]!="" )){
+        print(paste0("WARNING: using infer.CDR3=T will erase all data in cdr3_",ch," column"))
+      }
+    }
+    input[[paste0("cdr3_",ch)]] <- NA
+  }
+  
+  
+  for(sp in species.list){
+    
+    if("species" %in% colnames(input)){
+      ind.sp <- which(input$species==sp)
+    } else {
+      ind.sp <- 1:dim(input)[1]
+    }
+    
+    #This part may be slow for large datasets... Things could be done MUCH faster with more efficient string matching algorithms.
+    for(ch in chain.list){
+      
+      tc <- paste0("TCR",chain.small[ch])
+     
+      #Take all possible last 10 amino acids before CDR3
+      tind <- which(cdr123[[sp]][[ch]][,"CDR3"]!="" & cdr123[[sp]][[ch]][,"full"]!="") #Exclude weird genes/alleles with nothing in the CDR3 of in the full V
+      V.out <- unique(apply(cdr123[[sp]][[ch]][tind,],1,function(x){
+        substr(as.character(x["full"]), nchar(as.character(x["full"]))-nchar(as.character(x["CDR3"]))-9, nchar(as.character(x["full"]))-nchar(as.character(x["CDR3"])))
+      }))
+      #Take all possible amino acids after CDR3
+      J.out <- unique(apply(Jseq[[sp]][[ch]],1,function(x){
+        substr(as.character(x["full"]), nchar(as.character(x["CDR3"]))+1, nchar(as.character(x["full"])))
+      }))
+      
+      #Get the CDR3
+      CDR3 <- unlist(lapply(input[ind.sp,tc], function(x){
+        
+        #Check if some V.out can be found
+        V.out.grep <- unique(unlist(lapply(V.out, function(s){p <- regexpr(s,as.character(x)); if(length(p)==1){return(p)} else{return(NA)}})))
+        V.out.grep <- V.out.grep[V.out.grep>0]
+        J.out.grep <- unique(unlist(lapply(J.out, function(s){p <- regexpr(s,as.character(x)); if(length(p)==1){return(p)} else{return(NA)}})))
+        J.out.grep <- J.out.grep[J.out.grep>0]
+        if(length(V.out.grep)==1 & length(J.out.grep)==1){
+          cdr3 <- substr(x,V.out.grep[1]+10,J.out.grep[1]-1)
+        } else {
+          cdr3 <- NA
+        }
+        return(cdr3)
+      }))
+      
+      input[ind.sp,paste0("cdr3_",ch)] <- CDR3
+    }
+  }
+  return(input)
+  
+}
 
 #' Defines the color palette for plots with models showed together.
 #'

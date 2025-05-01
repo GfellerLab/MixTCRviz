@@ -418,13 +418,16 @@ for(species in species.list){
   
   for(chain in chain.list){
     nm <- rownames(cdr123[[species]][[chain]])
-    ind <- which(grepl("*", nm,fixed=T) & substr(cdr123[[species]][[chain]][,"full"],1,3) != "ggg") 
+    ind <- which(grepl("*", nm,fixed=T) & 
+                   substr(cdr123[[species]][[chain]][,"full"],1,3) != "ggg" & 
+                   cdr123[[species]][[chain]][,"CDR3"] != "" &
+                   cdr123[[species]][[chain]][,"full"] != "") #Disregard cases missing many of the first residues or missing the CDR3 or missing full sequence
+    
     m <- cdr123[[species]][[chain]][ind,]
     m[,"full"] <- gsub("g","",m[,"full"])
     inferV.df <- unique(cbind(unname(sapply(nm[ind], function(x){strsplit(x,split="*", fixed=T)[[1]][1]})),
-                              str_sub(m[,"full"],1,80)))
-    inferV.df <- inferV.df[sapply(inferV.df[,2], nchar)==80,]
-    
+                              apply(m,1,function(x){substr(x["full"],1,nchar(x["full"])-nchar(x["CDR3"]))})))
+     
     if(species=="HomoSapiens" & chain=="TRB"){
       #Remove the entry corresponding to TRBV24/OR9-2 (ORF + same sequence as TRBV24-1)
       inferV.df <- inferV.df[inferV.df[,1] != "TRBV24/OR9-2",]
@@ -434,7 +437,7 @@ for(species in species.list){
       inferV.df <- inferV.df[inferV.df[,1] != "TRBV6-2/6-3" & inferV.df[,1] != "TRBV6-3",]
     }
     if(species=="HomoSapiens" & chain=="TRA"){
-      st <- "QQVKQSPQSLIVQKGGISIINCAYENTAFDYFPWYQQFPGKGPALLIAIRPDVSEKKEGRFTISFNKSAKQFSLHIMDSQ"
+      st <- "QQVKQSPQSLIVQKGGISIINCAYENTAFDYFPWYQQFPGKGPALLIAIRPDVSEKKEGRFTISFNKSAKQFSLHIMDSQ" #This is a weird allele missing the first residue (but not really needed to remove it)
       inferV.df <- inferV.df[inferV.df[,2] != st,]
     }
     if(chain=="TRA" & species=="MusMusculus"){
@@ -447,15 +450,15 @@ for(species in species.list){
       inferV.df <- unique(inferV.df)
       
       #Remove some ambiguous entries which correspond to (F)
-      st <- "AQSVTQPDARVTVSEGASLQLRCKYSYSATPYLFWYVQYPRQGLQLLLKYYSGDPVVQGVNSFEAEFSKSNSSFHLQKAS"
+      st <- "AQSVTQPDARVTVSEGASLQLRCKYSYSATPYLFWYVQYPRQGLQLLLKYYSGDPVVQGVNSFEAEFSKSNSSFHLQKASVHWSDSAVYF"
       inferV.df <- inferV.df[inferV.df[,1] != "TRAV9-3" & inferV.df[,2] != st,]
       
       #Add something to disambiguate ambiguous entries
-      st <- "AQSVTQPDARVTVSEGASLQLRCKYSYSGTPYLFWYVQYPRQGLQLLLKYYSGDPVVQGVNGFEAEFSKSNSSFHLRKAS"
+      st <- "AQSVTQPDARVTVSEGASLQLRCKYSYSGTPYLFWYVQYPRQGLQLLLKYYSGDPVVQGVNGFEAEFSKSNSSFHLRKASVHWSDSAVYF"
       p <- which(inferV.df[,1]=="TRAV9-2" & inferV.df[,2]==st)
-      inferV.df[p,2] <- paste0(inferV.df[p,2], "VHWSDSAVYFCV")
+      inferV.df[p,2] <- paste0(inferV.df[p,2], "CV")
       p <- which(inferV.df[,1]=="TRAV9-4" & inferV.df[,2]==st)
-      inferV.df[p,2] <- paste0(inferV.df[p,2], "VHWSDSAVYFCA")
+      inferV.df[p,2] <- paste0(inferV.df[p,2], "CA")
       
     }
     

@@ -13,7 +13,8 @@
 #'    * The 'TRAV', 'TRAJ', 'TRBV', 'TRBJ' should follow the IMGT nomenclature, with or without allele (see below for V/J name correction options).
 #'    * The 'cdr3_TRA' and 'cdr3_TRB' columns should provide CDR3A/CDR3B sequences, following the standard definition (e.g., CAVNSDGQKLLF).
 #'   Cases with non-amino acid characters, or length < 7 or > 22 will be not be considered. See below for CDR3 sequence QC.
-#'    * Other column names and/or input format are supported (see README.md).
+#'    * Some other column names (e.g., Va instead of TRAV) and/or input format are supported (but these shoudl be used with care).
+#'    * Using full TCR sequences ("TCRa" and "TCRb") is also supported and the V/J/CDR3 can be inferred with infer.VJ=T and infer.CDR3=T
 #'
 #' @param output.path Name of the output directory (default=NULL). If not already existing, it
 #'   will be created. If existing, files with the same name will be overwritten.
@@ -180,9 +181,6 @@
 #' @param build.clones Decide whether to reconstruct the clones if the data are provided in format with clone.id (default=FALSE).
 #'  If TRUE and if the data are provided in format with clone.id/complex.id/..., reconstruct the actual clones in output
 #'
-#' @param keep.colnames.origin Decide whether to keep the original names of the columns (default=FALSE).
-#'  If TRUE, keep the name of the columns dedicated the TCRs in the input. The option is not supported for format with clone.id
-#'
 #' @param ZscoreVJ.thresh Filtering threshold based on Z-score for not showing the labels in P(V) and P(J) plots (default=0, i.e. no filtering)
 #' The Z-score filtering comes on top of the filtering with min.label.fr.input1 and min.label.fr.input2
 #'
@@ -194,7 +192,11 @@
 #'
 #' @param logo.type Decide which type of logo to use. Should be either 'bits' (default), or 'probability'.
 #' 
-#' @param infer.VJ If TRUE, the V and J genes are inferred from full TCRa and TCRb sequences (default if FALSE). This option requires 'TCRa' and 'TCRb' columns to be included (as well as cdr3_TRA and cdr3_TRB to show CDR3 motifs) and will overwrite any TRAV,TRAJ,TRBV,TRBJ information
+#' @param infer.VJ If TRUE, the V and J genes are inferred from full TCRa and TCRb sequences (default if FALSE).
+#' This option requires 'TCRa' and 'TCRb' columns to be included and will overwrite any TRAV,TRAJ,TRBV,TRBJ information
+#'
+#' @param infer.CDR3 If TRUE, the CDR3 are inferred from full TCRa and TCRb sequences (default if FALSE).
+#' This option requires 'TCRa' and 'TCRb' columns to be included and will overwrite any cdr3_TRA,cdr3_TRB information
 #'
 #' @returns R list containing the plots (if `plot`=TRUE), the processed data (if input1 is a file or data.frame) and an R list with the stats for each model in input1.
 #'
@@ -209,7 +211,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
                       label.min.fr.input1=0.05, label.min.fr.input2=0.05, keep.incomplete.chain=T, seq.protocol="Default",
-                      input1.name="Input", input2.name=NULL, output.format="pdf", keep.colnames.origin=F, infer.VJ=F,
+                      input1.name="Input", input2.name=NULL, output.format="pdf", infer.VJ=F, infer.CDR3=F,
                       print.size=T, ZscoreVJ.thresh=0, FoldChangeVJ.thresh=1.25){
 
 
@@ -279,6 +281,10 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   if(!is.logical(plot)){
     print("Invalid value for plot. Default value of TRUE will be used")
     plot <- T
+  }
+  if(!is.logical(infer.CDR3)){
+    print("Invalid value for infer.CDR3. Default value of FALSE will be used")
+    infer.CDR3 <- F
   }
   if(!is.logical(infer.VJ)){
     print("Invalid value for infer.VJ. Default value of FALSE will be used")
@@ -607,16 +613,19 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
 
   # Check the input
   cat("\n####\nChecking input1:\n")
-  check <- check_input(input=input1, chain = chain, name="input1", infer.VJ=infer.VJ,
+  check <- check_input(input=input1, chain = chain, name="input1", infer.VJ=infer.VJ, infer.CDR3=infer.CDR3,
                        species.default = species.default, model.default = model.default,
                        input.list=input1.list, build.clones=build.clones)
   input1 <- check$data
-  map.back.colnames <- check$col.map
+  #map.back.colnames <- check$col.map
 
   if(!input1.list){
     
     if(infer.VJ){
       input1 <- inferVJ(input1, chain=chain, species.default = species.default, verbose=verbose)
+    }
+    if(infer.CDR3){
+      input1 <- inferCDR3(input1, chain=chain, species.default = species.default, verbose=verbose)
     }
     
     input1 <- clean_input(input=input1, use.allele=use.allele, correct.gene.names = correct.gene.names,
@@ -666,12 +675,15 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
         stop("Incompatible chains between input1 and input2")
       }
     }
-    input2 <- check_input(input=input2, chain=chain, name="input2", infer.VJ=infer.VJ,
+    input2 <- check_input(input=input2, chain=chain, name="input2", infer.VJ=infer.VJ, infer.CDR3=infer.CDR3,
                           species.default = species.default, model.default = model.default, input.list=input2.list, build.clones=build.clones())$data
     if(!input2.list){
       
       if(infer.VJ){
         input2 <- inferVJ(input2, chain=chain, species.default = species.default, verbose=verbose)
+      }
+      if(infer.CDR3){
+        input2 <- inferCDR3(input2, chain=chain, species.default = species.default, verbose=verbose)
       }
       input2 <- clean_input(input=input2, use.allele = use.allele, correct.gene.names = correct.gene.names,
                             use.mouse.strain = use.mouse.strain, chain = chain, keep.incomplete.chain = keep.incomplete.chain,
@@ -799,18 +811,6 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           dir.create(dir);
         }
         tinput1.es <- input1.es
-
-        if(keep.colnames.origin){
-          cn <- colnames(input1.es)
-          if(length(map.back.colnames)>0){
-            for(i in 1:length(cn)){
-              if(!is.null(map.back.colnames[[cn[i]]])){
-                cn[i] <- map.back.colnames[[cn[i]]]
-              }
-            }
-          }
-          colnames(tinput1.es) <- cn
-        }
 
         quote_if_comma <- function(x) {  ifelse(grepl(",", x), paste0('"', x, '"'), x) }
         tinput1.es <- as.data.frame(lapply(tinput1.es, function(col) { if (is.character(col)) quote_if_comma(col) else col }))

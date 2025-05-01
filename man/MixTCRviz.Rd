@@ -17,7 +17,8 @@ MixTCRviz(input1="test/test.csv", output.path = YOUR_PATH, ...)
 \item The 'TRAV', 'TRAJ', 'TRBV', 'TRBJ' should follow the IMGT nomenclature, with or without allele (see below for V/J name correction options).
 \item The 'cdr3_TRA' and 'cdr3_TRB' columns should provide CDR3A/CDR3B sequences, following the standard definition (e.g., CAVNSDGQKLLF).
 Cases with non-amino acid characters, or length < 7 or > 22 will be not be considered. See below for CDR3 sequence QC.
-\item Other column names and/or input format are supported (see README.md).
+\item Some other column names (e.g., Va instead of TRAV) and/or input format are supported (but these shoudl be used with care).
+\item Using full TCR sequences ("TCRa" and "TCRb") is also supported and the V/J/CDR3 can be inferred with infer.VJ=T and infer.CDR3=T
 }}
 
 \item{output.path}{Name of the output directory (default=NULL). If not already existing, it
@@ -223,10 +224,11 @@ than 20 characters.}
 
 \item{output.format}{Choose the format for the output, can be "pdf" (default), "png" or "jpg".}
 
-\item{keep.colnames.origin}{Decide whether to keep the original names of the columns (default=FALSE).
-If TRUE, keep the name of the columns dedicated the TCRs in the input. The option is not supported for format with clone.id}
+\item{infer.VJ}{If TRUE, the V and J genes are inferred from full TCRa and TCRb sequences (default if FALSE).
+This option requires 'TCRa' and 'TCRb' columns to be included and will overwrite any TRAV,TRAJ,TRBV,TRBJ information}
 
-\item{infer.VJ}{If TRUE, the V and J genes are inferred from full TCRa and TCRb sequences (default if FALSE). This option requires 'TCRa' and 'TCRb' columns to be included (as well as cdr3_TRA and cdr3_TRB to show CDR3 motifs) and will overwrite any TRAV,TRAJ,TRBV,TRBJ information}
+\item{infer.CDR3}{If TRUE, the CDR3 are inferred from full TCRa and TCRb sequences (default if FALSE).
+This option requires 'TCRa' and 'TCRb' columns to be included and will overwrite any cdr3_TRA,cdr3_TRB information}
 
 \item{print.size}{If TRUE (default), print the number of TCRs in input1 in the plots.}
 
