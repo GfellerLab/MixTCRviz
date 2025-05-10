@@ -567,6 +567,11 @@ if (TRUE){
     baseline_HomoSapiens_SEQTR[[s]] <- NULL
   }
   
+  #Increase the variability on the alpha chain for SEQTR data
+  for(f in c("sdL", "sdV", "sdJ")){
+    baseline_HomoSapiens_SEQTR[[f]]$TRA <- 2*baseline_HomoSapiens_SEQTR[[f]]$TRA
+  }
+  
   usethis::use_data(baseline_HomoSapiens, baseline_HomoSapiens_allele,
                     baseline_MusMusculus_Strain, baseline_MusMusculus, 
                     baseline_HomoSapiens_SEQTR, overwrite=T, internal=F)
