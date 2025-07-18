@@ -989,7 +989,8 @@ check_input <- function(input, chain="AB", name="input1", species.default="HomoS
         if(cl %in% c("TRAV", "TRAJ" ,"TRBV", "TRBJ") & !infer.VJ){
           print(paste("Missing",cl,"information in",name))
         }
-        
+      } else {
+        input[,cl] <- as.character(input[,cl])
       }
     }
     if(infer.VJ | infer.CDR3){
@@ -1017,6 +1018,10 @@ check_input <- function(input, chain="AB", name="input1", species.default="HomoS
         print(paste("Using",model.default,"as model for all entries"))
       }
     }
+    
+    #Force all columns describing the TCR to be characters
+    
+    
   } else if(input.list) {
     nm.list <- c("L","countL","countV","countJ", "countVJ.L", "countCDR3.L", "countVJ",  "countV.L", "countJ.L") # the last 4 are actually not very useful
     for(nm in nm.list){
