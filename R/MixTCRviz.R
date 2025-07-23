@@ -1201,7 +1201,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
               logo.sub.baseline[[ct]] <- logo.CDR3.L.baseline[[t]]
 
               #Add the comparison of V/J usage
-              infoV <- c(paste(ch,"V", sep=""), input1.name, baseline.name, model)
+              infoV <- c(paste(ch,"V", sep=""), input1.name, paste0(baseline.name, " | L"), model)
               names(infoV) <- c("gene", "input1.name", "baseline.name", "model")
               plotV.L <- plotVJ(count.es=es$countV.L[[ch]][[t]], count.rep=baseline.model$countV.L[[ch]][[t]],
                                 sd.es=es$sdV.L[[ch]][[t]], sd.rep=baseline.model$sdV.L[[ch]][[t]],
@@ -1209,8 +1209,8 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
                                 ZscoreVJ.thresh=ZscoreVJ.thresh, FoldChangeVJ.thresh=FoldChangeVJ.thresh,
                                 info=infoV, comp.baseline = comp.baseline, pType=plot.VJ.switch, species=species, label.neg = label.neg,  label.diag=label.diag,
                                 label.min.fr=label.min.fr, print.size=print.size, verbose=verbose)
-              infoV <- c(paste(ch,"J", sep=""), input1.name, baseline.name, model)
-              names(infoV) <- c("gene", "input1.name", "baseline.name", "model")
+              infoJ <- c(paste(ch,"J", sep=""), input1.name, paste0(baseline.name, " | L"), model)
+              names(infoJ) <- c("gene", "input1.name", "baseline.name", "model")
               plotJ.L <- plotVJ(count.es=es$countJ.L[[ch]][[t]], count.rep=baseline.model$countJ.L[[ch]][[t]],
                                 sd.es=es$sdJ.L[[ch]][[t]], sd.rep=baseline.model$sdJ.L[[ch]][[t]],
                                 distr.es=es$distrJ.L[[ch]], distr.rep=baseline.model$distrJ.L[[ch]],

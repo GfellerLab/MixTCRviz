@@ -520,8 +520,15 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
       stop("Didn't implement the use of combined.ResList when floor(pType) == 1")
     }
     
+    if(info["gene"] == "TRAV" | info["gene"] == "TRBV" ){
+      CDR3_seq <- cdr123[[species]][[substr(info["gene"],1,3)]][count.df$name,"CDR3"]
+    } else if(info["gene"] == "TRAJ" | info["gene"] == "TRBJ" ){
+      CDR3_seq <- Jseq[[species]][[substr(info["gene"],1,3)]][count.df$name,"CDR3"]
+    }
+    count.df$CDR3_seq <- CDR3_seq 
     
-    count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label, label2=name, label3=logFC, label4=Zscore)) +
+    
+    count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label, label2=name, label3=logFC, label4=Zscore, label5=CDR3_seq)) +
       geom_abline(col="orange",linetype="dashed",linewidth=1)
     
     if(!is.null(sd.es) & plot.sd){
@@ -1879,7 +1886,7 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
   # Turn off legends in the first two plots
   countV.plot_not_title <- countV.plot + labs(title = NULL)
   
-  p1 <- plotly::ggplotly(countV.plot_not_title, tooltip = c("name", "logFC", "Zscore"))
+  p1 <- plotly::ggplotly(countV.plot_not_title, tooltip = c("name", "logFC", "Zscore", "CDR3_seq"))
   
   p1$x$data <- lapply(p1$x$data, function(trace) {
     # Set marker size and mode for points
@@ -1930,7 +1937,7 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
   
   countJ.plot_not_title <- countJ.plot + labs(title = NULL)
   
-  p2 <- plotly::ggplotly(countJ.plot_not_title, tooltip = c("name", "logFC" ,"Zscore"))
+  p2 <- plotly::ggplotly(countJ.plot_not_title, tooltip = c("name", "logFC" ,"Zscore", "CDR3_seq"))
   
   p2$x$data <- lapply(p2$x$data, function(trace) {
     # Set marker size and mode for points
