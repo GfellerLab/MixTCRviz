@@ -677,11 +677,8 @@ plotLD <- function(countL.es, countL.rep, info=NULL, sd.es=NULL, sd.rep=NULL, pl
       }
     }
     
-    
-    ##########
     #Plot the comparison for length distribution
-    ##########
-    
+
     v1 <- c(L.all,L.all);
     v2 <- c(ld.es, ld.rep);
     v3 <- c( rep(info["input1.name"], length(L.all)), rep(info["baseline.name"], length(L.all))) ;
@@ -1067,14 +1064,13 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
                         keep.incomplete.chain=T, start.lg=1, end.lg=2, seq.protocol="Default", 
                         merge.ambiguous=T, verbose=1){
   
-  ####
+
   # Clean the input by removing CDR3 with weird characters, longer than Lmax or shorter than Lmin
   # Correct VJ genes based on our dictionary
   # species.default is only used if input does not contain the "species" column
   # merge.ambiguous should be set to FALSE ONLY is clean_input is used outside of MixTCRviz
   # this will prevent mapping TRBV6-2 to TRBV6-2/6-3
-  ####
-  
+
   #print("Start")
   
   if(is.data.frame(input)){
@@ -1225,13 +1221,11 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
     }
   }
   
-  ###################
   # Correct gene names
   # If alleles, it will correct the gene name, and keep the allele. If the allele cannot be found, it will remove it
   # If genes, it will correct the gene name
   # If gene name cannot be corrected, it gives NA
-  ###################
-  
+
   if(correct.gene.names){
     #print("Check V/J names")
     input <- correct.VJnames(input=input, segment.list=segment.list, species.default=species.default,
@@ -1268,10 +1262,11 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
     #print("Checking CDR3")
     input <- check_cdr3(input=input, chain=chain, species.default=species.default, check.cdr3.mode=check.cdr3.mode, start.lg=start.lg, end.lg=end.lg, verbose=verbose)
   }
-  ################
+  
+  
   # Do an extra correction for mouse entries, where only gene level analyses are allowed
   # and TRAV genes can be merged
-  ################
+
   
   if(!use.species.default){
     ind <- which(input[,"species"]=="MusMusculus")
