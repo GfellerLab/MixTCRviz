@@ -572,6 +572,29 @@ if (TRUE){
     baseline_HomoSapiens_SEQTR[[f]]$TRA <- 2*baseline_HomoSapiens_SEQTR[[f]]$TRA
   }
   
+  #For the standard baseline, consider increasing the sd
+  for(chain in chain.list){
+    for(f in c("V", "J")){
+      ct <- paste0("count",f)
+      s <- paste0("sd",f)
+      pr <- baseline_HomoSapiens[[ct]][[chain]]/sum(baseline_HomoSapiens[[ct]][[chain]])
+      for(nm in names(pr)){
+        if(baseline_HomoSapiens[[s]][[chain]][nm] < 0.2*pr[nm]){
+          baseline_HomoSapiens[[s]][[chain]][nm] <- 2*baseline_HomoSapiens[[s]][[chain]][nm]
+          #print(nm)
+        }
+      }
+      pr <- baseline_HomoSapiens_allele[[ct]][[chain]]/sum(baseline_HomoSapiens_allele[[ct]][[chain]])
+      for(nm in names(pr)){
+        if(baseline_HomoSapiens_allele[[s]][[chain]][nm] < 0.2*pr[nm]){
+          baseline_HomoSapiens_allele[[s]][[chain]][nm] <- 2*baseline_HomoSapiens_allele[[s]][[chain]][nm]
+        }
+      }
+    }
+  }
+  
+  
+  
   usethis::use_data(baseline_HomoSapiens, baseline_HomoSapiens_allele,
                     baseline_MusMusculus_Strain, baseline_MusMusculus, 
                     baseline_HomoSapiens_SEQTR, overwrite=T, internal=F)
