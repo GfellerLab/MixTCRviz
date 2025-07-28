@@ -567,12 +567,12 @@ if (TRUE){
     baseline_HomoSapiens_SEQTR[[s]] <- NULL
   }
   
-  #Increase the variability on the alpha chain for SEQTR data
+  #Increase the variability on the alpha chain for SEQTR data,  because current estimates are too low
   for(f in c("sdL", "sdV", "sdJ")){
     baseline_HomoSapiens_SEQTR[[f]]$TRA <- 2*baseline_HomoSapiens_SEQTR[[f]]$TRA
   }
   
-  #For the standard baseline, consider increasing the sd
+  #For the standard baseline, consider increasing the sd, because current estimates are too low
   for(chain in chain.list){
     for(f in c("V", "J")){
       ct <- paste0("count",f)
@@ -581,13 +581,29 @@ if (TRUE){
       for(nm in names(pr)){
         if(baseline_HomoSapiens[[s]][[chain]][nm] < 0.2*pr[nm]){
           baseline_HomoSapiens[[s]][[chain]][nm] <- 2*baseline_HomoSapiens[[s]][[chain]][nm]
-          #print(nm)
         }
       }
       pr <- baseline_HomoSapiens_allele[[ct]][[chain]]/sum(baseline_HomoSapiens_allele[[ct]][[chain]])
       for(nm in names(pr)){
         if(baseline_HomoSapiens_allele[[s]][[chain]][nm] < 0.2*pr[nm]){
           baseline_HomoSapiens_allele[[s]][[chain]][nm] <- 2*baseline_HomoSapiens_allele[[s]][[chain]][nm]
+        }
+      }
+      ct <- paste0("count",f, ".L")
+      s <- paste0("sd",f, ".L")
+      for(l in 7:22){
+        lc <- paste0("L_",l)
+        pr <- baseline_HomoSapiens[[ct]][[chain]][[lc]]/sum(baseline_HomoSapiens[[ct]][[chain]][[lc]])
+        for(nm in names(pr)){
+          if(baseline_HomoSapiens[[s]][[chain]][[lc]][nm] < 0.2*pr[nm]){
+            baseline_HomoSapiens[[s]][[chain]][[lc]][nm] <- 2*baseline_HomoSapiens[[s]][[chain]][[lc]][nm]
+          }
+        }
+        pr <- baseline_HomoSapiens_allele[[ct]][[chain]][[lc]]/sum(baseline_HomoSapiens_allele[[ct]][[chain]][[lc]])
+        for(nm in names(pr)){
+          if(baseline_HomoSapiens_allele[[s]][[chain]][[lc]][nm] < 0.2*pr[nm]){
+            baseline_HomoSapiens_allele[[s]][[chain]][[lc]][nm] <- 2*baseline_HomoSapiens_allele[[s]][[chain]][[lc]][nm]
+          }
         }
       }
     }
