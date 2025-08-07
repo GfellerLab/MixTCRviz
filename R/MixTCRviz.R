@@ -150,8 +150,8 @@
 #' @param label.min.fr.input1,label.min.fr.input2 Region (i.e., Y - X rectangle) of the left corner of V/J plots with no gene label (default=0.05).
 #'
 #' @param keep.incomplete.chain Decide whether to keep incomplete alpha or beta chains.
-#'  * TRUE (default): Incomplete chains are kept.
-#'  * FALSE: Incomplete chains are discarded. Even if input1 only consists of complete chains, incomplete chains can occur when one V/J gene cannot be corrected,
+#'  * TRUE : Incomplete chains are kept.
+#'  * FALSE (default): Incomplete chains are discarded. Even if input1 only consists of complete chains, incomplete chains can occur when one V/J gene cannot be corrected,
 #'      or when there is some incompatibilities between V/J names and CDR3 sequences
 #'
 #' @param chain Decide which chain to show in the motifs.
