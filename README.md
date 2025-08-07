@@ -1,6 +1,6 @@
 
 # MixTCRviz
-R package to visualize TCR binding motifs.
+R package to visualize TCR specificity profiles.
 
 MixTCRviz can be used freely by academic groups for non-commercial purposes (see license).
 The product is provided free of charge, and, therefore, on an "as is"
@@ -21,32 +21,25 @@ Copyright (2024) David Gfeller
 
 # INTRODUCTION
 
-MixTCRviz is a tool to visualize important properties of a set of TCRs (e.g., epitope-specific TCRs).
+MixTCRviz is a tool to visualize important properties of a set of human or mouse TCRs (e.g., epitope-specific TCRs).
 It focuses on V usage, J usage, CDR3 length distribution and CDR3 motifs, for both the alpha and the beta chains.
-These define the so-called **TCR binding motifs**.
+These define the so-called **TCR specificity profiles**.
 
-By default, properties of the input TCRs are compared to those of a "baseline" TCR repertoire (from HomoSapiens or MusMusculus). Alternatively, users can choose to compare with another set of TCRs ("input2").
+By default, properties of the input TCRs are compared to those of "baseline" TCR repertoires. Alternatively, users can choose to compare with another set of TCRs ("input2").
 
-TCR binding motifs enable users to rapidly visualize and understand what are the key determinants of specificity within a set of TCRs, such as those binding to a given epitope.
+TCR specificity profiles enable users to rapidly visualize and understand what are the key determinants of specificity within a set of TCRs, such as those binding to a given epitope.
 
 
 # INSTALLATION
 
-There are different ways of "installing" MixTCRviz:
-  1) It can be directly installed from the GitHub page (you need to have
-    credentials correctly set so that Rstudio can access the private repository):<br />
-    ` r` <br />
-    `devtools::install_github("GfellerLab/MixTCRviz")` <br />
-
-  2) You can download the MixTCRviz directory from the GitHub page and then open
-    Rstudio setting its working directory as MixTCRviz folder. Then you can
-    compile it and install it:<br />
+Download the MixTCRviz directory from the GitHub page and open  Rstudio setting its working directory as MixTCRviz folder.
+You can then  compile it and install it:<br />
     ` r` <br />
     `devtools::build()` <br />
     `install.packages("../MixTCRviz_1.0.tar.gz", repos=NULL)` <br />
 
 
-You may be prompted to install several packages.
+You may be prompted to install some packages (e.g., ggplot2).
 
 ### Testing the INSTALLATION:
 
@@ -60,9 +53,9 @@ The output in test/out should be the same as in test/out_compare
 
 # RUNNING
 
-
 MixTCRviz should be primarily run in R, by loading the MixTCRviz library and calling the MixTCRviz function (e.g., MixTCRviz(input1="test/test.csv, output.path=YOUR_OUTPUT_PATH)).
 
+A python wrapper is also available.
 
 
 ## Mandatory parameter:
@@ -117,11 +110,11 @@ Below are some of the most comonly used parameters. Full documentation about oth
 
 If the output of MixTCRviz is assigned to a variable (e.g., m <- MixTCRviz(input1="test/test.csv")), MixTCRviz returns a list with the plots, the processed data and the statistics for each model in input1.
 
-If output.path is given, MixTCRviz creates also a directory (output.path). The output.path/ directory contains the motifs (e.g. pdf files) for each model.
+If output.path is given, MixTCRviz creates also a directory (output.path). The output.path/ directory contains the TCR specificity profiles (e.g. pdf files) for each model.
 
-- If interactive.plots==T, interactive html files are also created, and you can mouse over the V/J genes to see the names.
+- If interactive.plots==T, interactive html files are also created, and you can mouse over the V/J genes to see the names, the Z-score, the logFC and the CDR3 sequences.
 - If output.stat==T, the output.path/stats/ contains .rds files with all the stats for each model.
-- If output.processed.data==T, the output.path/processed_data/ contains .csv files with the actual data used to build the motifs.
+- If output.processed.data==T, the output.path/processed_data/ contains .csv files with the actual data used to build the TCR specificity profiles.
 - If plot.logo.length==1, the output.path/CDR3_length/ directory shows the V/J usage and CDR3 motifs for multiple lengths for both chains.
 
 
@@ -157,7 +150,7 @@ However, you need to have *exactly* one colum indicating the clone_id labelled a
 
 * If working with epitope-specific TCRs, we encourage users to define model names which capture both the epitope sequence and the MHC restriction. Using only epitope sequences as "model" is possible, but can lead to issues when the same epitope is restricted to different MHC.
 
-* V/J genes are key to the TCR binding motifs in MixTCRviz and only V/J names compatible with the IMGT nomenclature can be considered. Even if correct.gene.names==1 allows to correct several wrong V/J names, we strongly encourage the users to use only V/J gene names compatible with IMGT.
+* V/J genes are key to the TCR specificity profiles in MixTCRviz and only V/J names compatible with the IMGT nomenclature can be considered. Even if correct.gene.names==1 allows to correct several wrong V/J names, we strongly encourage the users to use only V/J gene names compatible with IMGT.
 
 * Some V/J genes in IMGT give rise to truncated V segments (e.g., TRAV8-5). All of them are pseudogenes. These are not supported in MixTCRviz and will be put to NA. Other pseudogenes / ORF are shown in grey in the plots.
 
@@ -167,11 +160,11 @@ However, you need to have *exactly* one colum indicating the clone_id labelled a
 
 * PCR / Sequencing / TCR reconstruction errors frequently occur in TCR-Seq data. Although the option check.cdr3.mode = 1, can detect some of these errors, we encourage users to carefully check the quality of their CDR3 sequences.
 
-* As with all motif visualisation tools, limited numbers of TCRs have a big impact on the interpretation of the results.
+* As with all statistical approaches, limited numbers of TCRs have a big impact on the interpretation of the results.
 Therefore, it is hilghly recommanded to use sets of TCRs with enough sequences to be able to interpret frequencies plotted in MixTCRviz.
 
 * When comparing to baseline TCR repertoire, we encourage to use renormVJ=1,
-so that the comparisons of CDR3 length distributions and motifs is not confounded by the specific V/J usage in input1 (i.e., baseline shows the expected distributions and motifs knowing P(VJ) in input1).
+so that the comparisons of CDR3 length distributions and motifs is not confounded by the specific V/J usage in input1 (i.e., baseline shows the expected length distributions and CDR3 motifs knowing P(VJ) in input1).
 This option is often less relevant when comparing two TCR datasets (input1 and input2), this is why renormVJ is by default put to 0 unless renormVJ = 1.
 
 
