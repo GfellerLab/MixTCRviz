@@ -211,8 +211,8 @@ This can be especially useful when comparing two epitope-specific TCR repertoire
 
 \item{keep.incomplete.chain}{Decide whether to keep incomplete alpha or beta chains.
 \itemize{
-\item TRUE (default): Incomplete chains are kept.
-\item FALSE: Incomplete chains are discarded. Even if input1 only consists of complete chains, incomplete chains can occur when one V/J gene cannot be corrected,
+\item TRUE : Incomplete chains are kept.
+\item FALSE (default): Incomplete chains are discarded. Even if input1 only consists of complete chains, incomplete chains can occur when one V/J gene cannot be corrected,
 or when there is some incompatibilities between V/J names and CDR3 sequences
 }}
 
