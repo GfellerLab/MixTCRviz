@@ -521,15 +521,25 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
     }
     
     if(info["gene"] == "TRAV" | info["gene"] == "TRBV" ){
+      CDR1_seq <- gsub("g","-",cdr123[[species]][[substr(info["gene"],1,3)]][count.df$name,"CDR1"])
+      CDR2_seq <- gsub("g","-",cdr123[[species]][[substr(info["gene"],1,3)]][count.df$name,"CDR2"])
       CDR3_seq <- cdr123[[species]][[substr(info["gene"],1,3)]][count.df$name,"CDR3"]
+      count.df$CDR1_seq <- CDR1_seq
+      count.df$CDR2_seq <- CDR2_seq
+      count.df$CDR3_seq <- CDR3_seq
+      count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label, label2=name, label3=logFC, label4=Zscore, label5=CDR1_seq, label6=CDR2_seq, label7=CDR3_seq)) +
+        geom_abline(col="orange",linetype="dashed",linewidth=1)
+      
     } else if(info["gene"] == "TRAJ" | info["gene"] == "TRBJ" ){
       CDR3_seq <- Jseq[[species]][[substr(info["gene"],1,3)]][count.df$name,"CDR3"]
+      count.df$CDR3_seq <- CDR3_seq 
+      count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label, label2=name, label3=logFC, label4=Zscore, label5=CDR3_seq)) +
+        geom_abline(col="orange",linetype="dashed",linewidth=1)
     }
-    count.df$CDR3_seq <- CDR3_seq 
     
     
-    count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label, label2=name, label3=logFC, label4=Zscore, label5=CDR3_seq)) +
-      geom_abline(col="orange",linetype="dashed",linewidth=1)
+    
+    
     
     if(!is.null(sd.es) & plot.sd){
       count.plot <- count.plot + geom_errorbar(aes(ymax=Y+SD_es, ymin=sapply(Y-SD_es, function(x){max(0.001,x)})), width=0.015*lim.x, linewidth=0.4, color="grey50")
@@ -1881,7 +1891,7 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
   # Turn off legends in the first two plots
   countV.plot_not_title <- countV.plot + labs(title = NULL)
   
-  p1 <- plotly::ggplotly(countV.plot_not_title, tooltip = c("name", "logFC", "Zscore", "CDR3_seq"))
+  p1 <- plotly::ggplotly(countV.plot_not_title, tooltip = c("name", "logFC", "Zscore", "CDR1_seq", "CDR2_seq", "CDR3_seq"))
   
   p1$x$data <- lapply(p1$x$data, function(trace) {
     # Set marker size and mode for points
