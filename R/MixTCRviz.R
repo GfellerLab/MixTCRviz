@@ -79,6 +79,8 @@
 #' @param set.cdr3a.length,set.cdr3b.length Length for the CDR3 motif to be shown in the main plot (default=NA).
 #'   If left empty, the value corresponding to the most frequent CDR3 length in input1 (and also present in input2 if input2 is provided) is chosen.
 #'
+#' @param start.lg,end.lg Number of amino acids at the beginning and end of CDR3 used to check compatibility with VJ annotations (default = 1 and 2).
+#'
 #' @param species.default Option to provide the species for all the TCR in input1 (default="HomoSapiens").
 #'   This is useful if your input does not contain a 'species' column.
 #'   In case the input contains the 'species' column, `species.default` is not considered.
