@@ -39,7 +39,8 @@ You can then  compile it and install it:<br />
     `install.packages("../MixTCRviz_1.0.tar.gz", repos=NULL)` <br />
 
 
-You may be prompted to install some packages (e.g., ggplot2).
+You may be prompted to install some packages (e.g., ggplot2, ggseqlogoMOD). The ggseqlogoMOD needs to be installed from https://github.com/GfellerLab/ggseqlogo
+
 
 ### Testing the INSTALLATION:
 
