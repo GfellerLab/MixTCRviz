@@ -8,9 +8,9 @@ devtools::load_all(".")
 #library(MixTCRviz)
 
 #Compare input TCRs (specific for A0201_LLWNGPMAV) with baseline repertoire
-MixTCRviz(input1="test/test.csv", output.path="test/out/", output.stat = T, interactive.plots = T)
+MixTCRviz(input1="test/test.csv", output.path="test/out/", output.stat = T)
 
-new.data <- T
+new.data <- F
 
 if(new.data){
   
