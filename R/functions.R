@@ -1743,16 +1743,26 @@ inferVJ <- function(input, species.default="HomoSapiens", chain="AB", verbose=1)
     species.list <- species.default
   }
 
+  # Transform to simple data.frame in case a tibble due to code
+  # incompatibilities below
+  if (is_tibble(input)){
+    input <- as.data.frame(input)
+    if (verbose > 0){
+      print(paste0("WARNING: input was a tibble, but has been transformed to ",
+        "data.frame for compatibility with inferVJ function."))
+    }
+  }
+
   #Add the required columns
   for(ch in chain.list){
     if(paste0(ch,"V") %in% colnames(input) & verbose>0){
-      if(any( input[,paste0(ch,"V")]!="" ) ){
+      if(!all(is.na(input[,paste0(ch,"V")])) && any( input[,paste0(ch,"V")]!="" ) ){
         print(paste0("WARNING: using infer.VJ=T will erase all data in ",ch,"V column"))
       }
     }
     input[[paste0(ch,"V")]] <- NA
     if(paste0(ch,"J") %in% colnames(input) & verbose>0){
-      if(any(input[,paste0(ch,"J")]!="" )){
+      if(!all(is.na(input[,paste0(ch,"J")])) && any(input[,paste0(ch,"J")]!="" )){
         print(paste0("WARNING: using infer.VJ=T will erase all data in ",ch,"J column"))
       }
     }
