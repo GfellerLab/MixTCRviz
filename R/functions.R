@@ -416,7 +416,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
       label[abs(Zscore) < ZscoreVJ.thresh] <- NA
     }
 
-    n_lab_max <- ifelse(pType==2, 12, 8)
+    n_lab_max <- ifelse(floor(pType)==2, 12, 8)
 
     #Hide labels for points with low fold change and not very high frequencies
     #Do this iteratively
@@ -580,12 +580,12 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
       xlab(xlab) + ylab(ylab) + theme(panel.grid.minor = element_blank())
 
   } else {
-    # Show results as bar plots. Will only keep most significant genes, summing
-    # together all the other and rework a bit the data.
+    # Show results as bar plots. Will only keep most significant genes, possibly
+    # summing together all the other and rework a bit the data.
     count_other <- count.df[!count.df$name %in% namesToKeep,,drop=F] %>%
       dplyr::summarize(Y=sum(Y), X=0, name="Other", gene="Other",
-                       label="Other", log2FC=NA, baselineName=count.df$baselineName[1],
-                       .by=model)
+        label="Other", log2FC=NA, baselineName=count.df$baselineName[1],
+        .by=model)
     # All baselineName should be the same value (and we put a value of 0
     # for the 'baseline' of these other, so that no baseline value is showed
     # there).
@@ -594,12 +594,26 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
     count.df <- count.df[order(count.df$log2FC, decreasing = T),,drop=F]
     # Order genes based on the log2FC between input and baseline to show
     # most important ones on top.
-    count.df <- dplyr::bind_rows(count.df, count_other)
+    if (pType == 2.1){
+      # Adding the summed frequency of all remaining genes if pType was 2.1 only.
+      count.df <- dplyr::bind_rows(count.df, count_other)
+    }
 
     count.df$label <- factor(count.df$label, levels=rev(unique(count.df$label)))
     # Use a factor with given levels to keep the order constructed above
     # (otherwise it'd order those labels alphabetically) - we use rev to make
     # the most important genes on top of the plot.
+    labYlen <- max(nchar(levels(count.df$label)))
+    YaxSize <- ifelse(labYlen < 8, 14, ifelse(labYlen < 10, 13,
+      ifelse(labYlen < 12, 12, ifelse(labYlen < 14, 11, 10))))
+    # Choose different sizes for the y-axis labels, a trade-off between reading
+    # these labels well and seeing well the values (because otherwise the
+    # long labels take up all the space from the plot and we cannot see the
+    # bars).
+    legLen <- max(nchar(levels(count.df$model)))
+    legSize <- ifelse(legLen < 15, 12, ifelse(legLen < 20, 10,
+      ifelse(legLen < 25, 8, 6)))
+    # And also for the legend indicating the model names.
 
     if (is.null(combined.resList)){
       count.plot <- ggplot(count.df, aes(x=Y, y=label, fill=gene)) +
@@ -626,11 +640,12 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
       scale_alpha_manual(values=0.7, guide=guide_legend(order=2)) +
       theme_minimal() +
       theme(plot.title = element_text(size = 14, hjust=0.5),
-            axis.title=element_text(size=14),
-            panel.grid.major.y=element_blank(),
-            axis.text.x=element_text(size=10),
-            axis.text.y=element_text(size=14, face="bold", color="black"),
-            legend.position="top", legend.title=element_blank())
+        axis.title=element_text(size=14),
+        panel.grid.major.y=element_blank(),
+        axis.text.x=element_text(size=10),
+        axis.text.y=element_text(size=YaxSize, face="bold", color="black"),
+        legend.position="top", legend.title=element_blank(),
+        legend.text=element_text(size=legSize))
   }
 
   return(count.plot)
