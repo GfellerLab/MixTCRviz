@@ -1346,6 +1346,9 @@ check_cdr3 <- function(input, chain="AB", species.default="HomoSapiens", check.c
   # This should be applied after correcting the gene names, and adding the species if needed
   # species.default is only used if es.all does not contain the "species" column
   # If the allele is given in the gene name, the allele will be used.
+  chain.list <- paste0("TR",strsplit(chain,split="")[[1]])
+  chain.small <- tolower(strsplit(chain,split="")[[1]])
+  names(chain.small) <- chain.list
 
   use.species.default <- F
   if("species" %in% colnames(input)){
