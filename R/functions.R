@@ -1731,6 +1731,8 @@ inferVJ <- function(input, species.default="HomoSapiens", chain="AB", verbose=1)
   # For a few J segments, two additional amino acids in the CDR3 are used  for disambiguation
 
   #We could also provide a summary of the unsuccessful cases
+  
+  #To Do: add the use.allele option.
 
   chain.list <- paste0("TR",strsplit(chain,split="")[[1]])
   chain.small <- tolower(strsplit(chain,split="")[[1]])
@@ -1777,6 +1779,7 @@ inferVJ <- function(input, species.default="HomoSapiens", chain="AB", verbose=1)
       nm <- names(inferV[[sp]][[ch]])
       pos.V <- lapply(input[ind.sp,tc], function(x){
         which(sapply(nm, function(n){grepl(n,x)}))})
+      
       V <- sapply(pos.V, function(x){v <- unique(inferV[[sp]][[ch]][x]);if(length(v)!=1){return(NA)} else{ return(v)}})
       input[ind.sp,paste0(ch,"V")] <- V
 
