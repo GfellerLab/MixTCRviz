@@ -135,7 +135,10 @@
 #'    * 1.2: Show the VJ usage as a scatter plot with colors of the points based
 #'       on the V/J gene names (see lookup table in MixTCRviz/figures/, scheme2).
 #'    * 1.3: Show the VJ usage as a scatter plot with black points and V/J gene label in colors (see lookup table in MixTCRviz/figures/, scheme2).
-#'    * 2: Show the VJ usage as a bar plot (see lookup table in MixTCRviz/figures/, scheme2).
+#'    * 2 and 2.1: Show the VJ usage as a bar plot (see lookup table in
+#'        MixTCRviz/figures/, scheme2). With 2, only the bars of the most
+#'        significantly enriched genes are showed, while with 2.1 we add a bar
+#'        of the "Other" genes, summing the frequencies of all remaining genes.
 #'
 #' @param plot.modelsCombined Decide whether to combine the different models.
 #'    * FALSE (default) or empty string: Show the data for each model separately.
@@ -194,7 +197,7 @@
 #' If too many labels remain in the plots, other FoldChangeVJ.thresh values may be used.
 #'
 #' @param logo.type Decide which type of logo to use. Should be either 'bits' (default), or 'probability'.
-#' 
+#'
 #' @param infer.VJ If TRUE, the V and J genes are inferred from full TCRa and TCRb sequences (default if FALSE).
 #' This option requires 'TCRa' and 'TCRb' columns to be included and will overwrite any TRAV,TRAJ,TRBV,TRBJ information
 #'
@@ -221,7 +224,6 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   #######
   # Check input parameters
   #######
-
 
   if(!seq.protocol %in% c("Default", "SEQTR")){
     print("Invalid value for seq.protocol. Default value of \"Default\" will be used")
@@ -301,8 +303,8 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     print("infer.VJ=T will not consider strain information on mouse TRAV names. use.mouse.strain will be set to FALSE")
     use.allele <- F
   }
-    
-    
+
+
   if(!plot){
     print("No motif will be generated with plot=FALSE")
   }
@@ -375,15 +377,18 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     N.min <- 1
   }
 
-
   if(!is.na(set.cdr3a.length)){
-    if(is.numeric(set.cdr3a.length)==F | set.cdr3a.length < Lmin | set.cdr3a.length > Lmax | set.cdr3a.length%%1 != 0){
+    if(!is.numeric(set.cdr3a.length) || set.cdr3a.length > Lmax ||
+        ((set.cdr3a.length!=-1) && (set.cdr3a.length < Lmin)) ||
+        set.cdr3a.length%%1 != 0){
       print(paste("Invalid value for set.cdr3a.length",set.cdr3a.length,". Default value will be used.", sep=""))
       set.cdr3a.length=NA
     }
   }
   if(!is.na(set.cdr3b.length)){
-    if(is.numeric(set.cdr3b.length)==F | set.cdr3b.length < Lmin | set.cdr3b.length > Lmax | set.cdr3b.length%%1 != 0){
+    if(!is.numeric(set.cdr3b.length) || set.cdr3b.length > Lmax ||
+        ((set.cdr3b.length!=-1) && (set.cdr3b.length < Lmin) )||
+        set.cdr3b.length%%1 != 0){
       print(paste("Invalid value for set.cdr3b.length=",set.cdr3b.length,". Default value will be used.", sep=""))
       set.cdr3b.length=NA
     }
@@ -421,7 +426,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     plot.cdr3.norm <- 0
   }
 
-  if(! plot.VJ.switch %in% c(1,1.2,1.3,2)){
+  if(! plot.VJ.switch %in% c(1,1.2,1.3,2,2.1)){
     print("Invalid value for plot.VJ.switch. Default value of 1 will be used")
     v$plot.VJ.switch <- 1
   }
@@ -499,26 +504,25 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     }
   }
 
-  modelsCombinded_name <- "modCombined"
+  modelsCombined_name <- "modCombined"
   if (is.character(plot.modelsCombined)){
     if (plot.modelsCombined == ""){
       plot.modelsCombined <- F
     } else {
-      modelsCombinded_name <- plot.modelsCombined
+      modelsCombined_name <- plot.modelsCombined
       plot.modelsCombined <- T
     }
   }
-  if (plot.modelsCombined && !(plot.VJ.switch %in% c(2))){
-    warning("plot.modelsCombined is set to TRUE, and plot.VJ.switch wasn't '2'.",
-            "Setting plot.VJ.switch=2 as other VJ plot format is not available",
-            "when combining results from all models in a single plot.")
+  if (plot.modelsCombined && !(plot.VJ.switch %in% c(2,2.1))){
+    warning("plot.modelsCombined is set to TRUE, and plot.VJ.switch wasn't '2' ",
+            "or '2.1'. Setting plot.VJ.switch=2 as other VJ plot format is not ",
+            "available when combining results from all models in a single plot.")
     plot.VJ.switch <- 2
   }
 
   ###########
   #Set some specific values for different parameters
   ###########
-
 
   keep.gap.pwm <- 0 # 1: means that 'g' (gaps in CDR1/2) are treated as an additional aa in the logos. 0: means that 'g' are treated as unspecific (i.e., 0.05) in the logos
   if(keep.gap.pwm==1){taa.list <- c(aa.list,"g"); additionalAA <- "g"} else {taa.list <- aa.list; additionalAA <- ""}
@@ -613,7 +617,6 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   }
   names(set.cdr3.length) <- chain.list
 
-
   # Check the input
   cat("\n####\nChecking input1:\n")
   check <- check_input(input=input1, chain = chain, name="input1", infer.VJ=infer.VJ, infer.CDR3=infer.CDR3,
@@ -623,14 +626,14 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   #map.back.colnames <- check$col.map
 
   if(!input1.list){
-    
+
     if(infer.VJ){
       input1 <- inferVJ(input1, chain=chain, species.default = species.default, verbose=verbose)
     }
     if(infer.CDR3){
       input1 <- inferCDR3(input1, chain=chain, species.default = species.default, verbose=verbose)
     }
-    
+
     input1 <- clean_input(input=input1, use.allele=use.allele, correct.gene.names = correct.gene.names,
                           use.mouse.strain = use.mouse.strain, chain = chain, keep.incomplete.chain = keep.incomplete.chain,
                           species.default = species.default, check.cdr3.mode = check.cdr3.mode, start.lg=start.lg, end.lg=end.lg,
@@ -681,7 +684,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     input2 <- check_input(input=input2, chain=chain, name="input2", infer.VJ=infer.VJ, infer.CDR3=infer.CDR3,
                           species.default = species.default, model.default = model.default, input.list=input2.list, build.clones=build.clones())$data
     if(!input2.list){
-      
+
       if(infer.VJ){
         input2 <- inferVJ(input2, chain=chain, species.default = species.default, verbose=verbose)
       }
@@ -744,6 +747,16 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   } else {
     if(verbose>0){
       print("Will not be able to return processed data for input1 since it does not contain raw data.")
+    }
+  }
+
+  for (ch in chain.list){
+    if (!is.na(set.cdr3.length[ch]) && (set.cdr3.length[ch] == -1)){
+      # When this is "-1" we determine the most common length among all the
+      # models that are kept for the figures, to have the a same CDR3 length
+      # showed.
+      lTab <- table(nchar(input1[input1$model %in% model.list, paste0("cdr3_",ch)]))
+      set.cdr3.length[ch] <- as.numeric(names(which.max(lTab)))
     }
   }
 
@@ -1476,7 +1489,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
         height <- 1.5 + 1 * nModels_sp
       }
       if(!is.null(output.path)){
-        filename <- paste0(output.path,"/", modelsCombinded_name)
+        filename <- paste0(output.path,"/", modelsCombined_name)
         if (length(comb_res) > 1){
           filename <- paste0(filename, "_", sp)
           # Add species name when there where models corresponding to multiple
