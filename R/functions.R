@@ -1093,15 +1093,13 @@ check_input <- function(input, chain="AB", name="input1", species.default="HomoS
 #' @export
 clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.strain=F,
                         chain="AB", species.default="HomoSapiens", check.cdr3.mode=1,
-                        keep.incomplete.chain=T, start.lg=1, end.lg=2, seq.protocol="Default",
-                        merge.TRBV6_2_3=T, merge.TRBV12_3_4=F, verbose=1){
+                        keep.incomplete.chain=T, start.lg=1, end.lg=2, seq.protocol="Default",verbose=1){
   
   
   # Clean the input by removing CDR3 with weird characters, longer than Lmax or shorter than Lmin
   # Correct VJ genes based on our dictionary
   # species.default is only used if input does not contain the "species" column
-  # merge.ambiguous should be set to FALSE ONLY if clean_input is used outside of MixTCRviz
-  # this will prevent mapping TRBV6-2 to TRBV6-2/6-3
+
   
   #print("Start")
   
@@ -1109,10 +1107,14 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
     merge.TRBV6_2_3 <- T
     merge.TRBV12_3_4 <- T
   }
-  #if(seq.protocol=="Default"){
-  #  merge.TRBV6_2_3 <- T
-  #  merge.TRBV12_3_4 <- F
-  #}
+  if(seq.protocol=="Default"){
+    merge.TRBV6_2_3 <- T
+    merge.TRBV12_3_4 <- F
+  }
+  if(seq.protocol=="IMGT"){
+    merge.TRBV6_2_3 <- F
+    merge.TRBV12_3_4 <- F
+  }
   
   if(is.data.frame(input)){
     input <- as.data.frame(input)
@@ -1143,8 +1145,6 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
     segment.list <- c("TRBV","TRBJ")
     cdr3.list <- c("cdr3_TRB")
   }
-  
-  
   
   #Replace empty values by NA
   for(i in col){

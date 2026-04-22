@@ -204,9 +204,6 @@
 #' @param infer.CDR3 If TRUE, the CDR3 are inferred from full TCRa and TCRb sequences (default if FALSE).
 #' This option requires 'TCRa' and 'TCRb' columns to be included and will overwrite any cdr3_TRA,cdr3_TRB information
 #'
-#' @param merge.TRBV6_2_3,merge.TRBV12_3_4 Merge some TRBV genes that are impossible (TRBV6-2/6-3) or very difficult (TRBV12-3/12-4) to distiguish at the sequencing level
-#' Currently, merge.TRBV6_2_3=T should be used merge.TRBV12_3_4=F, and other options are not supported
-#' 
 #' @returns R list containing the plots (if `plot`=TRUE), the processed data (if input1 is a file or data.frame) and an R list with the stats for each model in input1.
 #'
 #' @usage MixTCRviz(input1="test/test.csv", output.path = YOUR_PATH, ...)
@@ -221,7 +218,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
                       label.min.fr.input1=0.05, label.min.fr.input2=0.05, keep.incomplete.chain=F, seq.protocol="Default",
                       input1.name="Input", input2.name=NULL, output.format="pdf", infer.VJ=F, infer.CDR3=F,
-                      print.size=T, ZscoreVJ.thresh=0, FoldChangeVJ.thresh=1.25, merge.TRBV6_2_3=T, merge.TRBV12_3_4=F){
+                      print.size=T, ZscoreVJ.thresh=0, FoldChangeVJ.thresh=1.25){
 
 
   #######
@@ -640,7 +637,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     input1 <- clean_input(input=input1, use.allele=use.allele, correct.gene.names = correct.gene.names,
                           use.mouse.strain = use.mouse.strain, chain = chain, keep.incomplete.chain = keep.incomplete.chain,
                           species.default = species.default, check.cdr3.mode = check.cdr3.mode, start.lg=start.lg, end.lg=end.lg,
-                          seq.protocol=seq.protocol, verbose=verbose, merge.TRBV6_2_3=merge.TRBV6_2_3, merge.TRBV12_3_4=merge.TRBV12_3_4)
+                          seq.protocol=seq.protocol, verbose=verbose)
   }
 
   #############
@@ -697,7 +694,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
       input2 <- clean_input(input=input2, use.allele = use.allele, correct.gene.names = correct.gene.names,
                             use.mouse.strain = use.mouse.strain, chain = chain, keep.incomplete.chain = keep.incomplete.chain,
                             species.default = species.default, check.cdr3.mode = check.cdr3.mode, start.lg=start.lg, end.lg=end.lg,
-                            seq.protocol=seq.protocol, verbose=verbose, merge.TRBV6_2_3=merge.TRBV6_2_3, merge.TRBV12_3_4=merge.TRBV12_3_4)
+                            seq.protocol=seq.protocol, verbose=verbose)
     }
   }
 
