@@ -4,16 +4,16 @@
 #####
 
 #' @export
-build_stat <- function(input, chain="AB", species="HomoSapiens", comp.VJL=0){
+build_stat <- function(input, chain="AB", species="HomoSapiens", comp.VJL=F){
   
-  # comp.VJL>=1 means we are computing length distributions and motifs knowing P(VJ)
+  # comp.VJL=T means we are computing length distributions and motifs knowing P(VJ)
   # It takes some time, but still reasonable.
   
   chain.list <- paste("TR",strsplit(chain,"")[[1]], sep="")
   
   es <- list()
   es$species <- species
-  if(comp.VJL==0){
+  if(!comp.VJL){
     stat.list <- c("L", "countL", "countV", "countJ", "countV.L", "countJ.L", "countCDR1", "countCDR2", "countCDR3.L", "countVJ", "countVJ.L")
   } else {
     stat.list <- c("L", "countL", "countV", "countJ", "countV.L", "countJ.L", "countL.VJ", "countCDR1", "countCDR2", "countCDR3.L", "countCDR3.VL", "countCDR3.JL", "countCDR3.VJL", "countVJ", "countVJ.L")
@@ -51,7 +51,7 @@ build_stat <- function(input, chain="AB", species="HomoSapiens", comp.VJL=0){
       es$countVJ.L[[ch]][[lg.c]] <- table(input[ind,Vn],input[ind,Jn])
     }
     
-    if(comp.VJL>=1){
+    if(comp.VJL){
       
       for(V in names(es$countV[[ch]])){
         indv <- which(input[,Vn]==V)
@@ -1292,7 +1292,8 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
   
   if(check.cdr3.mode > 0){
     #print("Checking CDR3")
-    input <- check_cdr3(input=input, chain=chain, species.default=species.default, check.cdr3.mode=check.cdr3.mode, start.lg=start.lg, end.lg=end.lg, verbose=verbose)
+    input <- check_cdr3(input=input, chain=chain, species.default=species.default, check.cdr3.mode=check.cdr3.mode, 
+                        start.lg=start.lg, end.lg=end.lg, verbose=verbose)
   }
   
   

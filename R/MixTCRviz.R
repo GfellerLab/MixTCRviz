@@ -56,11 +56,11 @@
 #'        Remove J and CDR3 when the last 2 amino acids are not compatible with the J segments.
 #'        Allow compatibility check with any allele.
 #'
-#' @param renormVJ Decide whether or not to build baseline length distribution and CDR3 motif for P(VJ) in input1.
-#'    * NULL: If left empty, 1 is used if comparison is performed with a baseline (`input2`==NULL)
+#' @param renormVJ Decide whether or not to build baseline length distribution and CDR3 motif knowing P(VJ) in input1.
+#'    * NULL (default): If left empty, 1 is used if comparison is performed with a baseline (`input2`==NULL)
 #'      and 0 is used if comparison is performed with input2 (i.e., `input2` != NULL)
 #'    * FALSE: Compare CDR3 length distribution and motif with those from the baseline repertoire or input2
-#'    * TRUE (default): Compare CDR3 length distribution and motif with those from the baseline repertoire with the V-J
+#'    * TRUE: Compare CDR3 length distribution and motif with those from the baseline repertoire with the V-J
 #'   usage observed in the input TCRs. In the plots the mark " | P(VJ)" is used to
 #'   indicate that CDR3 length distributions and motifs correspond to those
 #'   expected with the V-J usage in the TCRs used for training.
@@ -156,7 +156,7 @@
 #' @param label.min.fr.input1,label.min.fr.input2 Region (i.e., Y - X rectangle) of the left corner of V/J plots with no gene label (default=0.05).
 #'
 #' @param keep.incomplete.chain Decide whether to keep incomplete alpha or beta chains.
-#'  * TRUE : Incomplete chains are kept.
+#'  * TRUE (not recomanded): Incomplete chains are kept. This can sometimes create issues since CDR3 motifs are derived from a different V(D)J distribution than the one used to estimated baseline | P(VJ)
 #'  * FALSE (default): Incomplete chains are discarded. Even if input1 only consists of complete chains, incomplete chains can occur when one V/J gene cannot be corrected,
 #'      or when there is some incompatibilities between V/J names and CDR3 sequences
 #'
@@ -799,7 +799,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
         use.allele.es <- F
       }
 
-      es <- build_stat(input1.es, chain=chain, species=species, comp.VJL=0)
+      es <- build_stat(input1.es, chain=chain, species=species, comp.VJL=F)
       es$model <- model
 
       input1.lst[[model]] <- input1.es
@@ -997,7 +997,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
 
             } else {
               if(length(es$countVJ[[ch]])==0){
-                print(paste("No P(VJ) information in input1 to compute baseline CDR3",chain.small[ch]," length distribution | P(VJ). renormVJ=0 will be used", sep=""))
+                print(paste("No P(VJ) information in input1 to compute baseline CDR3",chain.small[ch]," length distribution | P(VJ|L). renormVJ=0 will be used", sep=""))
               }
               if(is.null(baseline.model$countL.VJ[[ch]])){
                 print(paste("No P(L|VJ) information in baseline/input2 to compute baseline CDR3",chain.small[ch]," length distribution | P(VJ). renormVJ=0 will be used", sep=""))
@@ -1109,14 +1109,14 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           #Here we include a correction based on VJ usage for each length.
           if(renormVJ==1){
             if(max(sapply(es$countVJ.L[[ch]],length))>0 & !is.null(baseline.model$countCDR3.VJL[[ch]])){  #Make sure we have V-J pairs for at least one length
-              info["baseline.name"] <- paste(info["baseline.name"], "P(VJ)",sep=" | ")
+              info["baseline.name"] <- paste(info["baseline.name"], "P_L(VJ)",sep=" | ")
               bs <- weighted_countCDR3(baseline.model$countCDR3.VJL[[ch]], es$countVJ.L[[ch]])
             } else {
               if(max(sapply(es$countVJ.L[[ch]],length))==0){
-                print(paste("No P(VJ|L) information in input1 to compute baseline CDR3",chain.small[ch]," motif | P(VJ). renormVJ=0 will be used",sep=""))
+                print(paste("No P(VJ|L) information in input1 to compute baseline CDR3",chain.small[ch]," motif | P_L(VJ). renormVJ=0 will be used",sep=""))
               }
               if(is.null(baseline.model$countCDR3.VJL[[ch]])){
-                print(paste("No P(CDR3|VJL) information in baseline/input2 to compute baseline CDR3",chain.small[ch]," motif | P(VJ). renormVJ=0 will be used",sep=""))
+                print(paste("No P(CDR3|VJL) information in baseline/input2 to compute baseline CDR3",chain.small[ch]," motif | P_L(VJ). renormVJ=0 will be used",sep=""))
               }
               bs <- baseline.model$countCDR3.L[[ch]]
             }
@@ -1142,7 +1142,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
             logo[["CDR3"]] <- ggarrange(CDR3$ES_max, CDR3$Baseline_max, nrow=2)
 
             if(length(es$countVJ.L[[ch]][[paste("L",lmax,sep="_")]])==0){
-              print(paste("No P(VJ|L) information in input1 to compute baseline CDR3 | P(VJ) for Lmax=",lmax,". Empty motif will be shown.",sep=""))
+              print(paste("No P(VJ|L) information in input1 to compute baseline CDR3 | P_L(VJ) for Lmax=",lmax,". Empty motif will be shown.",sep=""))
               print("  This is typically due to many entries missing V or J information, or wrong V/J names which could not be corrected")
             }
           } else {
