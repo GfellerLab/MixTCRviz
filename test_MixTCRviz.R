@@ -2,10 +2,10 @@
 #Run it from the MixTCRviz/ folder
 
 #Do this if you do not want to install the package
-devtools::load_all(".")
+#devtools::load_all(".")
 
 #Do this if you have installed the package
-#library(MixTCRviz)
+library(MixTCRviz)
 
 #Compare input TCRs (specific for A0201_LLWNGPMAV) with baseline repertoire
 MixTCRviz(input1="test/test.csv", output.path="test/out/", output.stat = T)

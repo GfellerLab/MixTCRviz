@@ -29,12 +29,12 @@ def convert_matrix_to_dataframe(matrix):
     array = np.array(matrix)
     rownames = ro.r['rownames'](matrix)
     colnames = ro.r['colnames'](matrix)
-    
+
     if rownames.rclass[0] == 'NULL':
         rownames = None
     if colnames.rclass[0] == 'NULL':
         colnames = None
-        
+
     df = pd.DataFrame(array, index=rownames, columns=colnames)
     return df
 
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     parser.add_argument('--use_mouse_strain', type=zero_one_to_bool, default=False)    # use.mouse.strain
     parser.add_argument('--infer_VJ', type=zero_one_to_bool, default=False)            # infer.VJ
     parser.add_argument('--infer_CDR3', type=zero_one_to_bool, default=False)          # infer.CDR3
-    parser.add_argument('--keep_incomplete_chain', type=zero_one_to_bool, default=False)  # keep.incomplete.chain
+    parser.add_argument('--remove_incomplete_chain', type=zero_one_to_bool, default=True)  # remove.incomplete.chain
 
     # Modeling / run settings
     parser.add_argument('--check_cdr3_mode', type=int, default=1)  # check.cdr3.mode
@@ -188,7 +188,7 @@ if __name__ == '__main__':
         'label.min.fr.input1': args.label_min_fr_input1,
         'label.min.fr.input2': args.label_min_fr_input2,
 
-        'keep.incomplete.chain': args.keep_incomplete_chain,
+        'remove.incomplete.chain': args.remove_incomplete_chain,
         'seq.protocol': args.seq_protocol,
 
         'input1.name': args.input1_name,
@@ -228,8 +228,4 @@ if __name__ == '__main__':
 
 
         name_pickle_file = os.path.join(path_stats, rds_file.replace('.rds', '.pkl'))
-        save_data_to_pickle(name_pickle_file, data_python)               
-
-
-
-
+        save_data_to_pickle(name_pickle_file, data_python)

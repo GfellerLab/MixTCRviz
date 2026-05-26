@@ -155,10 +155,11 @@
 #'
 #' @param label.min.fr.input1,label.min.fr.input2 Region (i.e., Y - X rectangle) of the left corner of V/J plots with no gene label (default=0.05).
 #'
-#' @param keep.incomplete.chain Decide whether to keep incomplete alpha or beta chains.
-#'  * TRUE (not recomanded): Incomplete chains are kept. This can sometimes create issues since CDR3 motifs are derived from a different V(D)J distribution than the one used to estimated baseline | P(VJ)
-#'  * FALSE (default): Incomplete chains are discarded. Even if input1 only consists of complete chains, incomplete chains can occur when one V/J gene cannot be corrected,
-#'      or when there is some incompatibilities between V/J names and CDR3 sequences
+#' @param remove.incomplete.chain Decide whether to keep incomplete alpha or incomplete beta chains.
+#'  * TRUE (default): Incomplete chains are discarded. Even if input1 only consists of complete chains, incomplete chains can occur when one V/J gene cannot be corrected,
+#'      or when there is some incompatibilities between V/J names and CDR3 sequences.
+#'  * FALSE (not recommended): Incomplete chains are kept. This can sometimes create issues since CDR3 motifs are derived from a different V(D)J distribution than the one used to estimated baseline | P(VJ)
+#
 #'
 #' @param chain Decide which chain to show in the motifs.
 #'    * "AB" (default): both chains are plotted in output.
@@ -216,7 +217,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
                       species.default="HomoSapiens", model.default="Model_default", verbose=1, build.clones=F,
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
-                      label.min.fr.input1=0.05, label.min.fr.input2=0.05, keep.incomplete.chain=F, seq.protocol="Default",
+                      label.min.fr.input1=0.05, label.min.fr.input2=0.05, remove.incomplete.chain=T, seq.protocol="Default",
                       input1.name="Input", input2.name=NULL, output.format="pdf", infer.VJ=F, infer.CDR3=F,
                       print.size=T, ZscoreVJ.thresh=0, FoldChangeVJ.thresh=1.25){
 
@@ -359,7 +360,11 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     print("Invalid value for build.clones. Default value of FALSE will be used")
     build.clones <- F
   }
-
+  if(!is.logical(remove.incomplete.chain)){
+    print("Invalid value for remove.incomplete.chain. Default value of TRUE will be used")
+    remove.incomplete.chain <- T
+  }
+  
 
   if(is.null(renormVJ)){
     renormVJ <- ifelse(is.null(input2),T,F)
@@ -635,7 +640,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     }
 
     input1 <- clean_input(input=input1, use.allele=use.allele, correct.gene.names = correct.gene.names,
-                          use.mouse.strain = use.mouse.strain, chain = chain, keep.incomplete.chain = keep.incomplete.chain,
+                          use.mouse.strain = use.mouse.strain, chain = chain, remove.incomplete.chain = remove.incomplete.chain,
                           species.default = species.default, check.cdr3.mode = check.cdr3.mode, start.lg=start.lg, end.lg=end.lg,
                           seq.protocol=seq.protocol, verbose=verbose)
   }
@@ -692,7 +697,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
         input2 <- inferCDR3(input2, chain=chain, species.default = species.default, verbose=verbose)
       }
       input2 <- clean_input(input=input2, use.allele = use.allele, correct.gene.names = correct.gene.names,
-                            use.mouse.strain = use.mouse.strain, chain = chain, keep.incomplete.chain = keep.incomplete.chain,
+                            use.mouse.strain = use.mouse.strain, chain = chain, remove.incomplete.chain = remove.incomplete.chain,
                             species.default = species.default, check.cdr3.mode = check.cdr3.mode, start.lg=start.lg, end.lg=end.lg,
                             seq.protocol=seq.protocol, verbose=verbose)
     }

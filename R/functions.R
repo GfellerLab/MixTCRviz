@@ -986,6 +986,7 @@ check_input <- function(input, chain="AB", name="input1", species.default="HomoS
     }
     
     #Handle the format with alpha and beta chains on different rows (e.g., with clone.id)
+    #WARNING: Currently not working if the data are not clean...
     if(format %in% names(clone.format.col)){
       if(!build.clones){
         input <- stack_clones(input, format)
@@ -1093,13 +1094,13 @@ check_input <- function(input, chain="AB", name="input1", species.default="HomoS
 #' @export
 clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.strain=F,
                         chain="AB", species.default="HomoSapiens", check.cdr3.mode=1,
-                        keep.incomplete.chain=T, start.lg=1, end.lg=2, seq.protocol="Default",verbose=1){
+                        remove.incomplete.chain=T, start.lg=1, end.lg=2, seq.protocol="Default",verbose=1){
   
   
   # Clean the input by removing CDR3 with weird characters, longer than Lmax or shorter than Lmin
   # Correct VJ genes based on our dictionary
   # species.default is only used if input does not contain the "species" column
-
+  
   
   #print("Start")
   
@@ -1324,7 +1325,7 @@ clean_input <- function(input, use.allele=F, correct.gene.names=T, use.mouse.str
     }
   }
   
-  if(!keep.incomplete.chain){
+  if(remove.incomplete.chain){
     chain.list <- paste("TR",strsplit(chain,split="")[[1]], sep="")
     for(ch in chain.list){
       cl <- c(paste(ch,"V",sep=""),paste(ch,"J",sep=""),paste("cdr3_",ch,sep=""))
@@ -2213,99 +2214,118 @@ stack_clones <- function(input, format){
 }
 
 #Build actual clones if the data are provided in a format based on clone IDs.
+
+#' @export
 merge_clones <- function(input, format){
   
   col <- c("TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB")
   
-  if(length(intersect(colnames(input), clone.id))==1){
+  if(dim(input)[1]>=1){
     
-    TCR.col <- clone.format.col[[format]]
-    Vn <- TCR.col[1]
-    barcode.label <- intersect(colnames(input), clone.id)
-    
-    #other.col <- setdiff(colnames(input), TCR.col) #keep all columns (can be complex if different values are used with the same barcode)
-    other.col <- intersect(colnames(input),c(barcode.label,"model","species")) #keep only the barcode, the model and the species (if present)
-    input.f <- as.data.frame(matrix(nrow=0, ncol=6+length(other.col)))
-    
-    if("model" %in% colnames(input)){
-      barcode.list <- paste(input[,barcode.label], input[,"model"]) #Include the possibility of having redundant barcodes for different models.
-    } else {
-      barcode.list <- input[,barcode.label]
-    }
-    
-    input.t <- input[order(barcode.list),]
-    barcode.list <- sort(barcode.list)
-    
-    #Go through all clone IDs
-    i <- 1
-    while(i<=dim(input.t)[1]){
-      seq.A <- list()
-      seq.B <- list()
-      ct.A <- 0
-      ct.B <- 0
-      #This is the special case of the '0' complex.id for VDJdb which contains all single chain entries
-      if(input.t[i,barcode.label]==0 & format=="VDJdb"){
-        ind.A <- which(input.t[,barcode.label]==0 & substr(input.t$V,1,3)=="TRA")
-        ind.B <- which(input.t[,barcode.label]==0 & substr(input.t$V,1,3)=="TRB")
-        if(length(ind.A)>0){
-          input.f <- rbind(input.f,cbind(input.t[ind.A,TCR.col],NA,NA,NA,input.t[ind.A,other.col]))
-        }
-        if(length(ind.B)>0){
-          input.f <- rbind(input.f,cbind(NA,NA,NA,input.t[ind.B,TCR.col],input.t[ind.B,other.col]))
-        }
-        i <- i+length(ind.A)+length(ind.B)
-        
+    if(length(intersect(colnames(input), clone.id))==1){
+      
+      TCR.col <- clone.format.col[[format]]
+      Vn <- TCR.col[1]
+      Jn <- TCR.col[2]
+      barcode.label <- intersect(colnames(input), clone.id)
+      
+      #other.col <- setdiff(colnames(input), TCR.col) #keep all columns (can be complex if different values are used with the same barcode)
+      other.col <- intersect(colnames(input),c(barcode.label,"model","species")) #keep only the barcode, the model and the species (if present)
+      input.f <- as.data.frame(matrix(nrow=0, ncol=6+length(other.col)))
+      
+      if("model" %in% colnames(input)){
+        barcode.list <- paste(input[,barcode.label], input[,"model"]) #Include the possibility of having redundant barcodes for different models.
       } else {
-        for(j in 0:(dim(input.t)[1]-i)){
-          if(barcode.list[i+j]==barcode.list[i]){
-            if(substr(input.t[i+j,Vn],1,3)=="TRA"){
-              ct.A <- ct.A+1
-              seq.A[[ct.A]] <- as.character(input.t[i+j,TCR.col])
-            } else if(substr(input.t[i+j,Vn],1,3)=="TRB"){
-              ct.B <- ct.B+1
-              seq.B[[ct.B]] <- as.character(input.t[i+j,TCR.col])
-            }
-          } else {
-            break
+        barcode.list <- input[,barcode.label]
+      }
+      
+      #input.t <- input[order(barcode.list),]
+      #barcode.list <- sort(barcode.list)
+      
+      #Go through all clone IDs
+      li <- 1:dim(input)[1]
+      while(length(li)>0){
+        i <- li[1]
+        seq.A <- list()
+        seq.B <- list()
+        
+        #This is the special case of the '0' complex.id for VDJdb which contains all single chain entries
+        if(input[i,barcode.label]==0 & format=="VDJdb"){
+          ind.A <- which(input[,barcode.label]==0 & input[,"gene"]=="TRA")
+          ind.B <- which(input[,barcode.label]==0 & input[,"gene"]=="TRB")
+          if(length(ind.A)>0){
+            input.f <- rbind(input.f,cbind(input[ind.A,TCR.col],NA,NA,NA,input[ind.A,other.col]))
           }
-        }
-        
-        
-        if(length(seq.A)>0 & length(seq.B)>0){
-          for(sA in seq.A){
+          if(length(ind.B)>0){
+            input.f <- rbind(input.f,cbind(NA,NA,NA,input[ind.B,TCR.col],input[ind.B,other.col]))
+          }
+          li <- setdiff(li, c(ind.A,ind.B))
+          
+        } else {
+          
+          pos <- which(barcode.list==barcode.list[i])
+          
+          for(p in pos){
+            if(format=="10X"){
+              ch <- input[p,"chain"]
+            } else if(format=="VDJdb"){
+              ch <- input[p,"gene"]
+            } else {
+              ch <- substr(input[p,Vn],1,3)
+              if(!(ch %in% c("TRA", "TRB"))){
+                ch <- substr(input[p,Jn],1,3)
+              }
+            }
+            if(ch=="TRA"){
+              seq.A[[as.character(p)]] <- as.character(input[p,TCR.col])
+            } else if(ch=="TRB"){
+              seq.B[[as.character(p)]] <- as.character(input[p,TCR.col])
+            } else {
+              
+            }
+          }
+          
+          if(length(seq.A)>0 & length(seq.B)>0){
+            for(sA in seq.A){
+              for(sB in seq.B){
+                seq.all <- c(sA,sB,unlist(input[i,other.col]))
+                input.f <- rbind(input.f, seq.all)
+              }
+            }
+          } else if(length(seq.A)>0 & length(seq.B)==0){
+            for(sA in seq.A){
+              seq.all <- c(sA,c(NA,NA,NA),unlist(input[i,other.col]))
+              input.f <- rbind(input.f, seq.all)
+            }
+          } else if(length(seq.A)==0 & length(seq.B)>0){
             for(sB in seq.B){
-              seq.all <- c(sA,sB,unlist(input.t[i,other.col]))
+              seq.all <- c(c(NA,NA,NA),sB,unlist(input[i,other.col]))
               input.f <- rbind(input.f, seq.all)
             }
           }
-        } else if(length(seq.A)>0 & length(seq.B)==0){
-          for(sA in seq.A){
-            seq.all <- c(sA,c(NA,NA,NA),unlist(input.t[i,other.col]))
-            input.f <- rbind(input.f, seq.all)
-          }
-        } else if(length(seq.A)==0 & length(seq.B)>0){
-          for(sB in seq.B){
-            seq.all <- c(c(NA,NA,NA),sB,unlist(input.t[i,other.col]))
-            input.f <- rbind(input.f, seq.all)
-          }
+          li <- setdiff(li, pos)
         }
-        i <- i+ct.A+ct.B
       }
-    }
-    colnames(input.f) <- c(col, other.col)
-    if(format=="VDJdb" & "complex.id" %in% colnames(input.f)){
-      input.f[,"complex.id"] <- as.numeric(input.f[,"complex.id"])
-      print(input.f[,"complex.id"])
-    }
-    return(input.f)
-    
+      
+      colnames(input.f) <- c(col, other.col)
+      if(format=="VDJdb" & "complex.id" %in% colnames(input.f)){
+        input.f[,"complex.id"] <- as.numeric(input.f[,"complex.id"])
+        #print(input.f[,"complex.id"])
+      }
+      return(input.f)
+      
+    } else {
+      
+      print(paste("WARNING: Unable to reconstruct clones. Clone_id should be exactly one element in",paste(clone.id, collapse=" / ")))
+      print("  Try using build.clones = F")
+      return(input)
+
+    } 
   } else {
-    print(paste("WARNING: Unable to reconstruct clones. Clone_id should be exactly one element in",paste(clone.id, collapse=" / ")))
-    print("  Try using build.clones = F")
+    print("WARNING: Empty input")
     return(input)
   }
-  
-  
+
 }
 
 

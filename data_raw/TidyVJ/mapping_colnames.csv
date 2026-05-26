@@ -15,6 +15,12 @@ TRBJ_gene,TRBJ,AB
 CDR3b,cdr3_TRB,AB
 CDR3B,cdr3_TRB,AB
 CDR3_beta,cdr3_TRB,AB
+v.alpha,TRAV,AB
+v.beta,TRBV,AB
+j.alpha,TRAJ,AB
+j.beta,TRBJ,AB
+cdr3.alpha,cdr3_TRA,AB
+cdr3.beta,cdr3_TRB,AB
 v_call,TRAV,A
 vGeneName,TRAV,A
 v_resolved,TRAV,A
@@ -39,6 +45,8 @@ CDR3 amino acid seq,cdr3_TRA,A
 cdr3,cdr3_TRA,A
 CDR3,cdr3_TRA,A
 CDR3_seq,cdr3_TRA,A
+v.segm,TRAV,A
+j.segm,TRAJ,A
 v_call,TRBV,B
 vGeneName,TRBV,B
 v_resolved,TRBV,B
@@ -63,3 +71,5 @@ CDR3 amino acid seq,cdr3_TRB,B
 cdr3,cdr3_TRB,B
 CDR3,cdr3_TRB,B
 CDR3_seq,cdr3_TRB,B
+v.segm,TRBV,B
+j.segm,TRBJ,B
