@@ -9,6 +9,8 @@ build_stat <- function(input, chain="AB", species="HomoSapiens", comp.VJL=F){
   # comp.VJL=T means we are computing length distributions and motifs knowing P(VJ)
   # It takes some time, but still reasonable.
   
+  input <- as.data.frame(input) #This is important if we give tibble format and use the function outside of MixBCRviz.
+  
   chain.list <- paste("TR",strsplit(chain,"")[[1]], sep="")
   
   es <- list()
