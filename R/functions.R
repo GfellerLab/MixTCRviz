@@ -525,8 +525,8 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
     }
     
     if(info["gene"] == "TRAV" | info["gene"] == "TRBV" ){
-      CDR1_seq <- gsub("g","-",cdr123[[species]][[substr(info["gene"],1,3)]][count.df$name,"CDR1"])
-      CDR2_seq <- gsub("g","-",cdr123[[species]][[substr(info["gene"],1,3)]][count.df$name,"CDR2"])
+      CDR1_seq <- gsub("-","",cdr123[[species]][[substr(info["gene"],1,3)]][count.df$name,"CDR1"])
+      CDR2_seq <- gsub("-","",cdr123[[species]][[substr(info["gene"],1,3)]][count.df$name,"CDR2"])
       CDR3_seq <- cdr123[[species]][[substr(info["gene"],1,3)]][count.df$name,"CDR3"]
       count.df$CDR1_seq <- CDR1_seq
       count.df$CDR2_seq <- CDR2_seq
@@ -549,7 +549,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
       count.plot <- count.plot + geom_errorbar(aes(ymax=Y+SD_es, ymin=sapply(Y-SD_es, function(x){max(0.001,x)})), width=0.015*lim.x, linewidth=0.4, color="grey50")
     }
     if(!is.null(sd.rep) & plot.sd){
-      count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD_rep, xmin=sapply(X-SD_rep, function(x){max(0.001,x)})), height=0.015*lim.y, linewidth=0.4, color="grey50")
+      count.plot <- count.plot + geom_errorbarh(aes(xmax=X+SD_rep, xmin=sapply(X-SD_rep, function(x){max(0.001,x)})), width=0.015*lim.y, linewidth=0.4, color="grey50")
       #count.plot <- count.plot + geom_errorbar(aes(xmax=X+SD_rep, xmin=sapply(X-SD_rep, function(x){max(0.001,x)})), orientation = "y", width=0.015*lim.y, linewidth=0.4, color="grey50")
     }
     
@@ -854,7 +854,9 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
         y.inc <- 4
       }
       title <- info["input1.name"]
-      if(print.size){ title <- paste(title, " (",countL.es[[lc]],")", sep="")  }
+      if(print.size){ 
+        title <- paste(title, " (",signif(countL.es[[lc]],2),")", sep="")
+      }
       title <- paste(title,", CDR3", info["chain"],"_",l, sep="")
       
       logo.CDR3.L.es[[lc]] <- ggseqlogoMOD::ggseqlogoMOD(data=pwm.es[[lc]], additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8, methods = logo.type) +
@@ -893,7 +895,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
       # but this is not optimal since any change has to be performed multiple times
       if(l==lmax){
         title <- info["input1.name"]
-        if(print.size){ title <- paste(title, " (",countL.es[[lc]],")", sep="")  }
+        if(print.size){ title <- paste(title, " (",signif(countL.es[[lc]],2),")", sep="")  }
         title <- paste(title,", CDR3", info["chain"],"_",l, sep="")
         
         title.baseline <- info["baseline.name"]
@@ -1935,7 +1937,7 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
   # Turn off legends in the first two plots
   countV.plot_not_title <- countV.plot + labs(title = NULL)
   
-  p1 <- plotly::ggplotly(countV.plot_not_title, tooltip = c("name", "logFC", "Zscore", "CDR1_seq", "CDR2_seq", "CDR3_seq"))
+  p1 <- suppressWarnings(plotly::ggplotly(countV.plot_not_title, tooltip = c("name", "logFC", "Zscore", "CDR1_seq", "CDR2_seq", "CDR3_seq")))
   
   p1$x$data <- lapply(p1$x$data, function(trace) {
     # Set marker size and mode for points
@@ -1986,7 +1988,7 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
   
   countJ.plot_not_title <- countJ.plot + labs(title = NULL)
   
-  p2 <- plotly::ggplotly(countJ.plot_not_title, tooltip = c("name", "logFC" ,"Zscore", "CDR3_seq"))
+  p2 <- suppressWarnings(plotly::ggplotly(countJ.plot_not_title, tooltip = c("name", "logFC" ,"Zscore", "CDR3_seq")))
   
   p2$x$data <- lapply(p2$x$data, function(trace) {
     # Set marker size and mode for points

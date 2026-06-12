@@ -180,7 +180,7 @@
 #'
 #' @param print.size If TRUE (default), print the number of TCRs in input1 in the plots.
 #'
-#' @param plot.title If TRUE (default), print the model name as title to the plots.
+#' @param print.title If TRUE (default), print the model name as title to the plots.
 #'
 #' @param set.title Set the title of the plots (default=NULL).
 #'  If NULL, input1$model are used as titles. If no 'model' column is provided in input1, `model.default` is used.
@@ -213,7 +213,7 @@
 MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chain="AB", interactive.plots = F,
                       use.allele=F, correct.gene.names=T, use.mouse.strain=F, check.cdr3.mode=1, start.lg=1, end.lg=2,
                       renormVJ=NULL, N.min=1, output.stat=F, output.processed.data=F, filename.output=NULL,
-                      set.cdr3a.length=NA, set.cdr3b.length=NA, plot.title=T, set.title=NULL,logo.type="bits",
+                      set.cdr3a.length=NA, set.cdr3b.length=NA, print.title=T, set.title=NULL,logo.type="bits",
                       species.default="HomoSapiens", model.default="Model_default", verbose=1, build.clones=F,
                       plot=T, plot.cdr12.motif=F, plot.oneline=0, plot.all.length=F, plot.cdr3.norm=0,
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
@@ -497,9 +497,9 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   }
 
 
-  if(!is.logical(plot.title)){
-    print("Invalid value for plot.title. Default value of TRUE will be used")
-    plot.title <- T
+  if(!is.logical(print.title)){
+    print("Invalid value for print.title. Default value of TRUE will be used")
+    print.title <- T
   }
 
   if(!is.null(set.title)){
@@ -533,7 +533,8 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   if(keep.gap.pwm){taa.list <- c(aa.list,"g"); additionalAA <- "g"} else {taa.list <- aa.list; additionalAA <- ""}
 
   min.logo <- 5 #Minimum number of sequences to plot the logos (when plotting different lengths)
-
+  min.logo.fr <- 0.05 #Minimum frequency to plot the logos (when plotting different lengths and providing an object with normalized counts)
+  
   if(plot.oneline>=1){
     th <- theme(plot.title = element_text(size = 8, hjust=0.5), axis.title=element_text(size=4))
   }
@@ -1208,9 +1209,14 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
             stop("The plot.modelsCombined isn't implemented to show the ",
                  "results from various CDR3 lengths.")
           }
-
-          tl.logo[[ch]] <- intersect(names(es$countL[[ch]][es$countL[[ch]]>=min.logo]), L.inter) #Currently the min.logo limitation does not apply to L.inter
-
+          
+          if(sum(es$countL[[ch]])>=2){
+            tl.logo[[ch]] <- intersect(names(es$countL[[ch]][es$countL[[ch]]>=min.logo]), L.inter) #Currently the min.logo limitation does not apply to L.inter
+          } else {
+            #This is to handle cases where input 1 is given as a mixTCRviz objects with normalized counts.
+            tl.logo[[ch]] <- intersect(names(es$countL[[ch]][es$countL[[ch]]>=min.logo.fr]), L.inter)
+          }
+            
           if(length(tl.logo[[ch]])>0){
             logo.sub <- list()
             logo.sub.baseline <- list()
@@ -1296,7 +1302,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
         } else {
           title.final <- model
         }
-        if(plot.title){
+        if(print.title){
           spacer.size=0.02
           spacer <- ggplot() + theme_void() + theme(plot.margin = unit(c(1, 0, 0, 0), "cm"))
           fig <- ggarrange(spacer, pg.both, ncol=1, nrow=2, heights=c(spacer.size,1))
@@ -1362,7 +1368,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           } else {
             ttl <- model
           }
-          if(!plot.title){
+          if(!print.title){
             ttl <- ""
           }
           js_code <- paste0(

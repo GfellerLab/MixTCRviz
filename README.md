@@ -71,7 +71,7 @@ A python wrapper is also available.
 
    If using a filename or a data.frame:
     * Columns should ideally consist of "TRAV","TRAJ","cdr3_TRA","TRBV","TRBJ","cdr3_TRB". Alternatively, the option infer.VJ can be used to retrieve V and J genes from full TCR sequences (provided in "TCRa" and "TCRb" columns).
-    * If TCRs from multiple experiments/epitopes/classses/... are provided in the same file, the "model" column should indicate the models.
+    * If TCRs from multiple experiments/epitopes/classses/... are provided in the same file, the "model" column should indicate the models (e.g. each epitope).
     ("Model_default" is used by default if no "model" column is provided and model.default=NULL, see below). The use of multiple model is only possible in input1.
     * If TCRs from multiple species are provided in the same file, the "species" should indicate the species of the TCRs
     ("HomoSapiens" or "MusMusculus", with "HomoSapiens" being the default if no "species" column and species.default=NULL)
@@ -115,12 +115,14 @@ Below are some of the most comonly used parameters. Full documentation about oth
     * F: The comparison with the baseline repertoire does not consider the V/J usage of input1.
 
  - plot.all.length (default=F):
-    * F: Plot the CDR3 motifs for the dominant lenght in input1.
-    * T: Plot V usage, J usage and CDR3 motifs for all CDR3 lengths with enough TCRs.
+    * F: Plot the CDR3 motifs for the dominant length in input1.
+    * T: Plot V usage, J usage and CDR3 motifs for all CDR3 lengths with enough TCRs (at least 5 TCRs, or at least 5% if the $countL objects corresponds to normalized probabilities).
 
  - use.allele (default=F):
     * F: Do not show the different alleles of V/J genes (e.g., TRAV12-2\*01 and TRAV12-2\*02). This the recommanded option since allele information is not always reliable and establishing a correct baseline at the allele level is challenging
     * T: Keep information about the allele of V/J genes. If this option is selected, users are strongly encouraged to provide a separate baseline in input2 from the same donor as the data in input1, since comparison with the default baseline can be misleading due to different V/J alleles across donors.
+
+ - model.default: Name of the model if no "model" column is given in input1. This will determine the name used in the output files
 
 
 
@@ -194,4 +196,4 @@ In case you are using the same model (e.g.,MHC_peptide) with both human and mous
 For these reasons, some alleles may appear to be enriched in the input TCRs versus default baseline repertoires, but this enrichment may not be linked to any signal of specificity (e.g., epitope specificity).
 In addition, determining the correct allele from TCR-Seq data can be challenging, and sequencing errors can easily result in wrong allele calls.
 We therefore recommend analyzing data at the gene level (use.allele=F) to avoid confounding factors related to genetic background/TCR reconstruction issues.
-Alternatively, the baseline TCR repertoire can also be sequenced in each patient, and used as input for MixTCRviz (baseline parameter).
+Alternatively, the baseline TCR repertoire can also be sequenced in each patient, and used as input for MixTCRviz (input2 parameter).
