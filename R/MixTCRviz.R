@@ -529,8 +529,8 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   #Set some specific values for different parameters
   ###########
 
-  keep.gap.pwm <- 0 # 1: means that 'g' (gaps in CDR1/2) are treated as an additional aa in the logos. 0: means that 'g' are treated as unspecific (i.e., 0.05) in the logos
-  if(keep.gap.pwm==1){taa.list <- c(aa.list,"g"); additionalAA <- "g"} else {taa.list <- aa.list; additionalAA <- ""}
+  keep.gap.pwm <- F # 1: means that 'g' (gaps in CDR1/2) are treated as an additional aa in the logos. 0: means that 'g' are treated as unspecific (i.e., 0.05) in the logos
+  if(keep.gap.pwm){taa.list <- c(aa.list,"g"); additionalAA <- "g"} else {taa.list <- aa.list; additionalAA <- ""}
 
   min.logo <- 5 #Minimum number of sequences to plot the logos (when plotting different lengths)
 

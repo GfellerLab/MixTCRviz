@@ -84,10 +84,10 @@ build_stat <- function(input, chain="AB", species="HomoSapiens", comp.VJL=F){
       }
     }
     if(length(es$countV[[ch]])>0){
-      es$countCDR1[[ch]] <- count_aa(cdr123[[species]][[ch]][input[,Vn],"CDR1"], keep.gap=1)
-      es$countCDR2[[ch]] <- count_aa(cdr123[[species]][[ch]][input[,Vn],"CDR2"], keep.gap=1)
+      es$countCDR1[[ch]] <- count_aa(cdr123[[species]][[ch]][input[,Vn],"CDR1"], keep.gap=T)
+      es$countCDR2[[ch]] <- count_aa(cdr123[[species]][[ch]][input[,Vn],"CDR2"], keep.gap=T)
     }
-    es$countCDR3.L[[ch]] <- count_aa(input[,cdr3], keep.gap=0)
+    es$countCDR3.L[[ch]] <- count_aa(input[,cdr3], keep.gap=F)
     
     
   }
@@ -98,9 +98,9 @@ build_stat <- function(input, chain="AB", species="HomoSapiens", comp.VJL=F){
 
 #Compute the counts of each aa at each position.
 #Would be better to have the option of treating gaps in CDR1/2 as separate amino acids, while missing data can be treated as 'unspecific'
-count_aa <- function(cdr.seq, keep.gap=0){
+count_aa <- function(cdr.seq, keep.gap=F){
   
-  if(keep.gap == 0){    #All gaps, including "g" are treated as unspecific data. This can be useful for visualisation.
+  if(!keep.gap){    #All gaps, including "g" are treated as unspecific data. This can be useful for visualisation.
     tgap <- c(gap,"g")
     taa.list <- aa.list
   } else {   # "x" are treated as additonal aa, other 'gaps' are discarded. This is more correct for modelling CDR1/CDR2 loops.
@@ -122,14 +122,16 @@ count_aa <- function(cdr.seq, keep.gap=0){
       s <- substr(tcdr.seq,p,p)
       tb <- table(s)
       for(a in names(tb)){
-        if(keep.gap==0){
+        if(!keep.gap){
           if(a %in% tgap){
             m[,p] <- m[,p] + tb[a]/20
           } else {
             m[a,p] <- m[a,p]+tb[a]
           }
-        } else {  #Here "x" are treated as a separate amino acid and missing data (e.g., "*", "X",etc.) are not included
-          if(a %in% gap==F){
+        } else {  #Here all gaps characters ("-", "X",".","*","_") are merged into an entry with label "g". This is useful for compatibility with gglpot.
+          if(a %in% gap){
+            m["g",p] <- m["g",p]+tb[a]
+          }else {
             m[a,p] <- m[a,p]+tb[a]
           }
         }
@@ -142,9 +144,9 @@ count_aa <- function(cdr.seq, keep.gap=0){
 }
 
 #This assumes the matrix includes gaps (21 rows)
-build_cdr12_motif <- function(cdr.seq, keep.gap=0){
+build_cdr12_motif <- function(cdr.seq, keep.gap=F){
   
-  if(keep.gap==0){
+  if(!keep.gap){
     g <- cdr.seq["g",]
     for(a in aa.list){
       cdr.seq[a,] <- cdr.seq[a,]+g/length(aa.list)
