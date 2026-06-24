@@ -15,9 +15,6 @@ For scientific questions, please contact David Gfeller (David.Gfeller@unil.ch)
 
 Copyright (2024) David Gfeller
 
-*STILL CONFIDENTIAL - DO NOT SHARE OUTSIDE OF THE GFELLER LAB*
-
-
 
 # INTRODUCTION
 
