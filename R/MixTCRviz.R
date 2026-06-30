@@ -465,11 +465,19 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
   if(!is.character(input1.name)){
     print("Invalid value for input1.name. Default value of \"Input\" will be used")
     input1.name <- "Input"
+  } else {
+    if(nchar(input1.name)>18){
+      print("Input1.name is long, this may lead to suboptimal visualisation")
+    }
   }
   if(!is.null(input2.name)){
     if(!is.character(input2.name)){
       print("Invalid value for input2.name. Default value of \"Input2\" will be used")
       input2.name <- "Input2"
+    } else {
+      if(nchar(input2.name)>18){
+        print("Input2.name is long, this may lead to suboptimal visualisation")
+      }
     }
   }
   if(!is.null(filename.output)){
@@ -1180,7 +1188,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
             }
           }
           if(interactive.plots){
-            interactive_figure[[ch]] <- create_interactive_plots(countV.plot,countJ.plot,ld.plot,CDR3,plot.oneline)
+            interactive_figure[[ch]] <- create_interactive_plots(countV.plot, countJ.plot, ld.plot, CDR3, plot.oneline, chain=ch)
           }
         } else {
           # Combine data from current model with data from previous models
@@ -1394,7 +1402,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
                 parentDiv.style.overflowX = 'auto'; // Add horizontal scroll
                 parentDiv.style.overflowY = 'hidden'; // Disable vertical scroll
                 parentDiv.style.width = '", style_width, "'; // Set parent div width to less than full width to see margin effect
-                parentDiv.style.margin = '50px auto 0 auto'; // Center horizontally with automatic margins and add top margin for title
+                parentDiv.style.margin = '20px auto 0 auto'; // Center horizontally with automatic margins and add top margin for title
                 el.style.display = 'inline-block'; // Set widget to inline-block to prevent squeezing
                 el.style.width = '", desired_width, "'; // Adjust this width to allow enough room for the plots
                 el.style.height = '", desired_height, "';  // Height for better visibility
