@@ -889,14 +889,14 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
       }
       
       if(info["chain"]=="a"){
-        if(grep(" | P_L(VJ)", title.baseline, fixed=T)){
+        if(grepl(" | P_L(VJ)", title.baseline, fixed=T)){
           title.baseline.1 <- gsub(" | P_L(VJ)", "", title.baseline, fixed=T)
           title.baseline.bq <- bquote(.(title.baseline.1) * " | " * P[L](VJ) * ", CDR3" * alpha * ", L=" * .(l))
         } else {
           title.baseline.bq <- bquote(.(title.baseline) * ", CDR3" * alpha * ", L=" * .(l))
         }
       } else if(info["chain"]=="b"){
-        if(grep(" | P_L(VJ)", title.baseline, fixed=T)){
+        if(grepl(" | P_L(VJ)", title.baseline, fixed=T)){
           title.baseline.1 <- gsub(" | P_L(VJ)", "", title.baseline, fixed=T)
           title.baseline.bq <- bquote(.(title.baseline.1) * " | " * P[L](VJ) * ", CDR3" * beta * ", L=" * .(l))
         } else {
