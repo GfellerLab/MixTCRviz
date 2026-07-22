@@ -29,6 +29,8 @@ TCR specificity profiles enable users to rapidly visualize and understand what a
 
 # INSTALLATION
 
+### Automatic installation ###
+
 remotes::install_github("GfellerLab/MixTCRviz")
 
 ### Manual installation ###
