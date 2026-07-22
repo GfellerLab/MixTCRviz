@@ -29,6 +29,10 @@ TCR specificity profiles enable users to rapidly visualize and understand what a
 
 # INSTALLATION
 
+remotes::install_github("GfellerLab/MixTCRviz")
+
+## Manual installation ##
+
 - Downlad the ggseqlogoMOD package from https://github.com/GfellerLab/ggseqlogo and install it (this is needed even if you already have the standard ggseqlogo package).
 
 - Download the MixTCRviz directory from the GitHub page and open Rstudio setting its working directory as MixTCRviz folder.

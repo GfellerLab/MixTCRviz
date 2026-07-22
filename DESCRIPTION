@@ -27,6 +27,6 @@ Imports:
     manipulateWidget,
     htmlwidgets,
 Remotes:
-    gfellerlab/ggseqlogo
+    GfellerLab/ggseqlogo
 Depends:
     R (>= 4.0.2)
