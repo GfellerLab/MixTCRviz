@@ -75,7 +75,7 @@ if __name__ == '__main__':
     parser.add_argument('--baseline_file', default="")            # -> NULL if ""
 
     # Chain & protocol
-    parser.add_argument('--chain_list_output', default="AB")      # chain
+    parser.add_argument('--chain', default="AB")      # chain
     parser.add_argument('--seq_protocol', default="Default")      # seq.protocol
 
     # Interactivity / plotting style
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     parser.add_argument('--plot', type=zero_one_to_bool, default=True)
     parser.add_argument('--plot_cdr12_motif', type=zero_one_to_bool, default=False)   # plot.cdr12.motif
     parser.add_argument('--plot_oneline', type=int, default=0)                         # integer mode
-    parser.add_argument('--plot_logo_length', type=zero_one_to_bool, default=False)    # plot.all.length
+    parser.add_argument('--plot_all_length', type=zero_one_to_bool, default=False)    # plot.all.length
     parser.add_argument('--plot_cdr3_norm', type=int, default=0)                       # integer mode
     parser.add_argument('--plot_VJ_switch', type=int, default=1)                       # plot.VJ.switch
     parser.add_argument('--plot_modelsCombined', type=zero_one_to_bool, default=False) # plot.modelsCombined
@@ -148,7 +148,7 @@ if __name__ == '__main__':
         'input2': none_if_empty(args.input2),
         'baseline': none_if_empty(args.baseline_file),
 
-        'chain': args.chain_list_output,
+        'chain': args.chain,
         'interactive.plots': args.interactive_plots,
 
         'use.allele': args.use_allele,
@@ -177,7 +177,7 @@ if __name__ == '__main__':
         'plot': args.plot,
         'plot.cdr12.motif': args.plot_cdr12_motif,
         'plot.oneline': args.plot_oneline,
-        'plot.all.length': args.plot_logo_length,
+        'plot.all.length': args.plot_all_length,
         'plot.cdr3.norm': args.plot_cdr3_norm,
         'plot.VJ.switch': args.plot_VJ_switch,
         'plot.modelsCombined': args.plot_modelsCombined,
