@@ -850,7 +850,8 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
         size.es <- apply(pwm.es[[lc]], 2, function(x){ ind <- which(x!=0); IC <- log(N.aa)/log(2)+sum(x[ind]*log(x[ind])/log(2)); return(IC*x) })
         size.rep <- apply(pwm.rep[[lc]], 2, function(x){ ind <- which(x!=0); IC <- log(N.aa)/log(2)+sum(x[ind]*log(x[ind])/log(2)); return(IC*x) })
         x.norm <- size.es-size.rep
-        y.inc <- 1
+        y.inc.neg <- 1.5
+        y.inc.pos <- 1.5
       }
       if(plot.cdr3.subtract.baseline==2){
         
@@ -862,7 +863,7 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
         x.es <- pwm.es[[lc]]+pseudo
         x.norm <- x.es/x.baseline
         x.norm <- scale(x.norm,center = F, scale=colSums(x.norm))
-        y.inc <- 4
+        y.inc <- 1.5
       }
       title <- unname(info["input1.name"])
       if(print.size){
@@ -883,24 +884,24 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
       if(!comp.baseline & print.size){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
       
       if(plot.cdr3.subtract.baseline==1){
-        title.baseline <- paste(title.baseline," subtract", sep="")
+        title.baseline <- paste0("Subtract ", title.baseline)
       } else if(plot.cdr3.subtract.baseline==2){
-        title.baseline <- paste(title.baseline," renorm", sep="")
+        title.baseline <- paste0("Renormalized by ",title.baseline)
       }
       
       if(info["chain"]=="a"){
         if(grepl(" | P_L(VJ)", title.baseline, fixed=T)){
           title.baseline.1 <- gsub(" | P_L(VJ)", "", title.baseline, fixed=T)
-          title.baseline.bq <- bquote(.(title.baseline.1) * " | " * P[L](VJ) * ", CDR3" * alpha * ", L=" * .(l))
+          title.baseline.bq <- bquote(.(title.baseline.1) * " | " * P[L](VJ))# * ", CDR3" * alpha * ", L=" * .(l))
         } else {
-          title.baseline.bq <- bquote(.(title.baseline) * ", CDR3" * alpha * ", L=" * .(l))
+          title.baseline.bq <- bquote(.(title.baseline))# * ", CDR3" * alpha * ", L=" * .(l))
         }
       } else if(info["chain"]=="b"){
         if(grepl(" | P_L(VJ)", title.baseline, fixed=T)){
           title.baseline.1 <- gsub(" | P_L(VJ)", "", title.baseline, fixed=T)
-          title.baseline.bq <- bquote(.(title.baseline.1) * " | " * P[L](VJ) * ", CDR3" * beta * ", L=" * .(l))
+          title.baseline.bq <- bquote(.(title.baseline.1) * " | " * P[L](VJ))# * ", CDR3" * beta * ", L=" * .(l))
         } else {
-          title.baseline.bq <- bquote(.(title.baseline) * ", CDR3" * beta * ", L=" * .(l))
+          title.baseline.bq <- bquote(.(title.baseline))# * ", CDR3" * beta * ", L=" * .(l))
         }
       } 
       
@@ -911,15 +912,23 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
       } else if(plot.cdr3.subtract.baseline==1){
         y.min <- min(apply(x.norm, 2, function(x){ sum(x[x<0]) }))
         y.max <- max(apply(x.norm, 2, function(x){ sum(x[x>0]) }))
-        y.min <- max(-log(N.aa)/log(2), y.inc*y.min)
-        y.max <- log(N.aa)/log(2) # min(log(N.aa)/log(2), y.inc*y.max)
-        logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD::ggseqlogo(data=x.norm, method='custom') +
-          labs(title=title.baseline.bq) + ylim(y.min,y.max) + ylab(ylab) +
-          theme(plot.title=element_text(size=title.size, hjust=0.5)) + theme(legend.position = 'none')
+        y.min <- max(-log(N.aa)/log(2), y.inc.neg*y.min)
+        y.max <- min(log(N.aa)/log(2), y.inc.pos*y.max)
+        y.max <- max(1, y.max)
+        
+        logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD::ggseqlogoMOD(data=x.norm, additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8, ylim=c(y.min, y.max), methods = "custom") +
+          labs(title=title.baseline.bq) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
+        
+      #  logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD::ggseqlogo(data=x.norm, methods='custom') +
+       #   labs(title=title.baseline.bq) + ylim(y.min,y.max) + ylab(ylab) +
+       #   theme(plot.title=element_text(size=title.size, hjust=0.5)) + theme(legend.position = 'none')
       } else if(plot.cdr3.subtract.baseline==2){
-        IC.max <- max(unlist(apply(x.norm, 2, function(x){ ind <- which(x!=0); IC <- log(N.aa)/log(2)+sum(x[ind]*log(x[ind])/log(2)); return(IC) })))
+        IC.all <- unlist(apply(x.norm, 2, function(x){ ind <- which(x!=0); IC <- log(N.aa)/log(2)+sum(x[ind]*log(x[ind])/log(2)); return(IC) }))
+        IC.max <- max(IC.all)
         y.max <- min(IC.max*y.inc, log(N.aa)/log(2))
-        logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD::ggseqlogoMOD(data=x.norm, additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8, ylim=c(0, y.max), methods = logo.type) +
+        y.max <- max(y.max,1)  #Force to be at least 1
+        x.norm2 <- x.norm %*% diag(IC.all)
+        logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD::ggseqlogoMOD(data=x.norm2, additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8, ylim=c(0, y.max), methods = "custom") +
           labs(title=title.baseline.bq) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
       }
       
@@ -955,15 +964,28 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
             logo.CDR3.L.es.max <- logo.CDR3.L.es.max + labs(title=title.bq)
           }
           if(nchar(info["baseline.name"]) > thr){
+            
             if(comp.baseline){
-              title.baseline <- gsub(gsub(" | P_L(VJ)","", title.baseline, fixed=T),"Baseline", title.baseline, fixed=T)
+              if(plot.cdr3.subtract.baseline==0){
+                title.baseline <- gsub(gsub(" | P_L(VJ)","", title.baseline, fixed=T),"Baseline", title.baseline, fixed=T)
+              } else if(plot.cdr3.subtract.baseline==1){
+                title.baseline <- gsub(gsub(" | P_L(VJ)","", title.baseline, fixed=T),"Subtract Baseline", title.baseline, fixed=T)
+              } else if(plot.cdr3.subtract.baseline==2){
+                title.baseline <- gsub(gsub(" | P_L(VJ)","", title.baseline, fixed=T),"Renorm Baseline", title.baseline, fixed=T)
+              }
             } else {
-              title.baseline <- gsub(gsub(" | P_L(VJ)","", title.baseline, fixed=T),"Input2", title.baseline, fixed=T)
+              if(plot.cdr3.subtract.baseline==0){
+                title.baseline <- gsub(gsub(" | P_L(VJ)","", title.baseline, fixed=T),"Input2", title.baseline, fixed=T)
+              } else if(plot.cdr3.subtract.baseline==1){
+                title.baseline <- gsub(gsub(" | P_L(VJ)","", title.baseline, fixed=T),"Subtract Input2", title.baseline, fixed=T)
+              } else if(plot.cdr3.subtract.baseline==2){
+                title.baseline <- gsub(gsub(" | P_L(VJ)","", title.baseline, fixed=T),"Renorm Input2", title.baseline, fixed=T)
+              }
             }
             if(info["chain"]=="a"){
-              title.baseline.bq <- bquote(.(title.baseline) * ", CDR3" * alpha * ", L=" * .(l))
+              title.baseline.bq <- bquote(.(title.baseline))# * ", CDR3" * alpha * ", L=" * .(l))
             } else if(info["chain"]=="b"){
-              title.baseline.bq <- bquote(.(title.baseline) * ", CDR3" * beta * ", L=" * .(l))
+              title.baseline.bq <- bquote(.(title.baseline))# * ", CDR3" * beta * ", L=" * .(l))
             } 
             logo.CDR3.L.rep.max <- logo.CDR3.L.rep.max + labs(title=title.baseline.bq)
           }
