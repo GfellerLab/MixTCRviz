@@ -121,12 +121,12 @@
 #'     for all CDR3 lengths. Only applicable if `plot`=T.
 #'
 #' @param plot.cdr3.norm Decide how to build the motifs for the baseline.
-#'    * 0 (default): Show the CDR3 motifs of the input and of the baseline repertoire or input2, possibly | P(VJ).
-#'        The logos represent the amino acid frequencies scaled by the information content if logo.type="bits", or the raw frequencies if logo.type="probabilitie".
-#'    * 1: Show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
+#'    * 0 (default): Show the CDR3 motifs of the input and of the baseline repertoire or input2, conditioned to P(VJ) if `renormVJ`=T.
+#'        The motifs represent the amino acid frequencies scaled by the information content if `logo.type`="bits", or the raw frequencies if `logo.type`="probability".
+#'    * 1: Instead of the baseline CDR3 motifs, show the CDR3 motifs of the input TCRs after subtracting the baseline repertoire.
 #'        The subtraction is done between the residue frequencies scaled by the information content.
-#'    * 2: Show the CDR3 motifs of the input TCRs after normalising by the baseline repertoire.
-#'        The final logo represent the normalized fold change, scaled by the information content
+#'    * 2: Instead of the baseline CDR3 motifs, show the CDR3 motifs of the input TCRs after normalizing by the baseline repertoire.
+#'        These motifs represent the normalized fold change, scaled by the information content.
 #'
 #' @param plot.sd Decide whether to include standard deviation in P(V), P(J) and P(L) plots.
 #'    * TRUE (default): Show standard deviation for P(V), P(J) and P(L), if such data are provided for baseline and/or input1.
