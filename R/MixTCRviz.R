@@ -999,25 +999,19 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
         if(length(es$countL[[ch]])>0 & length(baseline.model$countL[[ch]])>0){
           info <- c(chain.small[ch], input1.name, baseline.name, model)
           names(info) <- c("chain", "input1.name", "baseline.name", "model")
-          if(print.size){
-            info["input1.name"] <- paste(info["input1.name"], " (", sum(es$countL[[ch]]),")",sep="")
 
-            if(!comp.baseline){
-              info["baseline.name"] <- paste(info["baseline.name"], " (", sum(baseline.model$countL[[ch]]),")",sep="")
-            }
-          }
-
-          if(renormVJ==1){
+          renormVJ.L <- renormVJ
+          if(renormVJ){
             if(length(es$countVJ[[ch]])>0 & !is.null(baseline.model$countL.VJ[[ch]])){
-              info["baseline.name"] <- paste(info["baseline.name"], "P(VJ)",sep=" | ")
               bs <- weighted_countL(baseline.model$countL.VJ[[ch]], es$countVJ[[ch]])
-
             } else {
               if(length(es$countVJ[[ch]])==0){
-                print(paste("No P(VJ) information in input1 to compute baseline CDR3",chain.small[ch]," length distribution | P(VJ|L). renormVJ=0 will be used", sep=""))
+                print(paste("No P(VJ) information in input1 to compute baseline CDR3",chain.small[ch]," length distribution | P(VJ|L). renormVJ=F will be used", sep=""))
+                renormVJ.L <- F
               }
               if(is.null(baseline.model$countL.VJ[[ch]])){
-                print(paste("No P(L|VJ) information in baseline/input2 to compute baseline CDR3",chain.small[ch]," length distribution | P(VJ). renormVJ=0 will be used", sep=""))
+                print(paste("No P(L|VJ) information in baseline/input2 to compute baseline CDR3",chain.small[ch]," length distribution | P(VJ). renormVJ=F will be used", sep=""))
+                renormVJ.L <- F
               }
               bs <- baseline.model$countL[[ch]]
             }
@@ -1026,11 +1020,9 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           }
           bs.sd <- baseline.model$sdL[[ch]] # This means that we do not change the sd values, irrespective of | P(VJ)
 
-          #baseline.model$sdL[[ch]] <- 0.2*baseline.model$countL[[ch]]/sum(baseline.model$countL[[ch]])
-          #es$sdL[[ch]] <- 0.2*es$countL[[ch]]
-
           ld.plot <- plotLD(es$countL[[ch]], bs, info=info, sd.es=es$sdL[[ch]], sd.rep=bs.sd, plot.oneline=plot.oneline,
-                            ret.resList=plot.modelsCombined, comp.baseline=comp.baseline, print.size=print.size, plot.sd=plot.sd)
+                            ret.resList=plot.modelsCombined, comp.baseline=comp.baseline, print.size=print.size, 
+                            plot.sd=plot.sd, renormVJ.L=renormVJ.L)
         } else {
           ld.plot <- ggplot()
         }
@@ -1124,16 +1116,18 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           names(info) <- c("chain", "input1.name", "baseline.name", "model")
 
           #Here we include a correction based on VJ usage for each length.
+          renormVJ.CDR3 <- renormVJ
           if(renormVJ==1){
             if(max(sapply(es$countVJ.L[[ch]],length))>0 & !is.null(baseline.model$countCDR3.VJL[[ch]])){  #Make sure we have V-J pairs for at least one length
-              info["baseline.name"] <- paste(info["baseline.name"], "P_L(VJ)",sep=" | ")
               bs <- weighted_countCDR3(baseline.model$countCDR3.VJL[[ch]], es$countVJ.L[[ch]])
             } else {
               if(max(sapply(es$countVJ.L[[ch]],length))==0){
                 print(paste("No P(VJ|L) information in input1 to compute baseline CDR3",chain.small[ch]," motif | P_L(VJ). renormVJ=0 will be used",sep=""))
+                renormVJ.CDR3 <- F
               }
               if(is.null(baseline.model$countCDR3.VJL[[ch]])){
                 print(paste("No P(CDR3|VJL) information in baseline/input2 to compute baseline CDR3",chain.small[ch]," motif | P_L(VJ). renormVJ=0 will be used",sep=""))
+                renormVJ.CDR3 <- F
               }
               bs <- baseline.model$countCDR3.L[[ch]]
             }
@@ -1143,8 +1137,8 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           CDR3 <- plotCDR3(countL.es=es$countL[[ch]], countL.rep=baseline.model$countL[[ch]],
                            countCDR3.es=es$countCDR3.L[[ch]], countCDR3.rep=bs, logo.type=logo.type,
                            info=info, comp.baseline=comp.baseline, plot.oneline=plot.oneline, plot.all.length=plot.all.length,
-                           plot.cdr3.subtract.baseline=plot.cdr3.norm, set.cdr3.length=set.cdr3.length[[ch]],
-                           print.size=print.size)
+                            plot.cdr3.subtract.baseline=plot.cdr3.norm, set.cdr3.length=set.cdr3.length[[ch]],
+                           print.size=print.size, renormVJ=renormVJ.CDR3)
 
           logo.CDR3.L.es <- CDR3$ES
           logo.CDR3.L.baseline <- CDR3$Baseline

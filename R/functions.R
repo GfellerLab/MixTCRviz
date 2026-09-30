@@ -668,7 +668,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
 # And when combined.resList isn't NULL, we'll use the results from this list
 # to plot the results (from multiple models combined together).
 plotLD <- function(countL.es, countL.rep, info=NULL, sd.es=NULL, sd.rep=NULL, plot.oneline=0, ret.resList=F,
-                   combined.resList=NULL, comp.baseline=T, print.size=T, plot.sd=T){
+                   combined.resList=NULL, comp.baseline=T, print.size=T, plot.sd=T, renormVJ.L=T){
   
   if (is.null(combined.resList)){
     
@@ -712,14 +712,27 @@ plotLD <- function(countL.es, countL.rep, info=NULL, sd.es=NULL, sd.rep=NULL, pl
       }
     }
     
-    #Plot the comparison for length distribution
+    input1.name <- info["input1.name"]
+    if(print.size){
+      input1.name <- paste0(input1.name, " (",n.es,")")
+    }
     
+    #Plot the comparison for length distribution
+    if(renormVJ.L){
+      baseline.name <- paste0(info["baseline.name"], " | P(VJ)")
+    } else {
+      baseline.name <- info["baseline.name"]
+    }
+    
+    if(print.size & !renormVJ.L & !comp.baseline){
+      baseline.name <- paste0(baseline.name, " (",n.rep,")")
+    }
     v1 <- c(L.all,L.all);
     v2 <- c(ld.es, ld.rep);
-    v3 <- c( rep(info["input1.name"], length(L.all)), rep(info["baseline.name"], length(L.all))) ;
+    v3 <- c( rep(input1.name, length(L.all)), rep(baseline.name, length(L.all))) ;
     v4 <- c(lds.es,lds.rep)
     ld.df <- data.frame(v1,v2,v3,SD=v4)
-    ld.df$v3 <- factor(ld.df$v3, levels=c(info["input1.name"], info["baseline.name"]))
+    ld.df$v3 <- factor(ld.df$v3, levels=c(input1.name, baseline.name))
     
     if (ret.resList){
       if (length(info) < 4){
@@ -738,8 +751,8 @@ plotLD <- function(countL.es, countL.rep, info=NULL, sd.es=NULL, sd.rep=NULL, pl
     
     legend.size <- 12
     if(plot.oneline!=0){
-      if(nchar(info["input1.name"])>23){legend.size=11}
-      if(nchar(info["input1.name"])>25){legend.size=10}
+      if(nchar(input1.name)>23){legend.size=11}
+      if(nchar(input1.name)>25){legend.size=10}
     }
     
     ld.plot <-  ggplot(ld.df, aes(x=v1, y=v2, color=v3, shape=v3)) +
@@ -789,7 +802,8 @@ plotLD <- function(countL.es, countL.rep, info=NULL, sd.es=NULL, sd.rep=NULL, pl
 
 plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NULL,
                      comp.baseline=T, plot.oneline=0, plot.all.length=F, logo.type = "bits",
-                     plot.cdr3.subtract.baseline=0, set.cdr3.length=NA, print.size=T){
+                     plot.cdr3.subtract.baseline=0, set.cdr3.length=NA, print.size=T, renormVJ.CDR3){
+  
   
   L.es <- as.numeric(lapply(names(countL.es), function(x){unlist(strsplit(x,split="_"))[2]}))
   L.rep <- as.numeric(lapply(names(countL.rep), function(x){unlist(strsplit(x,split="_"))[2]}))
@@ -881,7 +895,6 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
         labs(title=title.bq) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
       
       title.baseline <- unname(info["baseline.name"])
-      if(!comp.baseline & print.size){title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")}
       
       if(plot.cdr3.subtract.baseline==1){
         title.baseline <- paste0("Subtract ", title.baseline)
@@ -889,21 +902,17 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
         title.baseline <- paste0("Renormalized by ",title.baseline)
       }
       
-      if(info["chain"]=="a"){
-        if(grepl(" | P_L(VJ)", title.baseline, fixed=T)){
-          title.baseline.1 <- gsub(" | P_L(VJ)", "", title.baseline, fixed=T)
-          title.baseline.bq <- bquote(.(title.baseline.1) * " | " * P[L](VJ))# * ", CDR3" * alpha * ", L=" * .(l))
-        } else {
-          title.baseline.bq <- bquote(.(title.baseline))# * ", CDR3" * alpha * ", L=" * .(l))
-        }
-      } else if(info["chain"]=="b"){
-        if(grepl(" | P_L(VJ)", title.baseline, fixed=T)){
-          title.baseline.1 <- gsub(" | P_L(VJ)", "", title.baseline, fixed=T)
-          title.baseline.bq <- bquote(.(title.baseline.1) * " | " * P[L](VJ))# * ", CDR3" * beta * ", L=" * .(l))
-        } else {
-          title.baseline.bq <- bquote(.(title.baseline))# * ", CDR3" * beta * ", L=" * .(l))
-        }
-      } 
+      #Add the size only if renormVJ.CDR3==F and the comparison is done with input2 provided by the user.
+      if(!comp.baseline & print.size & !renormVJ.CDR3){
+        title.baseline <- paste(title.baseline, " (",countL.rep[[lc]],")", sep="")
+      }
+      
+      if(renormVJ.CDR3){
+        title.baseline.bq <- bquote(.(title.baseline) * " | " * P[L](VJ)) 
+      } else {
+        title.baseline.bq <- bquote(.(title.baseline)) 
+      }
+      
       
       
       if(plot.cdr3.subtract.baseline==0){
@@ -919,9 +928,9 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
         logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD::ggseqlogoMOD(data=x.norm, additionaAA=additionalAA,  axisTextSizeX = 12, axisTextSizeY = 8, ylim=c(y.min, y.max), methods = "custom") +
           labs(title=title.baseline.bq) + ylab(ylab) + theme(plot.title=element_text(size=15, hjust=0.5))
         
-      #  logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD::ggseqlogo(data=x.norm, methods='custom') +
-       #   labs(title=title.baseline.bq) + ylim(y.min,y.max) + ylab(ylab) +
-       #   theme(plot.title=element_text(size=title.size, hjust=0.5)) + theme(legend.position = 'none')
+        #  logo.CDR3.L.rep[[lc]] <- ggseqlogoMOD::ggseqlogo(data=x.norm, methods='custom') +
+        #   labs(title=title.baseline.bq) + ylim(y.min,y.max) + ylab(ylab) +
+        #   theme(plot.title=element_text(size=title.size, hjust=0.5)) + theme(legend.position = 'none')
       } else if(plot.cdr3.subtract.baseline==2){
         IC.all <- unlist(apply(x.norm, 2, function(x){ ind <- which(x!=0); IC <- log(N.aa)/log(2)+sum(x[ind]*log(x[ind])/log(2)); return(IC) }))
         IC.max <- max(IC.all)
@@ -954,7 +963,10 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
           }
           
           if(nchar(info["input1.name"]) > thr){
-            title <- gsub(info["input1.name"],"Input",title, fixed=T)
+            title <- "Input"
+            if(print.size){
+              title <- paste(title, " (",signif(countL.es[[lc]],2),")", sep="")
+            }
             if(info["chain"]=="a"){
               #Keep this format, for compatibility with create_interactive_plots
               title.bq <- bquote(.(title) * ", CDR3" * alpha * ", L=" * .(l))
@@ -963,30 +975,32 @@ plotCDR3 <- function(countL.es, countL.rep, countCDR3.es, countCDR3.rep, info=NU
             } 
             logo.CDR3.L.es.max <- logo.CDR3.L.es.max + labs(title=title.bq)
           }
+          
           if(nchar(info["baseline.name"]) > thr){
             
             if(comp.baseline){
               if(plot.cdr3.subtract.baseline==0){
-                title.baseline <- gsub(gsub(" | P_L(VJ)","", title.baseline, fixed=T),"Baseline", title.baseline, fixed=T)
+                title.baseline <- "Baseline"
               } else if(plot.cdr3.subtract.baseline==1){
-                title.baseline <- gsub(gsub(" | P_L(VJ)","", title.baseline, fixed=T),"Subtract Baseline", title.baseline, fixed=T)
+                title.baseline <- "Subtract Baseline"
               } else if(plot.cdr3.subtract.baseline==2){
-                title.baseline <- gsub(gsub(" | P_L(VJ)","", title.baseline, fixed=T),"Renorm Baseline", title.baseline, fixed=T)
+                title.baseline <- "Renorm Baseline"
               }
+              
+              
             } else {
               if(plot.cdr3.subtract.baseline==0){
-                title.baseline <- gsub(gsub(" | P_L(VJ)","", title.baseline, fixed=T),"Input2", title.baseline, fixed=T)
+                title.baseline <- "Input2"
               } else if(plot.cdr3.subtract.baseline==1){
-                title.baseline <- gsub(gsub(" | P_L(VJ)","", title.baseline, fixed=T),"Subtract Input2", title.baseline, fixed=T)
+                title.baseline <- "Subtract Input2"
               } else if(plot.cdr3.subtract.baseline==2){
-                title.baseline <- gsub(gsub(" | P_L(VJ)","", title.baseline, fixed=T),"Renorm Input2", title.baseline, fixed=T)
+                title.baseline <- "Renorm Input2"
               }
             }
-            if(info["chain"]=="a"){
-              title.baseline.bq <- bquote(.(title.baseline))# * ", CDR3" * alpha * ", L=" * .(l))
-            } else if(info["chain"]=="b"){
-              title.baseline.bq <- bquote(.(title.baseline))# * ", CDR3" * beta * ", L=" * .(l))
-            } 
+            if(renormVJ.CDR3){
+              title.baseline.bq <- bquote(.(title.baseline) * " | " * P[L](VJ)) 
+            }
+            
             logo.CDR3.L.rep.max <- logo.CDR3.L.rep.max + labs(title=title.baseline.bq)
           }
         }
@@ -2137,16 +2151,16 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
     CDR3.baseline <- CDR3$Baseline_max + labs(title = NULL)
     
     
-    s <- strsplit(deparse(CDR3$Baseline_max$labels$title), split=" * ", fixed=T)[[1]]
-    s1 <- lapply(s,function(x){gsub("\"","",x,fixed=T)})
+    #s <- strsplit(deparse(CDR3$Baseline_max$labels$title), split=" * ", fixed=T)[[1]]
+    #s1 <- lapply(s,function(x){gsub("\"","",x,fixed=T)})
     
-    if(chain=="TRA"){
-      p <- which(s1=="alpha")
-      title.baseline <- paste0(paste0(s1[1:(p-1)], collapse=""),"α", paste0(s1[(p+1):length(s1)], collapse=""))
-    } else if(chain=="TRB"){
-      p <- which(s1=="beta")
-      title.baseline <- paste0(paste0(s1[1:(p-1)], collapse=""),"β", paste0(s1[(p+1):length(s1)], collapse=""))
-    }
+    #if(chain=="TRA"){
+    #  p <- which(s1=="alpha")
+    #  title.baseline <- paste0(paste0(s1[1:(p-1)], collapse=""),"α", paste0(s1[(p+1):length(s1)], collapse=""))
+    #} else if(chain=="TRB"){
+    #  p <- which(s1=="beta")
+    #  title.baseline <- paste0(paste0(s1[1:(p-1)], collapse=""),"β", paste0(s1[(p+1):length(s1)], collapse=""))
+    #}
     title.baseline <- gsub("P[L](VJ)","P<sub>L</sub>(VJ)",title.baseline, fixed=T)
     
     p5 <- plotly::ggplotly(CDR3.baseline, tooltip = "none")  %>%
