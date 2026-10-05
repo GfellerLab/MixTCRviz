@@ -367,7 +367,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     print("Invalid value for remove.incomplete.chain. Default value of TRUE will be used")
     remove.incomplete.chain <- T
   }
-  
+
 
   if(is.null(renormVJ)){
     renormVJ <- ifelse(is.null(input2),T,F)
@@ -545,9 +545,10 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
 
   min.logo <- 5 #Minimum number of sequences to plot the logos (when plotting different lengths)
   min.logo.fr <- 0.05 #Minimum frequency to plot the logos (when plotting different lengths and providing an object with normalized counts)
-  
+
   if(plot.oneline>=1){
     th <- theme(plot.title = element_text(size = 8, hjust=0.5), axis.title=element_text(size=4))
+    # This th is only used when plotting the CDR1/2 motifs, likely useless
   }
   if( !is.null(output.path) ){
     if(!dir.exists(output.path) ){
@@ -1021,7 +1022,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           bs.sd <- baseline.model$sdL[[ch]] # This means that we do not change the sd values, irrespective of | P(VJ)
 
           ld.plot <- plotLD(es$countL[[ch]], bs, info=info, sd.es=es$sdL[[ch]], sd.rep=bs.sd, plot.oneline=plot.oneline,
-                            ret.resList=plot.modelsCombined, comp.baseline=comp.baseline, print.size=print.size, 
+                            ret.resList=plot.modelsCombined, comp.baseline=comp.baseline, print.size=print.size,
                             plot.sd=plot.sd, renormVJ.L=renormVJ.L)
         } else {
           ld.plot <- ggplot()
@@ -1214,14 +1215,14 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
             stop("The plot.modelsCombined isn't implemented to show the ",
                  "results from various CDR3 lengths.")
           }
-          
+
           if(sum(es$countL[[ch]])>=2){
             tl.logo[[ch]] <- intersect(names(es$countL[[ch]][es$countL[[ch]]>=min.logo]), L.inter) #Currently the min.logo limitation does not apply to L.inter
           } else {
             #This is to handle cases where input 1 is given as a mixTCRviz objects with normalized counts.
             tl.logo[[ch]] <- intersect(names(es$countL[[ch]][es$countL[[ch]]>=min.logo.fr]), L.inter)
           }
-            
+
           if(length(tl.logo[[ch]])>0){
             logo.sub <- list()
             logo.sub.baseline <- list()
