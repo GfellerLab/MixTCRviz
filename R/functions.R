@@ -2151,18 +2151,12 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
     CDR3.baseline <- CDR3$Baseline_max + labs(title = NULL)
     
     
-    #s <- strsplit(deparse(CDR3$Baseline_max$labels$title), split=" * ", fixed=T)[[1]]
-    #s1 <- lapply(s,function(x){gsub("\"","",x,fixed=T)})
-    
-    #if(chain=="TRA"){
-    #  p <- which(s1=="alpha")
-    #  title.baseline <- paste0(paste0(s1[1:(p-1)], collapse=""),"α", paste0(s1[(p+1):length(s1)], collapse=""))
-    #} else if(chain=="TRB"){
-    #  p <- which(s1=="beta")
-    #  title.baseline <- paste0(paste0(s1[1:(p-1)], collapse=""),"β", paste0(s1[(p+1):length(s1)], collapse=""))
-    #}
+    s <- strsplit(deparse(CDR3$Baseline_max$labels$title), split=" * ", fixed=T)[[1]]
+
+    s1 <- lapply(s,function(x){gsub("\"","",x,fixed=T)})
+    title.baseline <- paste0(s1,collapse = "")
     title.baseline <- gsub("P[L](VJ)","P<sub>L</sub>(VJ)",title.baseline, fixed=T)
-    
+
     p5 <- plotly::ggplotly(CDR3.baseline, tooltip = "none")  %>%
       plotly::layout(
         title=list(
