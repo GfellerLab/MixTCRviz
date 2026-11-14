@@ -68,6 +68,13 @@
 #' @param N.min Minimum number of TCRs (i.e., V-J-CDR3) for at least
 #'   one chain. This number is computed after cleaning the data (default=1) .
 #'
+#' @param plotVJ.comb Plot P(VJ) wrt to P(V)P(J)
+#'    * FALSE (default): No P(VJ) versus P(V)P(J) plot
+#'    * TRUE: The P(VJ) versus P(V)P(J) are plotted in a separate file. 
+#'    These plots represent enrichment in V-J combinations that are not captured in the "standard" TSPs.
+#'    Triangles indicate combinations with a Bonferroni corrected P-value < 0.05. These are only available when providing counts
+#'    Names of enriched V-J combinations are based on at least 2x enrichment, P(V)xP(J) sufficiently high and significant Bonferroni corrected P-values
+#'
 #' @param output.stat Print the stats in a file.
 #'    * FALSE (default): Do not print the stats
 #'    * TRUE: create a output.path/stat/ folder with .rds files summarizing the raw statistics for each model. Requires `output.path` to be initialized.
@@ -222,7 +229,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
                       label.min.fr.input1=0.05, label.min.fr.input2=0.05, remove.incomplete.chain=T, seq.protocol="Default",
                       input1.name="Input", input2.name=NULL, output.format="pdf", infer.VJ=F, infer.CDR3=F,
-                      print.size=T, ZscoreVJ.thresh=0, FoldChangeVJ.thresh=1.25){
+                      print.size=T, ZscoreVJ.thresh=0, FoldChangeVJ.thresh=1.25, plotVJ.comb=F){
 
 
   #######
@@ -272,6 +279,11 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     output.stat <- F
   }
 
+  if(!is.logical(plotVJ.comb)){
+    print("Invalid value for plotVJ.comb. Default value of FALSE will be used")
+    plotVJ.comb <- F
+  }
+  
   if(!is.logical(output.processed.data)){
     print("Invalid value for output.processed.data. Default value of FALSE will be used")
     output.processed.data <- F
@@ -798,6 +810,8 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     print(paste("Model:",model))
 
     pg.all <- list()
+    countVJ.plot <- list()
+    
     interactive_figure <- list()
     pg.length <- list()
     tl.logo <- list() #Keep track of the number of logos of different length
@@ -1064,6 +1078,17 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           countJ.plot <- ggplot()
         }
 
+        if(plotVJ.comb){
+          if(length(es$countV[[ch]])>0 & length(es$countJ[[ch]])>0){
+            
+            countVJ.plot[[ch]] <- plotVJ_comb(countVJ.es=es$countVJ[[ch]], countV.es=es$countV[[ch]], 
+                        countJ.es=es$countJ[[ch]], chain=ch, species=species, label.neg=label.neg)
+            
+          } else {
+            countVJ.plot[[ch]] <- ggplot()
+          }
+        }
+        
         #######
         # Plot comparison of motifs for CDR1 and CDR2, but this is redundant with V/J plots
         # No correction based on VJ usage
@@ -1288,10 +1313,17 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           if(interactive.plots){
             combined_both<- interactive_figure[[chain.list[1]]]
           }
+          if(plotVJ.comb){
+            pgVJ.both <- countVJ.plot[[chain.list[1]]]
+          }
         }
         if(chain=="AB"){
           pg.both <- ggarrange(pg.all[[chain.list[1]]], pg.all[[chain.list[2]]], ncol=2); div=1
 
+          if(plotVJ.comb){
+            pgVJ.both <- ggarrange(countVJ.plot[[chain.list[1]]], countVJ.plot[[chain.list[2]]], ncol=2) 
+          }
+          
           if(interactive.plots){
             combined_both<- manipulateWidget::combineWidgets(
               interactive_figure[[chain.list[1]]] , interactive_figure[[chain.list[2]]],
@@ -1299,6 +1331,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
               title = NULL
             )
 
+            
 
           }
         }
@@ -1309,6 +1342,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           title.final <- model
         }
         if(print.title){
+          
           spacer.size=0.02
           spacer <- ggplot() + theme_void() + theme(plot.margin = unit(c(1, 0, 0, 0), "cm"))
           fig <- ggarrange(spacer, pg.both, ncol=1, nrow=2, heights=c(spacer.size,1))
@@ -1316,8 +1350,18 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           fig <- annotate_figure(fig, top = text_grob(label=title.final, face = "bold", size = 16))
 
           fig <- ggarrange(spacer, fig,ncol=1, nrow=2, heights=c(spacer.size,1))
+          
+          if(plotVJ.comb){
+            figVJ <- ggarrange(spacer, pgVJ.both, ncol=1, nrow=2, heights=c(spacer.size,1))
+            
+            figVJ <- annotate_figure(figVJ, top = text_grob(label=title.final, face = "bold", size = 16))
+            
+            figVJ <- ggarrange(spacer, figVJ, ncol=1, nrow=2, heights=c(spacer.size,1))
+          }
+          
         } else {
           fig <- pg.both
+          figVJ <- pgVJ.both
         }
 
         if(plot.cdr12.motif){
@@ -1363,6 +1407,11 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
         }
         if(!is.null(output.path)){
           ggsave(fig, filename=paste(output.path,"/",filename.final,".", output.format, sep=""), device=output.format, width = width/div, height = height)
+          if(plotVJ.comb){
+            ggsave(figVJ, filename=paste(output.path,"/",filename.final,"_VJ.", output.format, sep=""), 
+                   device=output.format, width = 8/div, height = 4)
+            
+          }
         }
         plot.lst[[model]] <- fig
 
