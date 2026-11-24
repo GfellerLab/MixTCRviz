@@ -351,6 +351,7 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
     logFC <- log2(ratio);
     names(logFC) <- nm
     count.df$logFC <- as.character(signif(logFC,2))
+    count.df$ratio <- ratio
     
     
     if(!is.null(sd.rep)){
@@ -537,13 +538,25 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
       count.df$CDR1_seq <- CDR1_seq
       count.df$CDR2_seq <- CDR2_seq
       count.df$CDR3_seq <- CDR3_seq
-      count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label, label2=name, label3=logFC, label4=Zscore, label5=CDR1_seq, label6=CDR2_seq, label7=CDR3_seq)) +
+      count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label,text = paste0(
+        "Gene: ", name,
+        "<br>FC: ", signif(ratio,4),
+        "<br>Zscore: ", Zscore,
+        "<br>CDR1_seq: ", CDR1_seq,
+        "<br>CDR2_seq: ", CDR2_seq,
+        "<br>CDR3_seq: ", CDR3_seq
+      ))) +
         geom_abline(col="orange",linetype="dashed",linewidth=1)
       
     } else if(info["gene"] == "TRAJ" | info["gene"] == "TRBJ" ){
       CDR3_seq <- Jseq[[species]][[substr(info["gene"],1,3)]][count.df$name,"CDR3"]
       count.df$CDR3_seq <- CDR3_seq
-      count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label, label2=name, label3=logFC, label4=Zscore, label5=CDR3_seq)) +
+      count.plot <- ggplot(count.df, aes(x=X, y=Y, label=label, text = paste0(
+        "Gene: ", name,
+        "<br>FC: ", signif(ratio,4),
+        "<br>Zscore: ", Zscore,
+        "<br>CDR3_seq: ", CDR3_seq
+      ))) +
         geom_abline(col="orange",linetype="dashed",linewidth=1)
     }
     
@@ -712,19 +725,20 @@ plotVJ_comb <- function(countVJ.es, countV.es, countJ.es, chain, species="HomoSa
         pval[vj.str] <- fisher.test(tm)$p.value
         
       } else {
-        pval[vj.str] <- 1
+        pval[vj.str] <- NA
       }
     }
   }
   
   
-  df <- data.frame(PVJ=PVJ.vec, PV_PJ=PV.PJ.vec, label=nm.VJ, VJ=nm.VJ,
+  df <- data.frame(PVJ=PVJ.vec, PV_PJ=PV.PJ.vec, label=nm.VJ, VJ=nm.VJ, FC=enrich, Pval=pval,
                    V=unlist(lapply(nm.VJ,function(x){strsplit(x,split="_")[[1]][1]})))
   
   #Require a 2X enrichment, at least 5 observations, a Bonferroni corrected P-value, and P(V)P(J) 10% of the max
   
   PV.PJ.thresh <- 0.1*max(PV.PJ.vec)
   PVJ.thresh <- 0.1*max(PVJ.vec)
+  
   if(correct.VJ.pval){
     pval.thresh <- 0.05/lg # This is the threshold for showing the triangles
     tpval.thresh <- pval.thresh # This is the start threshold for plotting V-J names
@@ -734,34 +748,36 @@ plotVJ_comb <- function(countVJ.es, countV.es, countJ.es, chain, species="HomoSa
   }
   enrich.thresh <- 1.5
   
-  max.label <- 8
+  max.label <- 6
   
   p <- c() 
   cond <- T
   ct <- 0 # Keep track of the number of changes in the threshold
   ct0 <- 0
   
+  #Set to one the enrichment for cases with small PVJ.vec
+  tenrich <- enrich
+  tenrich[(PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh)] <- 1
+  if(!labelVJ.neg){
+    tenrich[enrich < enrich.thresh] <- 1
+  } else {
+    tenrich[(tenrich < enrich.thresh & tenrich > 1/enrich.thresh)] <- 1
+  }
   while(cond & ct0 <= 1 & ct < 10){
     
     if(count){
       if(!labelVJ.neg){
-        p <- which(enrich < enrich.thresh | 
-                     (PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh) |
-                     pval > tpval.thresh)
+        p <- which(tenrich < enrich.thresh | pval > tpval.thresh)
       } else {
-        p <- which((enrich < enrich.thresh & enrich > 1/enrich.thresh) |
-                     (PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh) |
-                     pval > tpval.thresh)
+        p <- which((tenrich < enrich.thresh & tenrich > 1/enrich.thresh) | pval > tpval.thresh)
       }
     } else{
       #This the case where the input was given as probabilities
       if(!labelVJ.neg){
-        p <- which(enrich < enrich.thresh | 
-                     (PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh) )
+        p <- which(tenrich < enrich.thresh )
       } else {
         #print(ct)
-        p <- which((enrich < enrich.thresh & enrich > 1/enrich.thresh) | 
-                     (PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh) )
+        p <- which((enrich < enrich.thresh & enrich > 1/enrich.thresh))
       }
     }
     
@@ -788,31 +804,19 @@ plotVJ_comb <- function(countVJ.es, countV.es, countJ.es, chain, species="HomoSa
     ct <- ct+1
   }
   
-  # This is the special case where making the conditions stricter did not lead to less than 10 labels
+  # This is the special case where making the conditions stricter did not lead to less than 10 labels, or when it lead to 0 labels
   # We select the top 10 enrich V-J, without checking P-values.
-  if(ct==10){
+  
+  if(ct==10 | length(p)==lg){
     if(!labelVJ.neg){
-      te <- sort(enrich[which(PVJ.vec >= PVJ.thresh | PV.PJ.vec >= PV.PJ.thresh)], decreasing=T)[max.label]
-      p <- which(enrich < te | (PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh))
+      p <- setdiff(1:lg, order(tenrich, decreasing = T)[1:max.label])
+      p <- union(p, which(tenrich==1))
     } else {
-      te.pos <- sort(enrich[which(PVJ.vec >= PVJ.thresh | PV.PJ.vec >= PV.PJ.thresh)], decreasing=T)[as.integer(max.label/2)]
-      te.neg <- sort(enrich[which(PVJ.vec >= PVJ.thresh | PV.PJ.vec >= PV.PJ.thresh)])[as.integer(max.label/2)]
-      if(te.neg != 0){
-        p <- which( (enrich < te.pos & enrich >= te.neg)  | (PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh))
-      } else {
-        #This is the special case where many V-J have enrichment of 0, and we take the top P(V)P(J)
-        te2.neg <- sort(PV.PJ.vec[enrich==0])[as.integer(max.label/2)]
-        p <- which( (enrich < te.pos & enrich >= te.neg) |
-                      (PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh) |
-                      (enrich==0 & PV.PJ.vec < te2.neg) )
-      }
+      p <- setdiff(1:lg, c(order(tenrich, decreasing = T)[1:as.integer(max.label/2)], order(enrich, -PV.PJ.vec, decreasing = F)[1:as.integer(max.label/2)]))
+      p <- union(p, which(tenrich==1))
     }
   }
-  
   df[p,"label"] <- NA
-  #print(c("A",dim(df)[1], length(p), length(setdiff(1:lg,p))))
-  
-  #print(length(setdiff(1:lg,p)))
   
   if(count){
     shape <- ifelse(pval < pval.thresh,"Yes","No")
@@ -846,10 +850,12 @@ plotVJ_comb <- function(countVJ.es, countV.es, countJ.es, chain, species="HomoSa
       yaxis <- bquote("P(V" * beta * "J" * beta * ")")
     }  
   }
-  
-  #print(length(which(!is.na(df$label))))
-  
-  g <- ggplot(df, aes(x=PV_PJ, y=PVJ, label=label)) + 
+
+  g <- ggplot(df, aes(x=PV_PJ, y=PVJ, label=label, text = paste0(
+    "VJ: ", VJ,
+    "<br>FC: ", signif(FC,4),
+    "<br>Pval: ", signif(Pval,3)
+  ))) + 
     geom_point(aes(fill=VJ, shape=as.factor(shape)), size=2, color="black") + 
     geom_abline(col="orange",linetype="dashed",linewidth=1) + theme_bw() + theme(legend.position = "none") +
     geom_label_repel(aes(label=label, fill=label), size = 2, nudge_y=0.15*max(df$PVJ), box.padding = 0.04,
@@ -858,7 +864,7 @@ plotVJ_comb <- function(countVJ.es, countV.es, countJ.es, chain, species="HomoSa
     scale_color_manual(values=colorScale_VJ, guide="none") +
     scale_shape_manual(values=c(21,24), guide="none") + ylab(yaxis) + xlab(xaxis) +
     scale_x_continuous(limits = c(0, NA)) + scale_y_continuous(limits = c(0, NA))
-
+  
   return(g)
   
 }
@@ -2218,11 +2224,47 @@ set_model_colPals <- function(models){
   return(colPal_modelsCombined)
 }
 
+
+create_interactive_VJplots <- function(countVJ.plot, chain){
+  
+  countVJ.plot_not_title <- countVJ.plot + labs(title = NULL, x=ifelse(chain=="TRA","P(Vα)P(Jα)","P(Vβ)P(Jβ)"), y=ifelse(chain=="TRA","P(VαJα)","P(VβJβ)"))
+  
+  p1 <- suppressWarnings(plotly::ggplotly(countVJ.plot_not_title, tooltip = "text"))
+  
+  p1$x$data <- lapply(p1$x$data, function(trace) {
+    # Set marker size and mode for points
+    
+    if (!is.null(trace$marker$size)){trace$marker$size <- 11}
+    if (!is.null(trace$error_x)){
+      trace$error_x$width <- 3
+      trace$error_x$color <- rgb(102 / 255, 102 / 255, 102 / 255, alpha = 0.4)
+    }
+    
+    return(trace)
+  })
+  
+  p1 <- p1 %>%
+    plotly::layout(
+      title = NULL,           # no default title
+      margin = list(t = 80),  # minimal top margin
+      yaxis = list(
+        title = list(font = list(size = 25)),
+        tickfont = list(size = 16)
+      ),
+      xaxis = list(
+        title = list(font = list(size = 25)),
+        tickfont = list(size = 16)
+      ),
+      showlegend = FALSE
+    )
+  
+}
+
 create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.oneline, chain){
   # Turn off legends in the first two plots
   countV.plot_not_title <- countV.plot + labs(title = NULL)
   
-  p1 <- suppressWarnings(plotly::ggplotly(countV.plot_not_title, tooltip = c("name", "logFC", "Zscore", "CDR1_seq", "CDR2_seq", "CDR3_seq")))
+  p1 <- suppressWarnings(plotly::ggplotly(countV.plot_not_title, tooltip = "text"))
   
   p1$x$data <- lapply(p1$x$data, function(trace) {
     # Set marker size and mode for points
@@ -2273,7 +2315,7 @@ create_interactive_plots <- function(countV.plot,countJ.plot,ld.plot,CDR3,plot.o
   
   countJ.plot_not_title <- countJ.plot + labs(title = NULL)
   
-  p2 <- suppressWarnings(plotly::ggplotly(countJ.plot_not_title, tooltip = c("name", "logFC" ,"Zscore", "CDR3_seq")))
+  p2 <- suppressWarnings(plotly::ggplotly(countJ.plot_not_title, tooltip = "text"))
   
   p2$x$data <- lapply(p2$x$data, function(trace) {
     # Set marker size and mode for points

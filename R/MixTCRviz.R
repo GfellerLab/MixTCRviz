@@ -826,6 +826,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     countVJ.plot <- list()
     
     interactive_figure <- list()
+    interactive_figureVJ <- list()
     pg.length <- list()
     tl.logo <- list() #Keep track of the number of logos of different length
 
@@ -1226,6 +1227,9 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           }
           if(interactive.plots){
             interactive_figure[[ch]] <- create_interactive_plots(countV.plot, countJ.plot, ld.plot, CDR3, plot.oneline, chain=ch)
+            if(plotVJ.comb){
+              interactive_figureVJ[[ch]] <- create_interactive_VJplots(countVJ.plot[[ch]], chain=ch)
+            }
           }
         } else {
           # Combine data from current model with data from previous models
@@ -1325,7 +1329,10 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
         if(chain=="A" | chain=="B"){
           pg.both <- pg.all[[chain.list[1]]]; div=2
           if(interactive.plots){
-            combined_both<- interactive_figure[[chain.list[1]]]
+            combined_both <- interactive_figure[[chain.list[1]]]
+            if(plotVJ.comb){
+              combined_bothVJ <- interactive_figureVJ[[chain.list[1]]]
+            }
           }
           if(plotVJ.comb){
             pgVJ.both <- countVJ.plot[[chain.list[1]]]
@@ -1339,12 +1346,18 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           }
           
           if(interactive.plots){
-            combined_both<- manipulateWidget::combineWidgets(
+            combined_both <- manipulateWidget::combineWidgets(
               interactive_figure[[chain.list[1]]] , interactive_figure[[chain.list[2]]],
               ncol = 2,
               title = NULL
             )
-
+            if(plotVJ.comb){
+              combined_bothVJ <- manipulateWidget::combineWidgets(
+                interactive_figureVJ[[chain.list[1]]] , interactive_figureVJ[[chain.list[2]]],
+                ncol = 2,
+                title = NULL
+              )
+            }
             
 
           }
@@ -1481,11 +1494,63 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
 
           # Get the name of the folder that may have been created
           folder_name <- sub(".html$", "_files", html_file)
-
+          
           # Delete the folder if it exists
           if (dir.exists(folder_name)) {
             unlink(folder_name, recursive = TRUE)
           }
+          
+          if(plotVJ.comb){
+            
+            js_code <- paste0(
+              "
+              function(el, x) {
+                var parentDiv = el.parentNode;
+
+                // Style for the title
+                var titleDiv = document.createElement('div');
+                titleDiv.innerHTML = '", ttl, "';
+                titleDiv.style.textAlign = 'center';
+                titleDiv.style.fontSize = '24px';
+                titleDiv.style.fontWeight = 'bold';
+                titleDiv.style.position = 'fixed';
+                titleDiv.style.top = '20px';
+                titleDiv.style.width = '100%';
+                titleDiv.style.backgroundColor = 'white';
+                titleDiv.style.zIndex = '1000';
+                titleDiv.style.padding = '10px 0';
+                document.body.insertBefore(titleDiv, document.body.firstChild);
+
+                // Adjust the parent div of the widget
+                parentDiv.style.overflowX = 'auto'; // Add horizontal scroll
+                parentDiv.style.overflowY = 'hidden'; // Disable vertical scroll
+                parentDiv.style.width = '", style_width, "'; // Set parent div width to less than full width to see margin effect
+                parentDiv.style.margin = '20px auto 0 auto'; // Center horizontally with automatic margins and add top margin for title
+                el.style.display = 'inline-block'; // Set widget to inline-block to prevent squeezing
+                el.style.width = '", desired_width, "'; // Adjust this width to allow enough room for the plots
+                el.style.height = '", desired_height, "';  // Height for better visibility
+              }
+            "
+            )
+            
+            html_fileVJ <-paste(output.path,"/",filename.final,"_VJ.html", sep="")
+            
+            scrollable_combined_figure <- htmlwidgets::onRender(
+              combined_bothVJ,
+              js_code
+            )
+            htmlwidgets::saveWidget(scrollable_combined_figure, file = html_fileVJ, selfcontained = TRUE)
+            
+            # Get the name of the folder that may have been created
+            folder_nameVJ <- sub(".html$", "_files", html_fileVJ)
+            
+            # Delete the folder if it exists
+            if (dir.exists(folder_nameVJ)) {
+              unlink(folder_nameVJ, recursive = TRUE)
+            }
+          }
+          
+          
         }
         if(plot.all.length){
           dir.length <- paste(output.path,"/CDR3_length/", sep="")
