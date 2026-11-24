@@ -663,13 +663,14 @@ plotVJ <- function(count.es, count.rep, sd.es=NULL, sd.rep=NULL, distr.es=NULL, 
 }
 
 
-#Plot the P(VJ) with respect to P(V)xP(J) to show specificity beyond that encoded in P(V) and P(J)
+#Plot the P(VJ) with respect to Plabe(V)xP(J) to show specificity beyond that encoded in P(V) and P(J)
 plotVJ_comb <- function(countVJ.es, countV.es, countJ.es, chain, species="HomoSapiens",
-                        label.neg=F){
+                        labelVJ.neg=F, print.size=T, correct.VJ.pval){
   
   nm.V <- rownames(countVJ.es)
   nm.J <- colnames(countVJ.es)
   nm.VJ <- as.vector(outer(nm.V,nm.J, paste, sep = "_"))
+  lg <- length(nm.VJ)
   
   PVJ <- countVJ.es/sum(countV.es)
   PV <- countV.es/sum(countV.es)
@@ -680,11 +681,11 @@ plotVJ_comb <- function(countVJ.es, countV.es, countJ.es, chain, species="HomoSa
     count <- F
   }
   
-  enrich <- setNames(rep(0, length(nm.VJ)), nm.VJ)
-  NVJ.vec <- setNames(rep(0, length(nm.VJ)), nm.VJ)
-  PVJ.vec <- setNames(rep(0, length(nm.VJ)), nm.VJ)
-  PV.PJ.vec <- setNames(rep(0, length(nm.VJ)), nm.VJ)
-  pval <- setNames(rep(1, length(nm.VJ)), nm.VJ)
+  enrich <- setNames(rep(0, lg), nm.VJ)
+  NVJ.vec <- setNames(rep(0, lg), nm.VJ)
+  PVJ.vec <- setNames(rep(0, lg), nm.VJ)
+  PV.PJ.vec <- setNames(rep(0, lg), nm.VJ)
+  pval <- setNames(rep(1, lg), nm.VJ)
   
   for(v in nm.V){
     for(j in nm.J){
@@ -713,45 +714,108 @@ plotVJ_comb <- function(countVJ.es, countV.es, countJ.es, chain, species="HomoSa
       } else {
         pval[vj.str] <- 1
       }
-      
     }
   }
+  
   
   df <- data.frame(PVJ=PVJ.vec, PV_PJ=PV.PJ.vec, label=nm.VJ, VJ=nm.VJ,
                    V=unlist(lapply(nm.VJ,function(x){strsplit(x,split="_")[[1]][1]})))
   
   #Require a 2X enrichment, at least 5 observations, a Bonferroni corrected P-value, and P(V)P(J) 10% of the max
   
-  #print(sort(enrich, decreasing = T)[1:5])
-  #print(sort(enrich, decreasing = F)[1:5])
-  
   PV.PJ.thresh <- 0.1*max(PV.PJ.vec)
-  pval.thresh <- 0.05/length(nm.VJ)
-  enrich.thresh <- 2
+  PVJ.thresh <- 0.1*max(PVJ.vec)
+  if(correct.VJ.pval){
+    pval.thresh <- 0.05/lg # This is the threshold for showing the triangles
+    tpval.thresh <- pval.thresh # This is the start threshold for plotting V-J names
+  } else {
+    pval.thresh <- 0.05 # This is the threshold for showing the triangles
+    tpval.thresh <- pval.thresh/lg # This is the start threshold for plotting V-J names
+  }
+  enrich.thresh <- 1.5
+  
+  max.label <- 8
   
   p <- c() 
-  while(length(setdiff(1:length(enrich),p))>10){
+  cond <- T
+  ct <- 0 # Keep track of the number of changes in the threshold
+  ct0 <- 0
+  
+  while(cond & ct0 <= 1 & ct < 10){
+    
     if(count){
-      if(!label.neg){
-        p <- which(enrich < enrich.thresh | PV.PJ.vec < PV.PJ.thresh | pval > pval.thresh)
+      if(!labelVJ.neg){
+        p <- which(enrich < enrich.thresh | 
+                     (PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh) |
+                     pval > tpval.thresh)
       } else {
-        p <- which((enrich < enrich.thresh & enrich > 1/enrich.thresh) | PV.PJ.vec < PV.PJ.thresh | pval > pval.thresh)
+        p <- which((enrich < enrich.thresh & enrich > 1/enrich.thresh) |
+                     (PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh) |
+                     pval > tpval.thresh)
       }
     } else{
-      if(!label.neg){
-        p <- which(enrich < enrich.thresh | PV.PJ.vec < PV.PJ.thresh)
+      #This the case where the input was given as probabilities
+      if(!labelVJ.neg){
+        p <- which(enrich < enrich.thresh | 
+                     (PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh) )
       } else {
-        p <- which((enrich < enrich.thresh & enrich > 1/enrich.thresh) | PV.PJ.vec < PV.PJ.thresh)
+        #print(ct)
+        p <- which((enrich < enrich.thresh & enrich > 1/enrich.thresh) | 
+                     (PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh) )
       }
     }
-    pval.thresh <- pval.thresh/10
-    enrich.thresh <- enrich.thresh + 0.5
+    
+    #print(c(ct,enrich.thresh, length(setdiff(1:lg,p))))
+    
+    #If we have too many labels, make the conditions stricter.
+    if(length(setdiff(1:lg,p))>max.label){
+      cond <- T
+      tpval.thresh <- tpval.thresh/10
+      enrich.thresh <- enrich.thresh + 0.5
+    } else {
+      if(ct==0 & length(setdiff(1:lg,p))==0){
+        cond <- T #This is the special case where we initially had no label shown. 
+        # Typically this the case with low number of TCRs. 
+        # We therefore remove the criteria based on p-values with diplaying the labels. 
+        tpval.thresh <- 1
+        ct <- ct-1
+        ct0 <- ct0+1 # Make sure this is done only once
+        
+      } else {
+        cond <- F
+      }
+    }
+    ct <- ct+1
+  }
+  
+  # This is the special case where making the conditions stricter did not lead to less than 10 labels
+  # We select the top 10 enrich V-J, without checking P-values.
+  if(ct==10){
+    if(!labelVJ.neg){
+      te <- sort(enrich[which(PVJ.vec >= PVJ.thresh | PV.PJ.vec >= PV.PJ.thresh)], decreasing=T)[max.label]
+      p <- which(enrich < te | (PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh))
+    } else {
+      te.pos <- sort(enrich[which(PVJ.vec >= PVJ.thresh | PV.PJ.vec >= PV.PJ.thresh)], decreasing=T)[as.integer(max.label/2)]
+      te.neg <- sort(enrich[which(PVJ.vec >= PVJ.thresh | PV.PJ.vec >= PV.PJ.thresh)])[as.integer(max.label/2)]
+      if(te.neg != 0){
+        p <- which( (enrich < te.pos & enrich >= te.neg)  | (PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh))
+      } else {
+        #This is the special case where many V-J have enrichment of 0, and we take the top P(V)P(J)
+        te2.neg <- sort(PV.PJ.vec[enrich==0])[as.integer(max.label/2)]
+        p <- which( (enrich < te.pos & enrich >= te.neg) |
+                      (PVJ.vec < PVJ.thresh & PV.PJ.vec < PV.PJ.thresh) |
+                      (enrich==0 & PV.PJ.vec < te2.neg) )
+      }
+    }
   }
   
   df[p,"label"] <- NA
+  #print(c("A",dim(df)[1], length(p), length(setdiff(1:lg,p))))
+  
+  #print(length(setdiff(1:lg,p)))
   
   if(count){
-    shape <- ifelse(pval < 0.05/length(nm.VJ),"Yes","No")
+    shape <- ifelse(pval < pval.thresh,"Yes","No")
   } else {
     shape <- rep("No", length(nm.VJ))
   }
@@ -768,24 +832,33 @@ plotVJ_comb <- function(countVJ.es, countV.es, countJ.es, chain, species="HomoSa
   
   if(chain=="TRA"){
     xaxis <- bquote("P(V" * alpha * ") " %.% " P(J" * alpha * ")")
-    yaxis <- bquote("P(V" * alpha * "J" * alpha * ")")
+    if(print.size){
+      yaxis <- bquote("P(V" * alpha * "J" * alpha * ") (" * .(sum(countVJ.es)) * ")")
+    } else {
+      yaxis <- bquote("P(V" * alpha * "J" * alpha * ")")
+    }
   }
   if(chain=="TRB"){
     xaxis <- bquote("P(V" * beta * ") " %.% " P(J" * beta * ")")
-    yaxis <- bquote("P(V" * beta * "J" * beta * ")")
+    if(print.size){
+      yaxis <- bquote("P(V" * beta * "J" * beta * ") (" * .(sum(countVJ.es)) * ")")
+    } else {
+      yaxis <- bquote("P(V" * beta * "J" * beta * ")")
+    }  
   }
+  
+  #print(length(which(!is.na(df$label))))
   
   g <- ggplot(df, aes(x=PV_PJ, y=PVJ, label=label)) + 
     geom_point(aes(fill=VJ, shape=as.factor(shape)), size=2, color="black") + 
     geom_abline(col="orange",linetype="dashed",linewidth=1) + theme_bw() + theme(legend.position = "none") +
-    geom_label_repel(aes(label=label, fill=label), size = 3, nudge_y=0.01, box.padding = 0.025,
+    geom_label_repel(aes(label=label, fill=label), size = 2, nudge_y=0.15*max(df$PVJ), box.padding = 0.04,
                      show.legend=F, na.rm=T, color="black") + xlab("baseline") +
     scale_fill_manual(values=colorScale_VJ, guide="none") +
     scale_color_manual(values=colorScale_VJ, guide="none") +
-    scale_shape_manual(values=c(21,24), guide="none") + ylab(yaxis) + xlab(xaxis)
-  
-  
-  
+    scale_shape_manual(values=c(21,24), guide="none") + ylab(yaxis) + xlab(xaxis) +
+    scale_x_continuous(limits = c(0, NA)) + scale_y_continuous(limits = c(0, NA))
+
   return(g)
   
 }

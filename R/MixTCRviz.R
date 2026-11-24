@@ -68,12 +68,19 @@
 #' @param N.min Minimum number of TCRs (i.e., V-J-CDR3) for at least
 #'   one chain. This number is computed after cleaning the data (default=1) .
 #'
-#' @param plotVJ.comb Plot P(VJ) wrt to P(V)P(J)
+#' @param plotVJ.comb Plot P(VJ) wrt to P(V)P(J).
 #'    * FALSE (default): No P(VJ) versus P(V)P(J) plot
 #'    * TRUE: The P(VJ) versus P(V)P(J) are plotted in a separate file. 
 #'    These plots represent enrichment in V-J combinations that are not captured in the "standard" TSPs.
-#'    Triangles indicate combinations with a Bonferroni corrected P-value < 0.05. These are only available when providing counts
-#'    Names of enriched V-J combinations are based on at least 2x enrichment, P(V)xP(J) sufficiently high and significant Bonferroni corrected P-values
+#'    Triangles indicate combinations with a Bonferroni corrected P-value < 0.05 (or raw P-value if correct.VJ.pval==F). These are only available when providing counts
+#'    Names of enriched V-J combinations are based on at least 1.5x enrichment, P(V)P(J) sufficiently high and significant Bonferroni corrected P-values.
+#'    For the alpha chain, it is important to realize that some correlations (i.e., P(VJ) != P(V)P(J)) are expected even in baseline repertoires 
+#'    due to constraints the V-J recombination process.
+#'
+#' @param correct.VJ.pval Use the Bonferroni correction for the P-values (triangles) in the P(VJ) versus P(V)P(J) plots. 
+#' These P-values are computed with Fisher test. They are not computed if input1 is provided as probabilities instead of counts.
+#'    * TRUE (default): a threshold of 0.05/N, where N is the number of test (V-J combinations) in each chain.
+#'    * FALSE: a threshold of 0.05 on the P-values is used
 #'
 #' @param output.stat Print the stats in a file.
 #'    * FALSE (default): Do not print the stats
@@ -159,6 +166,8 @@
 #'
 #' @param label.neg Show the label of V/J genes negatively enriched in input1 (default=FALSE).
 #' If TRUE, show also the labels of the genes most depleted in input1.
+#' 
+#' @param labelVJ.neg Show the label of V-J combinations negatively enriched in P(VJ) versus P(V)P(J) (default=FALSE).
 #'
 #' @param label.diag  Decide to keep some label in the upper right corner, based on label.diag value (default=0.3).
 #'        This can be especially useful when comparing two epitope-specific TCR repertoires.
@@ -229,7 +238,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
                       plot.VJ.switch=1, plot.modelsCombined=FALSE, label.neg=F, label.diag=0.3, plot.sd=T,
                       label.min.fr.input1=0.05, label.min.fr.input2=0.05, remove.incomplete.chain=T, seq.protocol="Default",
                       input1.name="Input", input2.name=NULL, output.format="pdf", infer.VJ=F, infer.CDR3=F,
-                      print.size=T, ZscoreVJ.thresh=0, FoldChangeVJ.thresh=1.25, plotVJ.comb=F){
+                      print.size=T, ZscoreVJ.thresh=0, FoldChangeVJ.thresh=1.25, plotVJ.comb=F, correct.VJ.pval=T, labelVJ.neg=F){
 
 
   #######
@@ -455,7 +464,12 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
     print("Invalid value for label.neg. Default value of FALSE will be used")
     label.neg <- F
   }
-
+  
+  if(!is.logical(labelVJ.neg)){
+    print("Invalid value for labelVJ.neg. Default value of FALSE will be used")
+    labelVJ.neg <- F
+  }
+  
   if(!is.numeric(label.diag) | label.diag<0){
     print("Invalid value for label.diag. Should be a number larger than 0. Default value of 0.3 will be used")
     label.diag <- 0.3
@@ -516,7 +530,6 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
 
   if(!is.logical(print.size)){
     print("Invalid value for print.size. Default value of TRUE will be used")
-    print.size <- T
   }
 
 
@@ -1082,7 +1095,8 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           if(length(es$countV[[ch]])>0 & length(es$countJ[[ch]])>0){
             
             countVJ.plot[[ch]] <- plotVJ_comb(countVJ.es=es$countVJ[[ch]], countV.es=es$countV[[ch]], 
-                        countJ.es=es$countJ[[ch]], chain=ch, species=species, label.neg=label.neg)
+                        countJ.es=es$countJ[[ch]], chain=ch, species=species, 
+                        labelVJ.neg=labelVJ.neg, print.size=print.size, correct.VJ.pval)
             
           } else {
             countVJ.plot[[ch]] <- ggplot()
@@ -1353,7 +1367,7 @@ MixTCRviz <- function(input1, output.path=NULL, input2=NULL, baseline=NULL, chai
           
           if(plotVJ.comb){
             figVJ <- ggarrange(spacer, pgVJ.both, ncol=1, nrow=2, heights=c(spacer.size,1))
-            
+          
             figVJ <- annotate_figure(figVJ, top = text_grob(label=title.final, face = "bold", size = 16))
             
             figVJ <- ggarrange(spacer, figVJ, ncol=1, nrow=2, heights=c(spacer.size,1))
